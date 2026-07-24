@@ -1,0 +1,207 @@
+.launch {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 48px 20px 64px;
+  position: relative;
+  z-index: 2;
+}
+
+.launch-shell {
+  width: min(100%, 560px);
+  border: 1px solid rgba(100, 255, 160, 0.18);
+  border-radius: 6px;
+  background: color-mix(in oklch, var(--surface) 94%, black);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.35),
+    0 28px 64px rgba(0, 0, 0, 0.4),
+    0 0 48px color-mix(in oklch, var(--accent) 8%, transparent);
+  overflow: hidden;
+}
+
+.launch-chrome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(100, 255, 160, 0.12);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.launch-chrome__left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.launch-dots {
+  display: flex;
+  gap: 5px;
+}
+
+.launch-dots i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(100, 255, 160, 0.22);
+  display: block;
+}
+
+.launch-dots i:first-child {
+  background: color-mix(in oklch, var(--accent) 75%, transparent);
+}
+
+.launch-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.launch-status::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px color-mix(in oklch, var(--accent) 60%, transparent);
+}
+
+.launch-body {
+  padding: 28px 22px 24px;
+  display: grid;
+  gap: 18px;
+}
+
+.launch-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.launch-brand p {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.launch-body h1 {
+  font-size: clamp(26px, 5vw, 34px);
+  letter-spacing: -0.03em;
+  line-height: 1.12;
+  margin: 0;
+}
+
+.launch-body .lead {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--muted);
+  max-width: 42ch;
+}
+
+.launch-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.launch-links {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.launch-links a {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+  min-height: 52px;
+  padding: 12px 14px;
+  border-radius: 4px;
+  border: 1px solid rgba(100, 255, 160, 0.12);
+  background: rgba(0, 0, 0, 0.22);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  transition: border-color 0.15s var(--ease), background 0.15s var(--ease), transform 0.15s var(--ease);
+}
+
+.launch-links a:hover {
+  border-color: color-mix(in oklch, var(--accent) 40%, transparent);
+  background: color-mix(in oklch, var(--accent) 8%, transparent);
+}
+
+.launch-links a:active {
+  transform: translateY(1px);
+}
+
+.launch-links .idx {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  min-width: 1.75rem;
+}
+
+.launch-links .name {
+  color: var(--fg);
+}
+
+.launch-links .hint {
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 400;
+}
+
+.launch-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 4px;
+  border-top: 1px solid rgba(100, 255, 160, 0.1);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.launch-foot kbd {
+  font: inherit;
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid rgba(100, 255, 160, 0.18);
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--fg);
+}
+
+@media (max-width: 420px) {
+  .launch-links a {
+    grid-template-columns: auto 1fr;
+  }
+  .launch-links .hint {
+    grid-column: 2;
+    margin-top: -4px;
+  }
+  .launch-foot .hint-keys {
+    display: none;
+  }
+}

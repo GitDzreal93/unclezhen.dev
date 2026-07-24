@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "fileName": "game.html",
+  "entries": [
+    {
+      "id": "8275ce18-0d62-4a3b-809d-da8c32412ee1",
+      "fileName": "game.html",
+      "version": 1,
+      "label": "Version 1",
+      "createdAt": 1784840203096,
+      "source": "ai",
+      "prompt": "https://5-million-devs.netlify.com/ 帮我的个人网站，再增加一个 /game 的菜单，然后做一个轻量一点的小游戏，里面是一个扫地机器人，可以通过上、下、左、右 在一个仿真的房间里面漫游，然后地上会有一些光斑，过去之后，可以分别是我的网站的一些跳转卡片，可以跳转到首页、博客页、项目页、课程页、购物页等等，帮我看看怎么加",
+      "size": 25383,
+      "mime": "text/html; charset=utf-8",
+      "kind": "html",
+      "contentPath": "0001-8275ce18-0d62-4a3b-809d-da8c32412ee1.html",
+      "promptSource": "message"
+    }
+  ]
+}

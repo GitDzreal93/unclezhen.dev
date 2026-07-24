@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>臻叔 · hacker / builder</title>
+  <link rel="stylesheet" href="site.css" />
+  <style>
+    .fx-canvas-wrap {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background: radial-gradient(ellipse 70% 55% at 55% 45%, oklch(18% 0.05 150), transparent 65%), var(--bg);
+    }
+
+    main#main {
+      position: relative;
+      z-index: 2;
+    }
+
+    #fx-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .fx-fallback {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    .fx-fallback img {
+      width: min(42vw, 320px);
+      filter: drop-shadow(0 0 40px rgba(80, 255, 140, 0.25));
+    }
+
+    .fx-fallback.is-hidden { opacity: 0; transition: opacity 0.5s; }
+
+    .fx-vignette {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 55% 50% at 60% 48%, transparent 20%, rgba(0, 0, 0, 0.4) 100%),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.35) 0%, transparent 42%, transparent 70%, rgba(0, 0, 0, 0.25) 100%);
+      pointer-events: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .panel-stack .hero-panel {
+        transition: none;
+      }
+      .scroll-track {
+        height: auto;
+      }
+      .scroll-sticky {
+        position: relative;
+        top: 0;
+        height: auto;
+        min-height: 0;
+      }
+      .panel-stack .hero-panel.is-dim {
+        display: none;
+      }
+      .panel-stack .hero-panel:first-child {
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: none !important;
+        pointer-events: auto !important;
+      }
+    }
+
+    .hud-bar {
+      position: fixed;
+      left: 16px;
+      bottom: 16px;
+      z-index: 20;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    .hud-bar b {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .hud-chip {
+      padding: 6px 10px;
+      border: 1px solid rgba(100, 255, 160, 0.18);
+      background: rgba(0, 12, 6, 0.55);
+      backdrop-filter: blur(8px);
+      border-radius: 4px;
+    }
+
+    .scroll-track {
+      position: relative;
+      z-index: 2;
+      height: 320vh;
+    }
+
+    .scroll-sticky {
+      position: sticky;
+      top: var(--nav-h);
+      height: calc(100vh - var(--nav-h));
+      min-height: 480px;
+      display: flex;
+      align-items: center;
+      overflow: visible;
+    }
+
+    .hero-panel {
+      width: min(100% - 32px, var(--max));
+      margin: 0 auto;
+      display: grid;
+      gap: 20px;
+      max-width: 34rem;
+      padding: 24px 0;
+    }
+
+    @media (min-width: 960px) {
+      .hero-panel {
+        margin-left: max(16px, calc((100% - var(--max)) / 2));
+        margin-right: auto;
+      }
+    }
+
+    .term-window {
+      border: 1px solid rgba(100, 255, 160, 0.2);
+      background: rgba(4, 14, 9, 0.72);
+      backdrop-filter: blur(14px) saturate(1.1);
+      border-radius: 6px;
+      box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.4),
+        0 24px 60px rgba(0, 0, 0, 0.45),
+        0 0 40px rgba(60, 255, 140, 0.06);
+      overflow: hidden;
+    }
+
+    .term-chrome {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(100, 255, 160, 0.12);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .term-dots {
+      display: flex;
+      gap: 5px;
+    }
+
+    .term-dots i {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(100, 255, 160, 0.25);
+      display: block;
+    }
+
+    .term-dots i:first-child { background: color-mix(in oklch, var(--accent) 70%, transparent); }
+
+    .term-body {
+      padding: 22px 20px 24px;
+    }
+
+    .path-line {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.02em;
+      margin-bottom: 14px;
+    }
+
+    .path-line .g { color: var(--accent); }
+
+    .hero-panel h1 {
+      font-size: clamp(28px, 5vw, 44px);
+      line-height: 1.12;
+      letter-spacing: -0.03em;
+      margin-bottom: 14px;
+    }
+
+    .hero-panel h1 .hl {
+      color: var(--accent);
+      text-shadow: 0 0 28px color-mix(in oklch, var(--accent) 35%, transparent);
+    }
+
+    .hero-panel .lead {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.65;
+      color: var(--muted);
+      max-width: 40ch;
+      margin-bottom: 20px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .stat {
+      padding: 10px 8px;
+      border: 1px solid rgba(100, 255, 160, 0.12);
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.25);
+    }
+
+    .stat__n {
+      font-family: var(--font-mono);
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--accent);
+      line-height: 1.1;
+    }
+
+    .stat__l {
+      margin-top: 4px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .scroll-hint {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 16px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .scroll-hint .bar {
+      flex: 1;
+      max-width: 120px;
+      height: 2px;
+      background: rgba(100, 255, 160, 0.12);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .scroll-hint .bar > i {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent);
+      transition: width 0.05s linear;
+    }
+
+    .panel-stack {
+      position: relative;
+      width: 100%;
+      min-height: calc(100vh - var(--nav-h) - 32px);
+      display: grid;
+      align-items: center;
+      pointer-events: none;
+    }
+
+    .panel-stack .hero-panel {
+      grid-area: 1 / 1;
+      pointer-events: auto;
+      transition: opacity 0.35s ease, transform 0.45s var(--ease);
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .panel-stack .hero-panel.is-dim {
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(16px);
+      pointer-events: none;
+    }
+
+    .term-window {
+      background: rgba(4, 18, 12, 0.92) !important;
+    }
+
+    .rest {
+      position: relative;
+      z-index: 2;
+      background: var(--bg);
+      border-top: 1px solid rgba(100, 255, 160, 0.1);
+    }
+
+    .site-footer {
+      position: relative;
+      z-index: 2;
+    }
+
+    .about {
+      padding-top: 80px;
+    }
+
+    .about__grid {
+      display: grid;
+      gap: 28px;
+    }
+
+    @media (min-width: 860px) {
+      .about__grid {
+        grid-template-columns: 1fr 1.2fr;
+        gap: 48px;
+        align-items: start;
+      }
+    }
+
+    .about__text p {
+      color: var(--muted);
+      max-width: 52ch;
+    }
+
+    .about__text p + p { margin-top: 14px; }
+
+    .code-block {
+      margin-top: 20px;
+      padding: 14px 16px;
+      border: 1px solid rgba(100, 255, 160, 0.14);
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.35);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.7;
+      color: var(--muted);
+      overflow-x: auto;
+    }
+
+    .code-block .k { color: var(--accent); }
+    .code-block .s { color: oklch(82% 0.08 100); }
+
+    .skill-list {
+      list-style: none;
+      display: grid;
+      gap: 8px;
+    }
+
+    .skill-list li {
+      display: grid;
+      grid-template-columns: 110px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 11px 12px;
+      border: 1px solid rgba(100, 255, 160, 0.1);
+      border-radius: 4px;
+      background: var(--surface);
+      font-size: 13px;
+      font-family: var(--font-mono);
+    }
+
+    .bar-track {
+      height: 3px;
+      background: rgba(100, 255, 160, 0.1);
+      overflow: hidden;
+    }
+
+    .bar-track > i {
+      display: block;
+      height: 100%;
+      background: var(--accent);
+      box-shadow: 0 0 8px color-mix(in oklch, var(--accent) 50%, transparent);
+    }
+
+    .skill-list .lvl {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+
+    .section-head {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: space-between;
+      align-items: end;
+      margin-bottom: 28px;
+    }
+
+    .module-card {
+      display: grid;
+      gap: 12px;
+      padding: 20px;
+      height: 100%;
+    }
+
+    .module-card__icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 4px;
+      border: 1px solid rgba(100, 255, 160, 0.18);
+      background: rgba(80, 255, 140, 0.05);
+      display: grid;
+      place-items: center;
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .module-card p {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .module-card .link {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 550;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--accent);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .module-card .link svg {
+      width: 14px;
+      height: 14px;
+      transition: transform 0.2s var(--ease);
+    }
+
+    .module-card:hover .link svg { transform: translateX(3px); }
+
+    .cta-band {
+      margin: 0 auto 72px;
+      width: min(100% - 32px, var(--max));
+      border: 1px solid rgba(100, 255, 160, 0.18);
+      border-radius: 6px;
+      background:
+        linear-gradient(135deg, color-mix(in oklch, var(--accent) 8%, transparent), transparent 50%),
+        var(--surface);
+      padding: 32px 28px;
+      display: grid;
+      gap: 20px;
+    }
+
+    @media (min-width: 720px) {
+      .cta-band {
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        padding: 36px 36px;
+      }
+    }
+
+    .cta-band p {
+      color: var(--muted);
+      margin-top: 8px;
+      max-width: 42ch;
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+
+    .site-nav { background: color-mix(in oklch, var(--bg) 88%, transparent); }
+
+    @media (max-width: 720px) {
+      .hud-bar { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">跳到主要内容</a>
+
+  <div class="fx-canvas-wrap" id="fx-wrap" data-od-id="fx-stage" aria-hidden="true">
+    <canvas id="fx-canvas"></canvas>
+    <div class="fx-fallback" data-fallback>
+      <img src="assets/zhen-shu-ip.png" alt="" width="680" height="680" />
+    </div>
+    <div class="fx-vignette"></div>
+  </div>
+
+  <div class="hud-bar" data-od-id="hud">
+    <div class="hud-chip">scroll <b id="hud-scroll">0%</b></div>
+    <div class="hud-chip">fps <b id="hud-fps">—</b></div>
+    <div class="hud-chip">scene <b id="hud-scene">boot</b></div>
+  </div>
+
+  <nav class="site-nav" data-od-id="site-nav" aria-label="主导航">
+    <div class="site-nav__inner">
+      <a class="brand" href="home.html" data-od-id="brand">
+        <span class="brand__mark">></span>
+        <span>zhen_shu</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="home.html" aria-current="page">/home</a></li>
+        <li><a href="blog.html">/blog</a></li>
+        <li><a href="projects.html">/projects</a></li>
+        <li><a href="courses.html">/courses</a></li>
+        <li><a href="shop.html">/shop</a></li>
+      </ul>
+      <a class="nav-cta" href="courses.html" data-od-id="nav-cta">./enroll</a>
+      <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-label="打开菜单">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </nav>
+  <div class="nav-drawer" data-nav-drawer>
+    <ul>
+      <li><a href="home.html">/home</a></li>
+      <li><a href="blog.html">/blog</a></li>
+      <li><a href="projects.html">/projects</a></li>
+      <li><a href="courses.html">/courses</a></li>
+      <li><a href="shop.html">/shop</a></li>
+    </ul>
+    <a class="drawer-cta" href="courses.html">./enroll</a>
+  </div>
+
+  <main id="main">
+    <div class="scroll-track" id="scroll-track" data-od-id="scroll-track">
+      <div class="scroll-sticky">
+        <div class="panel-stack">
+          <div class="hero-panel" id="panel-0" data-od-id="hero-copy">
+            <div class="term-window">
+              <div class="term-chrome">
+                <span class="term-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+                <span>zhen@lab — zsh — 80×24</span>
+              </div>
+              <div class="term-body">
+                <div class="path-line"><span class="g">~/lab</span> <span class="g">❯</span> whoami</div>
+                <h1 data-od-id="hero-title">我是 <span class="hl">臻叔</span><br />hacker · builder · teacher</h1>
+                <p class="lead">把 WebGL / 工程交付 / 内容商业化塞进同一个 monorepo。向下滚动——场景会跟你一起转。</p>
+                <div class="hero-actions">
+                  <a class="btn btn--primary" href="projects.html" data-od-id="cta-projects">ls ./projects</a>
+                  <a class="btn btn--ghost" href="#about" data-od-id="cta-about">cat ./about</a>
+                </div>
+                <div class="stat-row" data-od-id="hero-stats">
+                  <div class="stat">
+                    <div class="stat__n">10+</div>
+                    <div class="stat__l">yrs eng</div>
+                  </div>
+                  <div class="stat">
+                    <div class="stat__n">—</div>
+                    <div class="stat__l">posts · todo</div>
+                  </div>
+                  <div class="stat">
+                    <div class="stat__n">—</div>
+                    <div class="stat__l">courses · todo</div>
+                  </div>
+                </div>
+                <div class="scroll-hint">
+                  <span>scroll to orbit</span>
+                  <span class="bar"><i id="scroll-bar"></i></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-panel is-dim" id="panel-1" data-od-id="hero-mid">
+            <div class="term-window">
+              <div class="term-chrome">
+                <span class="term-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+                <span>runtime · scene_01</span>
+              </div>
+              <div class="term-body">
+                <div class="path-line"><span class="g">~/lab</span> <span class="g">❯</span> ./render --ip --scroll</div>
+                <h1>IP 进场 · 网格拉近</h1>
+                <p class="lead">手绘虚拟形象挂在 Three.js 平面上：线框环、粒子场、地面网格随滚动推进。指针仍可拖转覆盖。</p>
+                <div class="hero-actions">
+                  <a class="btn btn--ghost" href="blog.html">read ./blog</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-panel is-dim" id="panel-2" data-od-id="hero-end">
+            <div class="term-window">
+              <div class="term-chrome">
+                <span class="term-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+                <span>runtime · scene_02</span>
+              </div>
+              <div class="term-body">
+                <div class="path-line"><span class="g">~/lab</span> <span class="g">❯</span> open modules/</div>
+                <h1>四条业务线 · 同一套系统</h1>
+                <p class="lead">blog · projects · courses · shop —— 继续向下进入内容区，或直接 jump。</p>
+                <div class="hero-actions">
+                  <a class="btn btn--primary" href="#modules">cd ./modules</a>
+                  <a class="btn btn--ghost" href="shop.html">cd ./shop</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rest">
+      <section class="section about" id="about" data-od-id="about">
+        <div class="wrap about__grid">
+          <div>
+            <div class="eyebrow">// about</div>
+            <h2 data-od-id="about-title">$ cat README.md</h2>
+          </div>
+          <div class="about__text" data-od-id="about-body">
+            <p>我是臻叔。白天把复杂系统拆成可上线产物，晚上把坑写成教程。界面要有手感——像终端里敲对命令的那一下反馈。</p>
+            <p>这个站是作品集 + 知识库 + 店铺：博客沉淀方法，项目展示交付，课程帮你少走弯路，商店放可买的软件与模板。</p>
+            <div class="code-block" data-od-id="about-code">
+              <div><span class="k">const</span> zhen = {</div>
+              <div>  role: <span class="s">"creative engineer"</span>,</div>
+              <div>  stack: [<span class="s">"TS"</span>, <span class="s">"React"</span>, <span class="s">"WebGL"</span>],</div>
+              <div>  ships: [<span class="s">"product"</span>, <span class="s">"course"</span>, <span class="s">"tool"</span>],</div>
+              <div>};</div>
+            </div>
+            <ul class="skill-list" style="margin-top:20px" data-od-id="skills">
+              <li>
+                <span>frontend</span>
+                <span class="bar-track"><i style="width:92%"></i></span>
+                <span class="lvl">react/ts</span>
+              </li>
+              <li>
+                <span>motion/gl</span>
+                <span class="bar-track"><i style="width:78%"></i></span>
+                <span class="lvl">three/css</span>
+              </li>
+              <li>
+                <span>ship 0→1</span>
+                <span class="bar-track"><i style="width:86%"></i></span>
+                <span class="lvl">product</span>
+              </li>
+              <li>
+                <span>teach</span>
+                <span class="bar-track"><i style="width:80%"></i></span>
+                <span class="lvl">course</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="section modules" id="modules" data-od-id="modules">
+        <div class="wrap">
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">// modules</div>
+              <h2 data-od-id="modules-title">$ ls -la ~/site</h2>
+            </div>
+            <p class="muted" style="max-width:28ch;font-size:13px;font-family:var(--font-mono)">四个入口 · 学习 / 合作 / 购买</p>
+          </div>
+          <div class="grid-2" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
+            <a class="card" href="blog.html" data-od-id="mod-blog">
+              <div class="module-card">
+                <div class="module-card__icon">01</div>
+                <h3>/blog</h3>
+                <p>工程实践、动效拆解、架构笔记。可检索、可按标签过滤。</p>
+                <span class="link">open <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+              </div>
+            </a>
+            <a class="card" href="projects.html" data-od-id="mod-projects">
+              <div class="module-card">
+                <div class="module-card__icon">02</div>
+                <h3>/projects</h3>
+                <p>真实交付与实验场。问题 · 方案 · 技术栈 · 结果。</p>
+                <span class="link">open <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+              </div>
+            </a>
+            <a class="card" href="courses.html" data-od-id="mod-courses">
+              <div class="module-card">
+                <div class="module-card__icon">03</div>
+                <h3>/courses</h3>
+                <p>体系化课程与短训。大纲清晰，适合想快速上手的开发者。</p>
+                <span class="link">open <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+              </div>
+            </a>
+            <a class="card" href="shop.html" data-od-id="mod-shop">
+              <div class="module-card">
+                <div class="module-card__icon">04</div>
+                <h3>/shop</h3>
+                <p>工具、模板与源码包。购物车与演示结算已接好。</p>
+                <span class="link">open <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+              </div>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <div class="cta-band" data-od-id="cta-band">
+        <div>
+          <div class="eyebrow">// contact</div>
+          <h2>ssh collab@zhen</h2>
+          <p>内训 · 原型 · 动效落地 · 顾问。留言后通常 48h 内回复（原型不真实发送）。</p>
+        </div>
+        <button class="btn btn--primary" type="button" data-od-id="cta-contact" onclick="ZhenShu.openModal('contact-modal')">./ping</button>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer" data-od-id="footer">
+    <div class="site-footer__inner">
+      <div class="site-footer__row">
+        <div>
+          <a class="brand" href="home.html"><span class="brand__mark">></span><span>zhen_shu</span></a>
+          <p style="margin-top:12px;font-family:var(--font-mono);font-size:13px">hacker / builder · blog · projects · courses · shop</p>
+        </div>
+        <ul class="footer-links">
+          <li><a href="blog.html">/blog</a></li>
+          <li><a href="projects.html">/projects</a></li>
+          <li><a href="courses.html">/courses</a></li>
+          <li><a href="shop.html">/shop</a></li>
+        </ul>
+      </div>
+      <p class="footer-copy">© zhen_shu · prototype · exit 0</p>
+    </div>
+  </footer>
+
+  <div class="modal-backdrop" id="contact-modal" aria-hidden="true" role="dialog" aria-labelledby="contact-title">
+    <div class="modal">
+      <h3 id="contact-title">./ping</h3>
+      <p>留下联系方式与需求。原型演示，不会真实发送。</p>
+      <form id="contact-form">
+        <div class="field">
+          <label for="c-name">name</label>
+          <input id="c-name" name="name" required placeholder="称呼" autocomplete="name" />
+        </div>
+        <div class="field">
+          <label for="c-mail">contact</label>
+          <input id="c-mail" name="contact" required placeholder="邮箱或微信" />
+        </div>
+        <div class="field">
+          <label for="c-msg">message</label>
+          <textarea id="c-msg" name="msg" placeholder="内训 / 定制 / 课程合作…"></textarea>
+        </div>
+        <div class="modal__actions">
+          <button class="btn btn--ghost btn--sm" type="button" data-close-modal="contact-modal">cancel</button>
+          <button class="btn btn--primary btn--sm" type="submit">send</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="site-nav.js"></script>
+  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+  <script>
+    (function () {
+      var form = document.getElementById("contact-form");
+      if (form) {
+        form.addEventListener("submit", function (e) {
+          e.preventDefault();
+          ZhenShu.closeModal("contact-modal");
+          ZhenShu.toast("ping ok · 原型不发信");
+          form.reset();
+        });
+      }
+
+      var canvas = document.getElementById("fx-canvas");
+      var wrap = document.getElementById("fx-wrap");
+      var track = document.getElementById("scroll-track");
+      var fallback = document.querySelector("[data-fallback]");
+      var panels = [
+        document.getElementById("panel-0"),
+        document.getElementById("panel-1"),
+        document.getElementById("panel-2"),
+      ];
+      var hudScroll = document.getElementById("hud-scroll");
+      var hudFps = document.getElementById("hud-fps");
+      var hudScene = document.getElementById("hud-scene");
+      var scrollBar = document.getElementById("scroll-bar");
+
+      if (!canvas) return;
+      if (!window.THREE) {
+        if (fallback) fallback.style.opacity = "0.55";
+        if (hudScene) hudScene.textContent = "no-webgl";
+        return;
+      }
+
+      var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var renderer, scene, camera, group, ipMesh, ring, ring2, grid, particles, glow;
+      var scrollT = 0;
+      var scrollTarget = 0;
+      var pointer = { x: 0, y: 0, tx: 0, ty: 0, down: false, lx: 0, ly: 0 };
+      var drag = { x: 0, y: 0 };
+      var running = true;
+      var frame = 0;
+      var lastT = performance.now();
+      var fpsAcc = 0;
+      var fpsN = 0;
+
+      function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+      function lerp(a, b, t) { return a + (b - a) * t; }
+      function smoothstep(e0, e1, x) {
+        var t = clamp((x - e0) / (e1 - e0), 0, 1);
+        return t * t * (3 - 2 * t);
+      }
+
+      function readScroll() {
+        if (!track) return 0;
+        var rect = track.getBoundingClientRect();
+        var total = track.offsetHeight - window.innerHeight;
+        if (total <= 0) return 0;
+        var scrolled = -rect.top;
+        return clamp(scrolled / total, 0, 1);
+      }
+
+      function setPanel(p) {
+        var names = ["boot", "orbit", "dock"];
+        if (hudScene) hudScene.textContent = names[p] || "boot";
+        panels.forEach(function (el, i) {
+          if (!el) return;
+          if (i === p) el.classList.remove("is-dim");
+          else el.classList.add("is-dim");
+        });
+      }
+
+      function size() {
+        var w = window.innerWidth;
+        var h = window.innerHeight;
+        renderer.setSize(w, h, false);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+      }
+
+      try {
+        renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        renderer.setClearColor(0x000000, 0);
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(42, 1, 0.1, 80);
+        camera.position.set(0, 0.4, 5.2);
+
+        var amb = new THREE.AmbientLight(0x1a3324, 0.9);
+        scene.add(amb);
+        var key = new THREE.DirectionalLight(0xb8ffd0, 1.2);
+        key.position.set(3, 4, 5);
+        scene.add(key);
+        var fill = new THREE.DirectionalLight(0x3d8f5a, 0.55);
+        fill.position.set(-4, 1, 2);
+        scene.add(fill);
+        var rim = new THREE.PointLight(0x66ff99, 1.4, 12);
+        rim.position.set(0, 1.2, 2.5);
+        scene.add(rim);
+
+        // grid floor
+        grid = new THREE.GridHelper(28, 42, 0x3dff8a, 0x1a3d28);
+        grid.position.y = -1.55;
+        grid.material.transparent = true;
+        grid.material.opacity = 0.45;
+        scene.add(grid);
+
+        // vertical grid wall (faint)
+        var wall = new THREE.GridHelper(18, 24, 0x2a6b44, 0x143322);
+        wall.rotation.x = Math.PI / 2;
+        wall.position.set(0, 2.2, -4.5);
+        wall.material.transparent = true;
+        wall.material.opacity = 0.22;
+        scene.add(wall);
+
+        group = new THREE.Group();
+        group.position.set(0.85, 0.1, 0);
+        scene.add(group);
+
+        // orbit rings
+        var ringGeo = new THREE.TorusGeometry(1.55, 0.012, 8, 96);
+        var ringMat = new THREE.MeshBasicMaterial({ color: 0x55ff99, transparent: true, opacity: 0.55 });
+        ring = new THREE.Mesh(ringGeo, ringMat);
+        ring.rotation.x = Math.PI / 2.4;
+        group.add(ring);
+
+        ring2 = new THREE.Mesh(
+          new THREE.TorusGeometry(1.9, 0.008, 8, 100),
+          new THREE.MeshBasicMaterial({ color: 0x33cc77, transparent: true, opacity: 0.28 })
+        );
+        ring2.rotation.x = Math.PI / 1.7;
+        ring2.rotation.y = 0.4;
+        group.add(ring2);
+
+        // wire box frame
+        var box = new THREE.LineSegments(
+          new THREE.EdgesGeometry(new THREE.BoxGeometry(2.4, 2.8, 0.35)),
+          new THREE.LineBasicMaterial({ color: 0x66ffaa, transparent: true, opacity: 0.35 })
+        );
+        group.add(box);
+
+        // particles
+        var pCount = 160;
+        var pGeo = new THREE.BufferGeometry();
+        var pos = new Float32Array(pCount * 3);
+        var pBase = new Float32Array(pCount * 3);
+        for (var i = 0; i < pCount; i++) {
+          var px = (Math.random() - 0.5) * 14;
+          var py = (Math.random() - 0.5) * 8;
+          var pz = (Math.random() - 0.5) * 10 - 1;
+          pos[i * 3] = px; pos[i * 3 + 1] = py; pos[i * 3 + 2] = pz;
+          pBase[i * 3] = px; pBase[i * 3 + 1] = py; pBase[i * 3 + 2] = pz;
+        }
+        pGeo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+        particles = new THREE.Points(
+          pGeo,
+          new THREE.PointsMaterial({
+            color: 0x7dffb0,
+            size: 0.035,
+            transparent: true,
+            opacity: 0.75,
+            depthWrite: false,
+            sizeAttenuation: true,
+          })
+        );
+        particles.userData.base = pBase;
+        scene.add(particles);
+
+        // soft glow disc behind IP
+        glow = new THREE.Mesh(
+          new THREE.CircleGeometry(1.4, 48),
+          new THREE.MeshBasicMaterial({ color: 0x22ff88, transparent: true, opacity: 0.08 })
+        );
+        glow.position.z = -0.2;
+        group.add(glow);
+
+        var loader = new THREE.TextureLoader();
+        loader.load(
+          "assets/zhen-shu-ip.png",
+          function (tex) {
+            tex.colorSpace = THREE.SRGBColorSpace;
+            var aspect = tex.image.width / tex.image.height;
+            var ih = 2.35;
+            var iw = ih * aspect;
+            ipMesh = new THREE.Mesh(
+              new THREE.PlaneGeometry(iw, ih, 24, 24),
+              new THREE.MeshStandardMaterial({
+                map: tex,
+                transparent: true,
+                roughness: 0.42,
+                metalness: 0.12,
+                side: THREE.DoubleSide,
+                emissive: new THREE.Color(0x0a2a18),
+                emissiveIntensity: 0.25,
+              })
+            );
+            group.add(ipMesh);
+
+            var back = new THREE.Mesh(
+              new THREE.PlaneGeometry(iw * 1.02, ih * 1.02),
+              new THREE.MeshBasicMaterial({ color: 0x06140c, transparent: true, opacity: 0.65, side: THREE.BackSide })
+            );
+            back.position.z = -0.03;
+            group.add(back);
+
+            if (fallback) fallback.classList.add("is-hidden");
+            size();
+            animate();
+          },
+          undefined,
+          function () { size(); animate(); }
+        );
+
+        // pointer on whole window for parallax
+        window.addEventListener("pointermove", function (e) {
+          pointer.tx = (e.clientX / window.innerWidth) * 2 - 1;
+          pointer.ty = -((e.clientY / window.innerHeight) * 2 - 1);
+          if (pointer.down) {
+            drag.y += (e.clientX - pointer.lx) * 0.006;
+            drag.x += (e.clientY - pointer.ly) * 0.004;
+            drag.x = clamp(drag.x, -0.7, 0.7);
+            pointer.lx = e.clientX;
+            pointer.ly = e.clientY;
+          }
+        });
+        window.addEventListener("pointerdown", function (e) {
+          if (e.target.closest("a,button,input,textarea,label,.modal")) return;
+          pointer.down = true;
+          pointer.lx = e.clientX;
+          pointer.ly = e.clientY;
+        });
+        window.addEventListener("pointerup", function () { pointer.down = false; });
+
+        window.addEventListener("scroll", function () {
+          scrollTarget = readScroll();
+        }, { passive: true });
+        window.addEventListener("resize", size);
+        scrollTarget = readScroll();
+
+        function animate() {
+          if (!running) return;
+          frame = requestAnimationFrame(animate);
+          var now = performance.now();
+          var dt = Math.min(0.05, (now - lastT) / 1000);
+          lastT = now;
+          fpsAcc += 1 / Math.max(dt, 0.001);
+          fpsN++;
+          if (fpsN >= 20) {
+            if (hudFps) hudFps.textContent = String(Math.round(fpsAcc / fpsN));
+            fpsAcc = 0; fpsN = 0;
+          }
+
+          scrollTarget = readScroll();
+          scrollT = lerp(scrollT, scrollTarget, reduced ? 1 : 0.08);
+
+          if (hudScroll) hudScroll.textContent = Math.round(scrollT * 100) + "%";
+          if (scrollBar) scrollBar.style.width = Math.round(scrollT * 100) + "%";
+
+          var p = 0;
+          if (scrollT > 0.38) p = 1;
+          if (scrollT > 0.72) p = 2;
+          setPanel(p);
+
+          pointer.x = lerp(pointer.x, pointer.tx, 0.06);
+          pointer.y = lerp(pointer.y, pointer.ty, 0.06);
+
+          // camera dolly + orbit from scroll
+          var camZ = lerp(5.4, 3.1, smoothstep(0, 0.85, scrollT));
+          var camY = lerp(0.45, 0.15, scrollT) + pointer.y * 0.12;
+          var camX = lerp(-0.15, 0.35, scrollT) + pointer.x * 0.2;
+          camera.position.x = lerp(camera.position.x, camX, 0.08);
+          camera.position.y = lerp(camera.position.y, camY, 0.08);
+          camera.position.z = lerp(camera.position.z, camZ, 0.08);
+          camera.lookAt(0.4 + scrollT * 0.3, 0.05, 0);
+
+          // group transform
+          var baseY = -0.35 + scrollT * 1.55 + drag.y;
+          var baseX = 0.05 + scrollT * 0.35 + drag.x * 0.15;
+          var baseZ = scrollT * 0.55;
+          group.rotation.y = baseY + pointer.x * 0.25 + Math.sin(now * 0.0004) * 0.04;
+          group.rotation.x = baseX + pointer.y * 0.12;
+          group.position.x = lerp(1.05, 0.15, smoothstep(0, 1, scrollT));
+          group.position.y = Math.sin(now * 0.0012) * (reduced ? 0 : 0.07) + scrollT * -0.15;
+          group.position.z = baseZ;
+          group.scale.setScalar(lerp(0.92, 1.18, smoothstep(0.1, 0.9, scrollT)));
+
+          if (ring) {
+            ring.rotation.z = now * 0.0007 + scrollT * 2.2;
+            ring.rotation.x = Math.PI / 2.4 + scrollT * 0.5;
+            ring.material.opacity = lerp(0.35, 0.75, scrollT);
+          }
+          if (ring2) {
+            ring2.rotation.z = -now * 0.00045 - scrollT * 1.4;
+            ring2.material.opacity = lerp(0.15, 0.45, scrollT);
+          }
+          if (glow) glow.material.opacity = lerp(0.05, 0.16, scrollT);
+
+          if (grid) {
+            grid.position.z = scrollT * 3.5;
+            grid.material.opacity = lerp(0.25, 0.55, scrollT);
+          }
+
+          if (particles) {
+            particles.rotation.y = now * 0.00015 + scrollT * 0.4;
+            var arr = particles.geometry.attributes.position.array;
+            var base = particles.userData.base;
+            for (var j = 0; j < arr.length; j += 3) {
+              arr[j + 1] = base[j + 1] + Math.sin(now * 0.001 + base[j]) * 0.15;
+              arr[j + 2] = base[j + 2] + scrollT * 1.2;
+            }
+            particles.geometry.attributes.position.needsUpdate = true;
+            particles.material.opacity = lerp(0.4, 0.9, scrollT);
+          }
+
+          // fade canvas slightly when past track into content
+          var restFade = smoothstep(0.92, 1.05, scrollT);
+          if (wrap) wrap.style.opacity = String(1 - restFade * 0.55);
+
+          renderer.render(scene, camera);
+        }
+
+        document.addEventListener("visibilitychange", function () {
+          if (document.hidden) {
+            running = false;
+            cancelAnimationFrame(frame);
+          } else {
+            running = true;
+            lastT = performance.now();
+            animate();
+          }
+        });
+      } catch (err) {
+        // keep fallback
+      }
+    })();
+  </script>
+</body>
+</html>

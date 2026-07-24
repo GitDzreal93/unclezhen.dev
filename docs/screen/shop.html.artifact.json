@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "shop.html",
+  "entry": "shop.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-07-23T20:36:47.687Z",
+  "updatedAt": "2026-07-23T20:36:47.687Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

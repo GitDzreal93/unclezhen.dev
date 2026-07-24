@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>商店 · 臻叔</title>
+  <link rel="stylesheet" href="site.css" />
+  <style>
+    .shop-layout {
+      display: grid;
+      gap: 24px;
+      padding-bottom: 96px;
+    }
+    @media (min-width: 960px) {
+      .shop-layout {
+        grid-template-columns: 1fr 320px;
+        align-items: start;
+      }
+    }
+    .product .ph {
+      aspect-ratio: 16/11;
+      background:
+        radial-gradient(circle at 30% 30%, color-mix(in oklch, var(--accent) 20%, transparent), transparent 55%),
+        var(--surface-2);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      display: grid;
+      place-items: center;
+      position: relative;
+    }
+    .product .ph span {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px dashed rgba(255,255,255,.16);
+    }
+    .cart-panel {
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.1);
+      background: var(--surface);
+      padding: 18px;
+      position: sticky;
+      top: calc(var(--nav-h) + 16px);
+    }
+    .cart-panel h2 {
+      font-size: 18px;
+      margin-bottom: 14px;
+    }
+    .cart-items {
+      display: grid;
+      gap: 10px;
+      min-height: 48px;
+      margin-bottom: 16px;
+    }
+    .cart-item {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      font-size: 14px;
+    }
+    .cart-item .qty {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .cart-item button {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: transparent;
+      color: var(--fg);
+      cursor: pointer;
+    }
+    .cart-total {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 14px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .cart-total strong {
+      font-family: var(--font-display);
+      font-size: 22px;
+      color: var(--fg);
+      letter-spacing: -0.02em;
+    }
+    .cart-empty {
+      color: var(--muted);
+      font-size: 13px;
+      padding: 12px 0;
+    }
+    .fab-cart {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 40;
+      min-height: 48px;
+      padding: 0 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: var(--surface-2);
+      color: var(--fg);
+      font-weight: 550;
+      font-size: 14px;
+      letter-spacing: .02em;
+      box-shadow: 0 12px 32px rgba(0,0,0,.35);
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+    .fab-cart .badge {
+      min-width: 22px;
+      height: 22px;
+      padding: 0 6px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: oklch(16% 0.02 250);
+      font-size: 12px;
+      font-weight: 600;
+      display: grid;
+      place-items: center;
+      font-variant-numeric: tabular-nums;
+    }
+    @media (max-width: 959px) {
+      .cart-panel {
+        position: fixed;
+        inset: auto 12px 12px 12px;
+        z-index: 45;
+        max-height: 70vh;
+        overflow: auto;
+        transform: translateY(120%);
+        transition: transform .35s var(--ease);
+        box-shadow: 0 20px 60px rgba(0,0,0,.5);
+      }
+      .cart-panel.is-open { transform: translateY(0); }
+      .fab-cart { display: inline-flex; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">跳到主要内容</a>
+  <nav class="site-nav" data-od-id="site-nav" aria-label="主导航">
+    <div class="site-nav__inner">
+      <a class="brand" href="home.html"><span class="brand__mark">臻</span><span>臻叔</span></a>
+      <ul class="nav-links">
+        <li><a href="home.html">首页</a></li>
+        <li><a href="blog.html">博客</a></li>
+        <li><a href="projects.html">项目</a></li>
+        <li><a href="courses.html">课程</a></li>
+        <li><a href="shop.html" aria-current="page">商店</a></li>
+      </ul>
+      <a class="nav-cta" href="#products">浏览商品</a>
+      <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-label="打开菜单">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </nav>
+  <div class="nav-drawer" data-nav-drawer>
+    <ul>
+      <li><a href="home.html">首页</a></li>
+      <li><a href="blog.html">博客</a></li>
+      <li><a href="projects.html">项目</a></li>
+      <li><a href="courses.html">课程</a></li>
+      <li><a href="shop.html">商店</a></li>
+    </ul>
+    <a class="drawer-cta" href="#products">浏览商品</a>
+  </div>
+
+  <main id="main">
+    <header class="page-hero wrap" data-od-id="shop-hero">
+      <div class="eyebrow">Shop</div>
+      <h1 data-od-id="shop-title">软件与模板</h1>
+      <p class="lead">可直接购买的源码包、模板与小工具。购物车与结算为可交互原型，不接真实支付。</p>
+      <div class="toolbar">
+        <div class="filters" id="shop-filters" data-od-id="shop-filters"></div>
+      </div>
+    </header>
+
+    <div class="wrap shop-layout" id="products">
+      <div class="grid-2" id="product-grid" data-od-id="product-grid"></div>
+      <aside class="cart-panel" id="cart-panel" data-od-id="cart-panel" aria-label="购物车">
+        <h2>购物车</h2>
+        <div class="cart-items" id="cart-items"></div>
+        <div class="cart-total">
+          <span>合计</span>
+          <strong class="mono" id="cart-total">¥0</strong>
+        </div>
+        <button class="btn btn--primary" type="button" id="checkout-btn" style="width:100%" disabled data-od-id="checkout-btn">去结算</button>
+        <p class="muted" style="margin-top:12px;font-size:12px;line-height:1.5">演示环境：点击结算仅弹出确认，不会产生订单。</p>
+      </aside>
+    </div>
+  </main>
+
+  <button class="fab-cart" type="button" id="fab-cart" data-od-id="fab-cart" aria-label="打开购物车">
+    购物车 <span class="badge" id="fab-count">0</span>
+  </button>
+
+  <footer class="site-footer" data-od-id="footer">
+    <div class="site-footer__inner">
+      <div class="site-footer__row">
+        <div>
+          <a class="brand" href="home.html"><span class="brand__mark">臻</span><span>臻叔</span></a>
+          <p style="margin-top:12px">创意工程师 · 博客 / 项目 / 课程 / 商店</p>
+        </div>
+        <ul class="footer-links">
+          <li><a href="blog.html">博客</a></li>
+          <li><a href="projects.html">项目</a></li>
+          <li><a href="courses.html">课程</a></li>
+          <li><a href="shop.html">商店</a></li>
+        </ul>
+      </div>
+      <p class="footer-copy">© 臻叔 · Prototype</p>
+    </div>
+  </footer>
+
+  <div class="modal-backdrop" id="checkout-modal" aria-hidden="true" role="dialog" aria-labelledby="co-title">
+    <div class="modal">
+      <h3 id="co-title">确认结算</h3>
+      <p id="co-summary">请确认订单信息。</p>
+      <form id="checkout-form">
+        <div class="field">
+          <label for="co-mail">接收下载链接的邮箱</label>
+          <input id="co-mail" type="email" required placeholder="you@example.com" />
+        </div>
+        <div class="modal__actions">
+          <button class="btn btn--ghost btn--sm" type="button" data-close-modal="checkout-modal">再想想</button>
+          <button class="btn btn--primary btn--sm" type="submit">确认下单（演示）</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="site-nav.js"></script>
+  <script>
+    var PRODUCTS = [
+      { id: "tpl-personal", name: "个人站多页模板", cat: "模板", price: 129, desc: "首页 / 博客 / 项目 / 商店结构，含设计令牌。" },
+      { id: "kit-motion", name: "动效组件起步包", cat: "源码", price: 89, desc: "文字与卡片动效示例，带 reduced-motion。" },
+      { id: "tool-md", name: "Markdown 发布小工具", cat: "软件", price: 59, desc: "本地预览 + 导出静态页的桌面小工具示意。" },
+      { id: "tpl-course", name: "课程落地页模板", cat: "模板", price: 79, desc: "大纲、适合谁、价格与报名表单一页打通。" },
+      { id: "src-shop", name: "数字商品商店内核", cat: "源码", price: 199, desc: "购物车状态、筛选与结算弹层的可二开内核。" },
+      { id: "pack-brand", name: "深色品牌起步包", cat: "设计", price: 49, desc: "OKLch 令牌、字体配对与组件状态示意。" }
+    ];
+
+    var cart = {};
+    var active = "全部";
+
+    function cats() {
+      var s = { "全部": 1 };
+      PRODUCTS.forEach(function (p) { s[p.cat] = 1; });
+      return Object.keys(s);
+    }
+
+    function renderFilters() {
+      var el = document.getElementById("shop-filters");
+      el.innerHTML = cats().map(function (t) {
+        return '<button type="button" class="filter-btn' + (t === active ? " is-active" : "") + '" data-cat="' + t + '">' + t + "</button>";
+      }).join("");
+      el.querySelectorAll("[data-cat]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          active = btn.getAttribute("data-cat");
+          renderFilters();
+          renderProducts();
+        });
+      });
+    }
+
+    function renderProducts() {
+      var list = PRODUCTS.filter(function (p) { return active === "全部" || p.cat === active; });
+      var grid = document.getElementById("product-grid");
+      grid.innerHTML = list.map(function (p) {
+        return (
+          '<article class="card product" data-od-id="product-' + p.id + '">' +
+          '<div class="ph"><span>' + p.cat + "</span></div>" +
+          '<div class="card__body">' +
+          '<div class="card__meta"><span class="tag">' + p.cat + "</span></div>" +
+          "<h3>" + p.name + "</h3>" +
+          "<p class='muted' style='font-size:14px'>" + p.desc + "</p>" +
+          '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:4px">' +
+          '<div class="price">¥' + p.price + "</div>" +
+          '<button type="button" class="btn btn--primary btn--sm" data-add="' + p.id + '">加入购物车</button>' +
+          "</div></div></article>"
+        );
+      }).join("");
+      grid.querySelectorAll("[data-add]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          add(btn.getAttribute("data-add"));
+          ZhenShu.toast("已加入购物车");
+        });
+      });
+    }
+
+    function add(id) {
+      cart[id] = (cart[id] || 0) + 1;
+      renderCart();
+    }
+
+    function setQty(id, n) {
+      if (n <= 0) delete cart[id];
+      else cart[id] = n;
+      renderCart();
+    }
+
+    function totals() {
+      var count = 0, sum = 0;
+      Object.keys(cart).forEach(function (id) {
+        var p = PRODUCTS.find(function (x) { return x.id === id; });
+        if (!p) return;
+        count += cart[id];
+        sum += cart[id] * p.price;
+      });
+      return { count: count, sum: sum };
+    }
+
+    function renderCart() {
+      var root = document.getElementById("cart-items");
+      var ids = Object.keys(cart);
+      var t = totals();
+      document.getElementById("cart-total").textContent = "¥" + t.sum;
+      document.getElementById("fab-count").textContent = String(t.count);
+      document.getElementById("checkout-btn").disabled = t.count === 0;
+
+      if (!ids.length) {
+        root.innerHTML = '<p class="cart-empty">购物车是空的，挑一件模板或源码吧。</p>';
+        return;
+      }
+      root.innerHTML = ids.map(function (id) {
+        var p = PRODUCTS.find(function (x) { return x.id === id; });
+        return (
+          '<div class="cart-item">' +
+          "<div>" + p.name + '<div class="muted mono" style="font-size:12px">¥' + p.price + "</div></div>" +
+          '<div class="qty">' +
+          '<button type="button" data-dec="' + id + '" aria-label="减少">−</button>' +
+          "<span class='mono'>" + cart[id] + "</span>" +
+          '<button type="button" data-inc="' + id + '" aria-label="增加">+</button>' +
+          "</div>" +
+          '<button type="button" data-rm="' + id + '" aria-label="移除" style="border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:12px">移除</button>' +
+          "</div>"
+        );
+      }).join("");
+      root.querySelectorAll("[data-inc]").forEach(function (b) {
+        b.addEventListener("click", function () { setQty(b.getAttribute("data-inc"), cart[b.getAttribute("data-inc")] + 1); });
+      });
+      root.querySelectorAll("[data-dec]").forEach(function (b) {
+        b.addEventListener("click", function () { setQty(b.getAttribute("data-dec"), cart[b.getAttribute("data-dec")] - 1); });
+      });
+      root.querySelectorAll("[data-rm]").forEach(function (b) {
+        b.addEventListener("click", function () { setQty(b.getAttribute("data-rm"), 0); });
+      });
+    }
+
+    document.getElementById("checkout-btn").addEventListener("click", function () {
+      var t = totals();
+      if (!t.count) return;
+      document.getElementById("co-summary").textContent =
+        "共 " + t.count + " 件，合计 ¥" + t.sum + "。此为演示下单。";
+      ZhenShu.openModal("checkout-modal");
+    });
+
+    document.getElementById("checkout-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      cart = {};
+      renderCart();
+      ZhenShu.closeModal("checkout-modal");
+      ZhenShu.toast("下单成功（演示）");
+      e.target.reset();
+    });
+
+    document.getElementById("fab-cart").addEventListener("click", function () {
+      document.getElementById("cart-panel").classList.toggle("is-open");
+    });
+
+    renderFilters();
+    renderProducts();
+    renderCart();
+  </script>
+</body>
+</html>

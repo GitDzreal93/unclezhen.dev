@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "game.html",
+  "entry": "game.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-07-23T20:55:12.367Z",
+  "updatedAt": "2026-07-23T20:55:12.367Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}
