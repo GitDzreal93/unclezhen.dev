@@ -197,7 +197,7 @@ export default function HomePage() {
                     <span className="link">open <ArrowIcon /></span>
                   </div>
                 </Link>
-                <Link className="card" href="/game">
+                <Link className="card" href="/">
                   <div className="module-card">
                     <div className="module-card__icon">05</div>
                     <h3>/game</h3>

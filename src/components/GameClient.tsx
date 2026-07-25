@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import "./game.css";
 
 type Portal = {
   id: string;
@@ -14,8 +15,20 @@ type Portal = {
   hue: number;
 };
 
-export default function GameClient() {
+export default function GameClient({
+  embedded = false,
+  onActiveChange,
+  onFoundChange,
+}: {
+  embedded?: boolean;
+  onActiveChange?: (id: string | null) => void;
+  onFoundChange?: (ids: string[]) => void;
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const activeCb = useRef(onActiveChange);
+  const foundCb = useRef(onFoundChange);
+  activeCb.current = onActiveChange;
+  foundCb.current = onFoundChange;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -28,26 +41,26 @@ export default function GameClient() {
     const room = { x: wall, y: wall, w: W - wall * 2, h: H - wall * 2 };
 
     const obstacles = [
-      { x: 80, y: 70, w: 160, h: 70, label: "沙发" },
-      { x: 700, y: 90, w: 140, h: 90, label: "书桌" },
-      { x: 720, y: 200, w: 90, h: 50, label: "椅" },
-      { x: 120, y: 420, w: 200, h: 80, label: "床" },
-      { x: 420, y: 300, w: 90, h: 90, label: "茶几" },
-      { x: 560, y: 480, w: 180, h: 55, label: "电视柜" },
-      { x: 300, y: 120, w: 50, h: 160, label: "书架" },
+      { x: 90, y: 64, w: 180, h: 64, label: "沙发" },
+      { x: 788, y: 82, w: 158, h: 82, label: "书桌" },
+      { x: 810, y: 182, w: 101, h: 45, label: "椅" },
+      { x: 135, y: 382, w: 225, h: 73, label: "床" },
+      { x: 473, y: 273, w: 101, h: 82, label: "茶几" },
+      { x: 630, y: 436, w: 203, h: 50, label: "电视柜" },
+      { x: 338, y: 109, w: 56, h: 145, label: "书架" },
     ];
 
     const portals: Portal[] = [
-      { id: "home", name: "/home", href: "/home", desc: "3D IP 首页 · 认识臻叔", x: 220, y: 220, r: 22, found: false, hue: 145 },
-      { id: "blog", name: "/blog", href: "/blog", desc: "技术博客 · 工程笔记", x: 520, y: 160, r: 22, found: false, hue: 160 },
-      { id: "projects", name: "/projects", href: "/projects", desc: "项目展示 · 交付与实验", x: 780, y: 360, r: 22, found: false, hue: 130 },
-      { id: "courses", name: "/courses", href: "/courses", desc: "课程售卖 · 体系化短训", x: 360, y: 500, r: 22, found: false, hue: 100 },
-      { id: "shop", name: "/shop", href: "/shop", desc: "软件商店 · 模板与源码", x: 640, y: 280, r: 22, found: false, hue: 175 },
+      { id: "home", name: "/home", href: "/home", desc: "3D IP 首页 · 认识臻叔", x: 248, y: 200, r: 22, found: false, hue: 145 },
+      { id: "blog", name: "/blog", href: "/blog", desc: "技术博客 · 工程笔记", x: 585, y: 145, r: 22, found: false, hue: 160 },
+      { id: "projects", name: "/projects", href: "/projects", desc: "项目展示 · 交付与实验", x: 878, y: 327, r: 22, found: false, hue: 130 },
+      { id: "courses", name: "/courses", href: "/courses", desc: "课程售卖 · 体系化短训", x: 405, y: 455, r: 22, found: false, hue: 100 },
+      { id: "shop", name: "/shop", href: "/shop", desc: "软件商店 · 模板与源码", x: 720, y: 255, r: 22, found: false, hue: 175 },
     ];
 
     const bot = {
       x: room.x + room.w * 0.5,
-      y: room.y + room.h * 0.55,
+      y: room.y + room.h * 0.66,
       r: 18,
       angle: 0,
       speed: 0,
@@ -63,6 +76,7 @@ export default function GameClient() {
     let toastTimer: ReturnType<typeof setTimeout> | null = null;
     let battery = 100;
     let raf = 0;
+    let activeId: string | null = null;
 
     for (let i = 0; i < 90; i++) {
       dust.push({
@@ -108,9 +122,9 @@ export default function GameClient() {
       const d = keyMap[e.key];
       if (!d) return;
       const t = e.target as HTMLElement | null;
-      if (t && /INPUT|TEXTAREA|SELECT|BUTTON|A/.test(t.tagName) && t.closest(".dpad") === null) {
-        if (t.tagName !== "BODY" && t.getAttribute("tabindex") !== "-1") return;
-      }
+      // Don't hijack keys while typing in a form field.
+      if (t && /INPUT|TEXTAREA|SELECT/.test(t.tagName)) return;
+      // Otherwise the arrows/WASD drive the bot only — never scroll the page.
       e.preventDefault();
       setKey(d, true);
     }
@@ -227,8 +241,25 @@ export default function GameClient() {
           p.found = true;
           renderFoundList();
           showPortal(p);
+          foundCb.current?.(portals.filter((q) => q.found).map((q) => q.id));
         }
       });
+
+      // Active node: whichever portal the bot is hovering near, for mutual
+      // highlight with the left-hand category list.
+      let near: string | null = null;
+      let nearDist = Infinity;
+      portals.forEach((p) => {
+        const d2 = Math.hypot(p.x - bot.x, p.y - bot.y);
+        if (d2 < p.r + bot.r + 26 && d2 < nearDist) {
+          nearDist = d2;
+          near = p.id;
+        }
+      });
+      if (near !== activeId) {
+        activeId = near;
+        activeCb.current?.(activeId);
+      }
 
       const sb = document.getElementById("stat-bat");
       const sm = document.getElementById("stat-mode");
@@ -264,7 +295,7 @@ export default function GameClient() {
         ctx.stroke();
       }
       ctx.fillStyle = "rgba(40,90,60,0.25)";
-      roundRect(ctx, 380, 250, 200, 140, 12);
+      roundRect(ctx, 428, 227, 225, 127, 12);
       ctx.fill();
       ctx.strokeStyle = "rgba(100,255,160,0.12)";
       ctx.stroke();
@@ -330,6 +361,15 @@ export default function GameClient() {
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r * 2.1 * pulse, 0, Math.PI * 2);
         ctx.fill();
+
+        // Active highlight ring — echoes the left-hand category list.
+        if (p.id === activeId) {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r * 1.35, 0, Math.PI * 2);
+          ctx.strokeStyle = "rgba(140,255,190,0.95)";
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+        }
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r * 0.55, 0, Math.PI * 2);
@@ -457,29 +497,38 @@ export default function GameClient() {
   }, []);
 
   return (
-    <div className="game-page" id="game-main">
-      <header className="game-hero">
-        <div>
-          <div className="eyebrow">// game</div>
-          <h1>扫地机器人 · 房间漫游</h1>
-          <p className="lead">
-            在仿真房间里扫光斑。每个光斑是一张站点传送卡——扫过即可跳转首页、博客、项目、课程或商店。
-          </p>
-        </div>
-        <div className="hud-stats" aria-live="polite">
-          <span>found <b id="stat-found">0</b>/<b id="stat-total">5</b></span>
-          <span>battery <b id="stat-bat">100%</b></span>
-          <span>mode <b id="stat-mode">idle</b></span>
-        </div>
-      </header>
+    <div className={embedded ? "game-page game-page--embed" : "game-page"} id="game-main">
+      {!embedded && (
+        <header className="game-hero">
+          <div>
+            <div className="eyebrow">// game</div>
+            <h1>扫地机器人 · 房间漫游</h1>
+            <p className="lead">
+              在仿真房间里扫光斑。每个光斑是一张站点传送卡——扫过即可跳转首页、博客、项目、课程或商店。
+            </p>
+          </div>
+          <div className="hud-stats" aria-live="polite">
+            <span>found <b id="stat-found">0</b>/<b id="stat-total">5</b></span>
+            <span>battery <b id="stat-bat">100%</b></span>
+            <span>mode <b id="stat-mode">idle</b></span>
+          </div>
+        </header>
+      )}
 
       <div className="game-stage-wrap">
+        {embedded && (
+          <div className="hud-stats hud-stats--embed" aria-live="polite">
+            <span>found <b id="stat-found">0</b>/<b id="stat-total">5</b></span>
+            <span>battery <b id="stat-bat">100%</b></span>
+            <span>mode <b id="stat-mode">idle</b></span>
+          </div>
+        )}
         <div className="stage-frame">
           <canvas
             id="room"
             ref={canvasRef}
-            width={960}
-            height={660}
+            width={1080}
+            height={600}
             role="img"
             aria-label="俯视房间：用方向键移动扫地机器人清扫光斑"
           ></canvas>
@@ -491,12 +540,8 @@ export default function GameClient() {
               <a id="toast-link" href="/home">前往</a>
             </div>
           </div>
-        </div>
 
-        <div className="controls-bar">
-          <div className="key-hint">
-            键盘 <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 或 <kbd>WASD</kbd> · 触屏用下方方向键
-          </div>
+          {/* D-pad overlays the room map itself — semi-transparent, lights up on press. */}
           <div className="dpad" aria-label="虚拟方向键">
             <span className="spacer"></span>
             <button type="button" className="u" data-dir="up" aria-label="上">▲</button>
@@ -507,7 +552,11 @@ export default function GameClient() {
           </div>
         </div>
 
-        <div className="found-list" id="found-list" aria-label="已发现传送点"></div>
+        <p className="game-hint">
+          方向键 <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> / <kbd>WASD</kbd> 或点击地图内方向键，控制扫地机器人上下左右移动
+        </p>
+
+        {!embedded && <div className="found-list" id="found-list" aria-label="已发现传送点"></div>}
         <p className="sr-live" id="sr-live" aria-live="polite"></p>
       </div>
     </div>

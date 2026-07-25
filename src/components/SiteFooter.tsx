@@ -19,7 +19,7 @@ export default function SiteFooter() {
             <li><Link href="/projects">/projects</Link></li>
             <li><Link href="/courses">/courses</Link></li>
             <li><Link href="/shop">/shop</Link></li>
-            <li><Link href="/game">/game</Link></li>
+            <li><Link href="/">/game</Link></li>
           </ul>
         </div>
         <p className="footer-copy">© zhen_shu · prototype · exit 0</p>

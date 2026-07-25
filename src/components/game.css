@@ -69,7 +69,7 @@
     #0a120e;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
   overflow: hidden;
-  aspect-ratio: 16 / 11;
+  aspect-ratio: 1080 / 600;
   max-height: min(68vh, 620px);
 }
 
@@ -77,6 +77,7 @@
   display: block;
   width: 100%;
   height: 100%;
+  object-fit: contain;
   touch-action: none;
   cursor: crosshair;
 }
@@ -139,6 +140,26 @@
   text-transform: uppercase;
 }
 
+/* Green hint line beneath the room map. */
+.game-hint {
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  color: var(--accent);
+}
+
+.game-hint kbd {
+  font: inherit;
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid color-mix(in oklch, var(--accent) 32%, transparent);
+  background: color-mix(in oklch, var(--accent) 10%, transparent);
+  color: var(--accent);
+  margin: 0 2px;
+}
+
 .controls-bar {
   display: flex;
   flex-wrap: wrap;
@@ -152,9 +173,20 @@
 
 .dpad {
   display: grid;
-  grid-template-columns: repeat(3, 48px);
-  grid-template-rows: repeat(3, 48px);
+  grid-template-columns: repeat(3, 40px);
+  grid-template-rows: repeat(3, 40px);
   gap: 4px;
+}
+
+/* When rendered inside the room map: floating overlay, bottom-right, semi-transparent. */
+.stage-frame .dpad {
+  position: absolute;
+  right: 36px;
+  bottom: 18px;
+  z-index: 5;
+  grid-template-columns: repeat(3, 36px);
+  grid-template-rows: repeat(3, 36px);
+  gap: 3px;
 }
 
 .dpad button {
@@ -163,9 +195,20 @@
   background: var(--surface);
   color: var(--fg);
   font-family: var(--font-mono);
-  font-size: 16px;
+  font-size: 14px;
   cursor: pointer;
-  min-height: 48px;
+  min-height: 38px;
+}
+
+/* Overlay buttons: translucent so the map reads through, brighten on press. */
+.stage-frame .dpad button {
+  min-height: 0;
+  background: rgba(10, 22, 16, 0.42);
+  border-color: rgba(100, 255, 160, 0.22);
+  color: rgba(180, 235, 200, 0.7);
+  backdrop-filter: blur(3px);
+  transition: background 0.12s var(--ease), border-color 0.12s var(--ease),
+    color 0.12s var(--ease), box-shadow 0.12s var(--ease);
 }
 
 .dpad button:active,
@@ -173,6 +216,14 @@
   background: color-mix(in oklch, var(--accent) 18%, transparent);
   border-color: color-mix(in oklch, var(--accent) 50%, transparent);
   color: var(--accent);
+}
+
+.stage-frame .dpad button:active,
+.stage-frame .dpad button.is-on {
+  background: color-mix(in oklch, var(--accent) 30%, transparent);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 14px color-mix(in oklch, var(--accent) 40%, transparent);
 }
 
 .dpad .u { grid-column: 2; grid-row: 1; }
