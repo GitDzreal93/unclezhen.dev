@@ -1,0 +1,126 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import type { Card } from "@/lib/data";
+import { addCards, deleteCard } from "@/lib/admin";
+
+export default function CardsManager({
+  products,
+  selected,
+  cards,
+}: {
+  products: { id: string; name: string }[];
+  selected: string;
+  cards: Card[];
+}) {
+  const router = useRouter();
+  const [bulk, setBulk] = useState("");
+  const [error, setError] = useState("");
+  const [pending, startTransition] = useTransition();
+
+  const unused = cards.filter((c) => c.status === "unused").length;
+  const sold = cards.length - unused;
+
+  function switchProduct(id: string) {
+    router.push(`/admin/cards?p=${encodeURIComponent(id)}`);
+  }
+
+  function onAdd(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError("");
+    const fd = new FormData();
+    fd.set("productId", selected);
+    fd.set("cards", bulk);
+    startTransition(async () => {
+      try {
+        await addCards(fd);
+        setBulk("");
+        router.refresh();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "导入失败");
+      }
+    });
+  }
+
+  function remove(id: number) {
+    if (!window.confirm("删除这条未售卡密？")) return;
+    startTransition(async () => {
+      await deleteCard(id);
+      router.refresh();
+    });
+  }
+
+  return (
+    <>
+      <div className="field" style={{ maxWidth: 360 }}>
+        <label htmlFor="prod">选择商品</label>
+        <select id="prod" value={selected} onChange={(e) => switchProduct(e.target.value)}>
+          {products.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <p className="hint" style={{ margin: "8px 0 16px", color: "var(--muted)" }}>
+        未售 <strong style={{ color: "var(--accent)" }}>{unused}</strong> · 已售 {sold} · 共 {cards.length}
+      </p>
+
+      <form className="md-import" onSubmit={onAdd}>
+        <label htmlFor="bulk">批量导入（每行一条卡密 / 链接）</label>
+        <textarea
+          id="bulk"
+          value={bulk}
+          onChange={(e) => setBulk(e.target.value)}
+          placeholder={"CARD-AAAA-1111\nCARD-BBBB-2222\nhttps://pan.example.com/x 提取码 abcd"}
+          style={{ minHeight: 120, fontFamily: "var(--mono, monospace)" }}
+        />
+        {error && <p className="admin-login__err">{error}</p>}
+        <div>
+          <button className="btn btn--primary btn--sm" type="submit" disabled={pending}>
+            {pending ? "导入中…" : "导入卡密"}
+          </button>
+        </div>
+      </form>
+
+      {cards.length === 0 ? (
+        <div className="admin-empty">这个商品还没有卡密。</div>
+      ) : (
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>内容</th>
+              <th>状态</th>
+              <th>订单</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {cards.map((c) => (
+              <tr key={c.id}>
+                <td className="mono">{c.id}</td>
+                <td className="mono">{c.content}</td>
+                <td>
+                  <span className={`admin-pill${c.status === "unused" ? " admin-pill--ok" : ""}`}>
+                    {c.status === "unused" ? "未售" : "已售"}
+                  </span>
+                </td>
+                <td className="mono">{c.orderId ?? "—"}</td>
+                <td>
+                  {c.status === "unused" && (
+                    <button className="admin-danger" type="button" onClick={() => remove(c.id)} disabled={pending}>
+                      删除
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </>
+  );
+}
