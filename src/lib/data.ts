@@ -6,7 +6,7 @@ export type Post = {
   date: string;
   tags: string[];
   excerpt: string;
-  body: string;
+  body: string; // Markdown 源文
 };
 
 export type Project = {
@@ -22,17 +22,7 @@ export type Project = {
   role: string;
 };
 
-export type Course = {
-  id: string;
-  title: string;
-  level: string;
-  hours: string;
-  price: number;
-  audience: string;
-  outcome: string;
-  outline: string[];
-  tag: string;
-};
+export type DeliveryMode = "fixed" | "card";
 
 export type Product = {
   id: string;
@@ -40,6 +30,36 @@ export type Product = {
   cat: string;
   price: number;
   descr: string;
+  deliveryMode: DeliveryMode;
+  fixedContent: string; // fixed 模式发货内容
+  stock: number; // -1 = 无限；card 模式由未售卡密数覆盖
+};
+
+export type Card = {
+  id: number;
+  productId: string;
+  content: string;
+  status: "unused" | "sold";
+  orderId: number | null;
+  createdAt: string;
+};
+
+export type OrderStatus = "pending" | "paid";
+
+export type Order = {
+  id: number;
+  outTradeNo: string;
+  email: string;
+  productId: string;
+  productName: string;
+  qty: number;
+  amount: number;
+  status: OrderStatus;
+  tradeNo: string;
+  payType: string;
+  deliveredContent: string;
+  createdAt: string;
+  paidAt: string | null;
 };
 
 // Format a Date/string as YYYY-MM-DD in a stable way.
@@ -53,6 +73,8 @@ function fmtDate(d: unknown): string {
   return String(d ?? "");
 }
 
+// ---- Posts ----
+
 export async function getPosts(): Promise<Post[]> {
   const rows = await query<any>(
     "SELECT id,title,date,tags,excerpt,body FROM posts ORDER BY date DESC, sort ASC"
@@ -60,20 +82,138 @@ export async function getPosts(): Promise<Post[]> {
   return rows.map((r) => ({ ...r, date: fmtDate(r.date) }));
 }
 
+export async function getPost(id: string): Promise<Post | null> {
+  const rows = await query<any>(
+    "SELECT id,title,date,tags,excerpt,body FROM posts WHERE id=$1",
+    [id]
+  );
+  if (rows.length === 0) return null;
+  return { ...rows[0], date: fmtDate(rows[0].date) };
+}
+
+// ---- Projects ----
+
 export async function getProjects(): Promise<Project[]> {
   return query<Project>(
     "SELECT id,name,type,year,blurb,problem,solution,result,stack,role FROM projects ORDER BY sort ASC"
   );
 }
 
-export async function getCourses(): Promise<Course[]> {
-  return query<Course>(
-    "SELECT id,title,level,hours,price,audience,outcome,outline,tag FROM courses ORDER BY sort ASC"
+export async function getProject(id: string): Promise<Project | null> {
+  const rows = await query<Project>(
+    "SELECT id,name,type,year,blurb,problem,solution,result,stack,role FROM projects WHERE id=$1",
+    [id]
   );
+  return rows[0] ?? null;
+}
+
+// ---- Products ----
+
+// Map a raw products row (snake_case) to the Product type. For card-mode
+// products, stock reflects the count of unused cards rather than the column.
+function mapProduct(r: any): Product {
+  return {
+    id: r.id,
+    name: r.name,
+    cat: r.cat,
+    price: r.price,
+    descr: r.descr,
+    deliveryMode: r.delivery_mode,
+    fixedContent: r.fixed_content ?? "",
+    stock: r.stock,
+  };
 }
 
 export async function getProducts(): Promise<Product[]> {
-  return query<Product>(
-    "SELECT id,name,cat,price,descr FROM products ORDER BY sort ASC"
+  // For card-mode products, override stock with the live unused-card count so
+  // the storefront and admin always see real availability.
+  const rows = await query<any>(
+    `SELECT p.id,p.name,p.cat,p.price,p.descr,p.delivery_mode,p.fixed_content,
+            CASE WHEN p.delivery_mode = 'card'
+                 THEN COALESCE(c.unused, 0)
+                 ELSE p.stock END AS stock
+       FROM products p
+       LEFT JOIN (
+         SELECT product_id, COUNT(*)::int AS unused
+           FROM cards WHERE status = 'unused' GROUP BY product_id
+       ) c ON c.product_id = p.id
+      ORDER BY p.sort ASC`
   );
+  return rows.map(mapProduct);
+}
+
+export async function getProduct(id: string): Promise<Product | null> {
+  const rows = await query<any>(
+    `SELECT p.id,p.name,p.cat,p.price,p.descr,p.delivery_mode,p.fixed_content,
+            CASE WHEN p.delivery_mode = 'card'
+                 THEN COALESCE(c.unused, 0)
+                 ELSE p.stock END AS stock
+       FROM products p
+       LEFT JOIN (
+         SELECT product_id, COUNT(*)::int AS unused
+           FROM cards WHERE status = 'unused' GROUP BY product_id
+       ) c ON c.product_id = p.id
+      WHERE p.id = $1`,
+    [id]
+  );
+  if (rows.length === 0) return null;
+  return mapProduct(rows[0]);
+}
+
+// ---- Cards ----
+
+export async function getCards(productId: string): Promise<Card[]> {
+  const rows = await query<any>(
+    "SELECT id,product_id,content,status,order_id,created_at FROM cards WHERE product_id=$1 ORDER BY id DESC",
+    [productId]
+  );
+  return rows.map((r) => ({
+    id: r.id,
+    productId: r.product_id,
+    content: r.content,
+    status: r.status,
+    orderId: r.order_id,
+    createdAt: fmtDate(r.created_at),
+  }));
+}
+
+// ---- Orders ----
+
+function mapOrder(r: any): Order {
+  return {
+    id: r.id,
+    outTradeNo: r.out_trade_no,
+    email: r.email,
+    productId: r.product_id,
+    productName: r.product_name,
+    qty: r.qty,
+    amount: r.amount,
+    status: r.status,
+    tradeNo: r.trade_no ?? "",
+    payType: r.pay_type ?? "",
+    deliveredContent: r.delivered_content ?? "",
+    createdAt: String(r.created_at ?? ""),
+    paidAt: r.paid_at ? String(r.paid_at) : null,
+  };
+}
+
+export async function getOrders(): Promise<Order[]> {
+  const rows = await query<any>(
+    `SELECT id,out_trade_no,email,product_id,product_name,qty,amount,status,
+            trade_no,pay_type,delivered_content,created_at,paid_at
+       FROM orders ORDER BY id DESC`
+  );
+  return rows.map(mapOrder);
+}
+
+export async function getOrderByOutTradeNo(
+  outTradeNo: string
+): Promise<Order | null> {
+  const rows = await query<any>(
+    `SELECT id,out_trade_no,email,product_id,product_name,qty,amount,status,
+            trade_no,pay_type,delivered_content,created_at,paid_at
+       FROM orders WHERE out_trade_no=$1`,
+    [outTradeNo]
+  );
+  return rows.length ? mapOrder(rows[0]) : null;
 }

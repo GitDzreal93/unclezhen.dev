@@ -1,6 +1,7 @@
 // Creates schema and seeds it from the prototype data.
 // Run with: node scripts/setup-db.mjs
 import pg from "pg";
+import TurndownService from "turndown";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -23,6 +24,13 @@ loadEnv();
 const { Pool } = pg;
 const pool = new Pool({ connectionString: process.env.POSTGRES_DSN });
 
+const turndown = new TurndownService({
+  headingStyle: "atx",
+  codeBlockStyle: "fenced",
+});
+
+// Base tables (idempotent). Column additions and drops that migrate an existing
+// database happen in MIGRATIONS below.
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS posts (
   id           text PRIMARY KEY,
@@ -48,19 +56,6 @@ CREATE TABLE IF NOT EXISTS projects (
   sort      int  NOT NULL DEFAULT 0
 );
 
-CREATE TABLE IF NOT EXISTS courses (
-  id        text PRIMARY KEY,
-  title     text NOT NULL,
-  level     text NOT NULL,
-  hours     text NOT NULL,
-  price     int  NOT NULL,
-  audience  text NOT NULL DEFAULT '',
-  outcome   text NOT NULL DEFAULT '',
-  outline   text[] NOT NULL DEFAULT '{}',
-  tag       text NOT NULL DEFAULT '',
-  sort      int  NOT NULL DEFAULT 0
-);
-
 CREATE TABLE IF NOT EXISTS products (
   id     text PRIMARY KEY,
   name   text NOT NULL,
@@ -70,23 +65,15 @@ CREATE TABLE IF NOT EXISTS products (
   sort   int  NOT NULL DEFAULT 0
 );
 
-CREATE TABLE IF NOT EXISTS contacts (
-  id         serial PRIMARY KEY,
-  name       text NOT NULL,
-  contact    text NOT NULL,
-  message    text NOT NULL DEFAULT '',
-  created_at timestamptz NOT NULL DEFAULT now()
+CREATE TABLE IF NOT EXISTS cards (
+  id          serial PRIMARY KEY,
+  product_id  text NOT NULL,
+  content     text NOT NULL,
+  status      text NOT NULL DEFAULT 'unused',
+  order_id    int,
+  created_at  timestamptz NOT NULL DEFAULT now()
 );
-
-CREATE TABLE IF NOT EXISTS enrollments (
-  id         serial PRIMARY KEY,
-  course_id  text,
-  course     text NOT NULL,
-  name       text NOT NULL,
-  contact    text NOT NULL,
-  note       text NOT NULL DEFAULT '',
-  created_at timestamptz NOT NULL DEFAULT now()
-);
+CREATE INDEX IF NOT EXISTS cards_product_status_idx ON cards (product_id, status);
 
 CREATE TABLE IF NOT EXISTS orders (
   id         serial PRIMARY KEY,
@@ -95,15 +82,50 @@ CREATE TABLE IF NOT EXISTS orders (
   total      int  NOT NULL DEFAULT 0,
   created_at timestamptz NOT NULL DEFAULT now()
 );
+
+CREATE TABLE IF NOT EXISTS contacts (
+  id         serial PRIMARY KEY,
+  name       text NOT NULL,
+  contact    text NOT NULL,
+  message    text NOT NULL DEFAULT '',
+  created_at timestamptz NOT NULL DEFAULT now()
+);
 `;
 
-const POSTS = [
+// Idempotent migrations: add virtual-goods columns to products, payment columns
+// to orders, and drop the legacy courses/enrollments tables. Safe to re-run.
+const MIGRATIONS = `
+ALTER TABLE products ADD COLUMN IF NOT EXISTS delivery_mode text NOT NULL DEFAULT 'fixed';
+ALTER TABLE products ADD COLUMN IF NOT EXISTS fixed_content text NOT NULL DEFAULT '';
+ALTER TABLE products ADD COLUMN IF NOT EXISTS stock int NOT NULL DEFAULT -1;
+
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS out_trade_no text;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS product_id text;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS product_name text NOT NULL DEFAULT '';
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS qty int NOT NULL DEFAULT 1;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS amount int NOT NULL DEFAULT 0;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS status text NOT NULL DEFAULT 'pending';
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS trade_no text;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS pay_type text;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivered_content text NOT NULL DEFAULT '';
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS paid_at timestamptz;
+CREATE UNIQUE INDEX IF NOT EXISTS orders_out_trade_no_idx ON orders (out_trade_no);
+
+DROP TABLE IF EXISTS enrollments;
+DROP TABLE IF EXISTS courses;
+`;
+
+// Post bodies are authored/stored as HTML in the prototype; the platform now
+// treats posts.body as Markdown. Convert on seed so the DB holds Markdown.
+const POSTS_HTML = [
   { id: "webgl-ip", title: "用一张 PNG 做「伪 3D」IP 展示", date: "2026-06-12", tags: ["WebGL", "Three.js", "动效"], excerpt: "没有建模也能有舞台感：Plane + 光照 + 指针跟手，把手绘 IP 变成首页英雄区。", body: "<p>很多个人站首页直接贴头像，少了「进场」的感觉。臻叔的 IP 是手绘平面图，不必强上完整角色绑定，用 Three.js 的 <code>PlaneGeometry</code> 加一点光照与视差就够用。</p><h3>核心思路</h3><p>1）透明 PNG 作贴图；2）双面材质 + 背后暗板制造厚度；3）指针映射到旋转，拖拽覆盖自动漂浮；4）粒子与地面阴影补空间层次。</p><h3>性能</h3><p>限制 <code>devicePixelRatio ≤ 2</code>，页面不可见时停掉 rAF。低性能设备保留 2D fallback 即可。</p>" },
   { id: "design-tokens", title: "个人站的设计令牌：少即是多", date: "2026-05-28", tags: ["设计系统", "CSS"], excerpt: "六个语义色 + 三套字体，就能撑起博客、商店和课程页的一致性。", body: "<p>不要一上来堆 40 个 gray。个人站用 <code>--bg / --surface / --fg / --muted / --border / --accent</code> 就够。强调色每屏最多出现两次，避免「哪都在喊」。</p><h3>字体</h3><p>展示用 Sora，正文 IBM Plex Sans，代码 IBM Plex Mono。大标题负字距，全大写标签必须加 tracking。</p>" },
   { id: "course-funnel", title: "技术博主如何设计课程购买路径", date: "2026-04-03", tags: ["产品", "课程"], excerpt: "从「能学会什么」写起，而不是先贴价格。大纲、适合谁、学完能交付什么。", body: "<p>访客是开发者与学员，他们怕买到空话。课程卡上优先展示成果与课时结构，价格次之。结算原型要诚实：标注「演示下单」，别假装已接通支付。</p>" },
   { id: "react-bits", title: "从 React Bits 学组件动效的克制", date: "2026-03-18", tags: ["React", "动效"], excerpt: "背景与文字特效很炫，但产品页只需要一处决定性动效。", body: "<p>React Bits 适合灵感库，不适合整页搬空。首页英雄区给 3D IP，内页用过滤、卡片抬起、模态即可。动效服务导航与焦点，不为炫技而炫技。</p>" },
   { id: "ship-soft", title: "把 side project 卖出去的最小商店", date: "2026-02-09", tags: ["产品", "独立开发"], excerpt: "商品卡、筛选、购物车抽屉、结算确认——四步闭环比精美落地页更重要。", body: "<p>独立开发者商店先保证闭环：列表 → 详情/加购 → 结算 → 成功提示。库存与支付可后接。本站商店页就是这个最小可用原型。</p>" },
 ];
+
+const POSTS = POSTS_HTML.map((p) => ({ ...p, body: turndown.turndown(p.body) }));
 
 const PROJECTS = [
   { id: "ip-site", name: "臻叔个人站", type: "产品", year: "2026", blurb: "带 3D IP 英雄区的多职能个人站：博客、项目、课程与商店。", problem: "个人品牌站点往往只有简历列表，缺少记忆点与商业闭环。", solution: "以手绘 IP 做 Three.js 舞台，深色网格工坊气质，四条业务入口可独立演进。", result: "原型已覆盖响应式导航、内容筛选与购买流程示意。", stack: ["Three.js", "HTML/CSS", "原生 JS"], role: "设计 + 前端" },
@@ -114,20 +136,15 @@ const PROJECTS = [
   { id: "shop-tpl", name: "数字商品模板", type: "模板", year: "2023", blurb: "面向独立开发者的轻量商店模板，可二开。", problem: "卖源码/模板时搭建商店成本高。", solution: "商品卡、购物车、结算成功页一套打通，主题 token 可换。", result: "本站商店页即衍生形态。", stack: ["HTML", "JS"], role: "作者" },
 ];
 
-const COURSES = [
-  { id: "webgl-start", title: "Three.js 个人站动效实战", level: "中级", hours: "6 课时", price: 299, audience: "有前端基础，想给作品加舞台感", outcome: "独立完成 IP/产品 3D 展示区并做好降级", outline: ["场景与光照", "贴图与透明", "指针交互", "性能与 fallback"], tag: "动效" },
-  { id: "fe-craft", title: "前端手感：从组件到整站", level: "进阶", hours: "8 课时", price: 399, audience: "能写业务页，想提升质感与一致性", outcome: "搭一套令牌 + 导航 + 列表/详情交互范式", outline: ["设计令牌", "排版与间距", "状态与反馈", "响应式重构"], tag: "工程" },
-  { id: "ship-course", title: "独立开发者上架指南", level: "入门", hours: "4 课时", price: 199, audience: "有 side project，想卖课或卖软件", outcome: "跑通定价、落地页结构与最小购买闭环", outline: ["定位与受众", "课程大纲写法", "商店最小集", "内容运营节奏"], tag: "商业" },
-  { id: "react-motion", title: "React 动效克制课", level: "中级", hours: "5 课时", price: 249, audience: "React 开发者，讨厌花哨又想要记忆点", outcome: "会在关键路径放「一处」决定性动效", outline: ["何时该动", "布局动画", "可访问性", "案例拆解"], tag: "动效" },
-];
-
+// Products are virtual goods. Seed data uses 'fixed' delivery with a demo
+// download link; card-mode products get their stock from the cards table.
 const PRODUCTS = [
-  { id: "tpl-personal", name: "个人站多页模板", cat: "模板", price: 129, descr: "首页 / 博客 / 项目 / 商店结构，含设计令牌。" },
-  { id: "kit-motion", name: "动效组件起步包", cat: "源码", price: 89, descr: "文字与卡片动效示例，带 reduced-motion。" },
-  { id: "tool-md", name: "Markdown 发布小工具", cat: "软件", price: 59, descr: "本地预览 + 导出静态页的桌面小工具示意。" },
-  { id: "tpl-course", name: "课程落地页模板", cat: "模板", price: 79, descr: "大纲、适合谁、价格与报名表单一页打通。" },
-  { id: "src-shop", name: "数字商品商店内核", cat: "源码", price: 199, descr: "购物车状态、筛选与结算弹层的可二开内核。" },
-  { id: "pack-brand", name: "深色品牌起步包", cat: "设计", price: 49, descr: "OKLch 令牌、字体配对与组件状态示意。" },
+  { id: "tpl-personal", name: "个人站多页模板", cat: "模板", price: 129, descr: "首页 / 博客 / 项目 / 商店结构，含设计令牌。", delivery_mode: "fixed", fixed_content: "下载链接：https://pan.example.com/tpl-personal 提取码：demo", stock: -1 },
+  { id: "kit-motion", name: "动效组件起步包", cat: "源码", price: 89, descr: "文字与卡片动效示例，带 reduced-motion。", delivery_mode: "fixed", fixed_content: "下载链接：https://pan.example.com/kit-motion 提取码：demo", stock: -1 },
+  { id: "tool-md", name: "Markdown 发布小工具", cat: "软件", price: 59, descr: "本地预览 + 导出静态页的桌面小工具示意。", delivery_mode: "fixed", fixed_content: "下载链接：https://pan.example.com/tool-md 提取码：demo", stock: -1 },
+  { id: "tpl-course", name: "课程落地页模板", cat: "模板", price: 79, descr: "大纲、适合谁、价格与报名表单一页打通。", delivery_mode: "fixed", fixed_content: "下载链接：https://pan.example.com/tpl-course 提取码：demo", stock: -1 },
+  { id: "src-shop", name: "数字商品商店内核", cat: "源码", price: 199, descr: "购物车状态、筛选与结算弹层的可二开内核。", delivery_mode: "fixed", fixed_content: "下载链接：https://pan.example.com/src-shop 提取码：demo", stock: -1 },
+  { id: "pack-brand", name: "深色品牌起步包", cat: "设计", price: 49, descr: "OKLch 令牌、字体配对与组件状态示意。", delivery_mode: "fixed", fixed_content: "下载链接：https://pan.example.com/pack-brand 提取码：demo", stock: -1 },
 ];
 
 async function main() {
@@ -135,6 +152,7 @@ async function main() {
   try {
     await client.query("BEGIN");
     await client.query(SCHEMA);
+    await client.query(MIGRATIONS);
 
     for (let i = 0; i < POSTS.length; i++) {
       const p = POSTS[i];
@@ -152,25 +170,17 @@ async function main() {
         [p.id, p.name, p.type, p.year, p.blurb, p.problem, p.solution, p.result, p.stack, p.role, i]
       );
     }
-    for (let i = 0; i < COURSES.length; i++) {
-      const c = COURSES[i];
-      await client.query(
-        `INSERT INTO courses (id,title,level,hours,price,audience,outcome,outline,tag,sort) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
-         ON CONFLICT (id) DO UPDATE SET title=EXCLUDED.title,level=EXCLUDED.level,hours=EXCLUDED.hours,price=EXCLUDED.price,audience=EXCLUDED.audience,outcome=EXCLUDED.outcome,outline=EXCLUDED.outline,tag=EXCLUDED.tag,sort=EXCLUDED.sort`,
-        [c.id, c.title, c.level, c.hours, c.price, c.audience, c.outcome, c.outline, c.tag, i]
-      );
-    }
     for (let i = 0; i < PRODUCTS.length; i++) {
       const p = PRODUCTS[i];
       await client.query(
-        `INSERT INTO products (id,name,cat,price,descr,sort) VALUES ($1,$2,$3,$4,$5,$6)
-         ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name,cat=EXCLUDED.cat,price=EXCLUDED.price,descr=EXCLUDED.descr,sort=EXCLUDED.sort`,
-        [p.id, p.name, p.cat, p.price, p.descr, i]
+        `INSERT INTO products (id,name,cat,price,descr,delivery_mode,fixed_content,stock,sort) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+         ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name,cat=EXCLUDED.cat,price=EXCLUDED.price,descr=EXCLUDED.descr,delivery_mode=EXCLUDED.delivery_mode,fixed_content=EXCLUDED.fixed_content,stock=EXCLUDED.stock,sort=EXCLUDED.sort`,
+        [p.id, p.name, p.cat, p.price, p.descr, p.delivery_mode, p.fixed_content, p.stock, i]
       );
     }
 
     await client.query("COMMIT");
-    console.log("✔ schema created and seeded");
+    console.log("✔ schema created, migrated and seeded");
   } catch (e) {
     await client.query("ROLLBACK");
     console.error("✖ setup failed:", e);
