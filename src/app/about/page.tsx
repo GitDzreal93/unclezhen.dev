@@ -171,7 +171,6 @@ export default async function AboutPage() {
             <div className="card gh-card">
               <div className="card__head"><span className="eyebrow">// github activity</span></div>
               <img className="heatmap" src={heatmapSrc} alt="GitHub 每日提交热力图" />
-              <img className="gh-stats" src={STATS_URL} alt="GitHub 统计" loading="lazy" />
               <Link className="gh-link mono" href={`https://github.com/${GH}`}>
                 github.com/{GH} ↗
               </Link>
@@ -197,9 +196,6 @@ export default async function AboutPage() {
           <section className="about-sec about-sec--last">
             <div className="eyebrow">// toolbox</div>
             <h2 className="h2">stack · {TOOLS.length} tools</h2>
-            <p className="lead" style={{ marginTop: 6 }}>
-              这些图标就是物理体——移鼠标推开它们，点击让它们炸开。
-            </p>
             <Toolbox tools={TOOLS} />
           </section>
         </div>
