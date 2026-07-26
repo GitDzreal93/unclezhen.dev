@@ -1,0 +1,312 @@
+/* —— about page (terminal CLI aesthetic, matches global tokens) —— */
+
+.about-sec {
+  margin-top: 40px;
+}
+.about-sec--last {
+  margin-bottom: 80px;
+}
+.about-sec .h2 {
+  margin-top: 2px;
+}
+
+/* — terminal window — */
+.about-term {
+  border: 1px solid color-mix(in oklch, var(--accent) 28%, transparent);
+  border-radius: 10px;
+  background: color-mix(in oklch, var(--surface) 94%, black);
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.4),
+    0 0 48px color-mix(in oklch, var(--accent) 8%, transparent);
+  overflow: hidden;
+}
+
+.term-chrome {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(100, 255, 160, 0.12);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted);
+}
+.term-dots {
+  display: flex;
+  gap: 6px;
+}
+.term-dots i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(100, 255, 160, 0.22);
+}
+.term-dots i:first-child {
+  background: color-mix(in oklch, var(--accent) 70%, transparent);
+}
+.term-title {
+  letter-spacing: 0.04em;
+}
+.term-tag {
+  margin-left: auto;
+  opacity: 0.6;
+}
+
+.term-body {
+  padding: 22px 24px;
+  font-size: 14px;
+  line-height: 1.75;
+}
+.term-line {
+  color: var(--fg);
+}
+.prompt {
+  color: var(--accent);
+  margin-right: 8px;
+}
+.term-out {
+  color: var(--muted);
+  padding-left: 20px;
+  margin: 2px 0 12px;
+}
+.term-out--hl {
+  color: var(--fg);
+}
+.bio-p {
+  margin: 0 0 10px;
+  max-width: 68ch;
+}
+.dim {
+  color: color-mix(in oklch, var(--muted) 55%, transparent);
+}
+
+/* blinking caret */
+.cursor {
+  display: inline-block;
+  width: 9px;
+  height: 1.05em;
+  transform: translateY(2px);
+  background: var(--accent);
+  box-shadow: 0 0 10px color-mix(in oklch, var(--accent) 60%, transparent);
+  animation: about-blink 1.05s steps(1) infinite;
+}
+@keyframes about-blink {
+  50% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cursor {
+    animation: none;
+  }
+}
+
+/* — two-column: github + neofetch — */
+.about-grid {
+  display: grid;
+  gap: 16px;
+}
+@media (min-width: 860px) {
+  .about-grid {
+    grid-template-columns: 1.45fr 1fr;
+    align-items: start;
+  }
+}
+
+.card__head {
+  margin-bottom: 14px;
+}
+.card__head .eyebrow {
+  margin: 0;
+}
+
+/* github card */
+.gh-card {
+  padding: 20px;
+  display: grid;
+  gap: 14px;
+}
+.heatmap {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.gh-stats {
+  width: 100%;
+  max-width: 440px;
+  justify-self: start;
+}
+.gh-link {
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  justify-self: start;
+}
+.gh-link:hover {
+  filter: brightness(1.1);
+}
+
+/* neofetch card */
+.neofetch-card {
+  padding: 20px;
+}
+.neofetch {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.neofetch__art {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.4;
+  color: color-mix(in oklch, var(--accent) 78%, transparent);
+  text-shadow: 0 0 12px color-mix(in oklch, var(--accent) 28%, transparent);
+  white-space: pre;
+}
+.neofetch__stats {
+  margin: 0;
+  display: grid;
+  gap: 7px;
+  flex: 1;
+  min-width: 180px;
+}
+.neofetch__stats div {
+  display: flex;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.neofetch__stats dt {
+  color: var(--accent);
+  min-width: 60px;
+}
+.neofetch__stats dd {
+  margin: 0;
+  color: var(--fg);
+}
+
+/* — hero: whoami + social pills (workbuddy-style white badges) — */
+.about-hero {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px 32px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.about-hero__main {
+  flex: 1 1 300px;
+}
+.socials-top {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.social-pill {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  transition: transform 0.18s var(--ease), box-shadow 0.2s var(--ease);
+}
+.social-pill:hover {
+  transform: translateY(-3px) scale(1.07);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.55), 0 0 16px color-mix(in srgb, var(--brand) 60%, transparent);
+}
+.social-pill svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* — toolbox: Ballpit (3D ball field) background + brand tiles that pop on click — */
+.toolpit {
+  position: relative;
+  margin-top: 16px;
+  min-height: 340px;
+  border: 1px solid color-mix(in oklch, var(--accent) 25%, transparent);
+  border-radius: 16px;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 40%, color-mix(in oklch, var(--accent) 12%, transparent), transparent 70%),
+    color-mix(in oklch, var(--surface) 92%, black);
+  box-shadow: 0 0 48px color-mix(in oklch, var(--accent) 8%, transparent);
+}
+.toolpit__bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+/* — reference: original Ballpit container — */
+.orig-ballpit {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 420px;
+  margin-top: 16px;
+  border: 1px solid color-mix(in oklch, var(--accent) 25%, transparent);
+  border-radius: 16px;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 40%, color-mix(in oklch, var(--accent) 10%, transparent), transparent 70%),
+    color-mix(in oklch, var(--surface) 92%, black);
+  box-shadow: 0 0 48px color-mix(in oklch, var(--accent) 8%, transparent);
+}
+.toolbox {
+  position: relative;
+  z-index: 1;
+  list-style: none;
+  margin: 0;
+  padding: 32px 28px;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  align-content: center;
+  min-height: 340px;
+}
+.tool {
+  width: 100%;
+  aspect-ratio: 1;
+  border: none;
+  border-radius: 16px;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+  transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+.tool:hover {
+  transform: translateY(-4px) scale(1.04);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.55), 0 0 18px color-mix(in srgb, var(--brand) 55%, transparent);
+}
+.tool svg {
+  width: 56%;
+  height: 56%;
+  pointer-events: none;
+}
+.tool.is-popping {
+  animation: tool-pop 0.78s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 2;
+}
+@keyframes tool-pop {
+  0%   { transform: translateY(0) scale(1) rotate(0deg); }
+  30%  { transform: translateY(-78px) scale(1.32) rotate(-10deg); box-shadow: 0 26px 40px rgba(0,0,0,.5), 0 0 26px color-mix(in srgb, var(--brand) 70%, transparent); }
+  55%  { transform: translateY(0) scale(0.86) rotate(6deg); }
+  75%  { transform: translateY(-16px) scale(1.08) rotate(-3deg); }
+  100% { transform: translateY(0) scale(1) rotate(0deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tool.is-popping { animation: none; }
+  .tool:hover,
+  .social-pill:hover { transform: none; }
+}
