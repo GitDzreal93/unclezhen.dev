@@ -1,0 +1,328 @@
+/* Admin console — reuses the site design tokens from globals.css. */
+
+.admin-shell {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.admin-side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px 14px;
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.admin-brand {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--fg);
+  text-decoration: none;
+  padding: 6px 10px;
+  margin-bottom: 8px;
+}
+.admin-brand__mark {
+  color: var(--accent);
+}
+
+.admin-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.admin-nav a {
+  display: block;
+  padding: 9px 12px;
+  border-radius: 8px;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 14px;
+  transition: background 0.15s, color 0.15s;
+}
+.admin-nav a:hover {
+  background: var(--surface-2);
+  color: var(--fg);
+}
+.admin-nav a[aria-current="page"] {
+  background: var(--surface-2);
+  color: var(--accent);
+}
+
+.admin-side__foot {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.admin-side__site {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 13px;
+  padding: 4px 10px;
+}
+.admin-side__site:hover {
+  color: var(--fg);
+}
+.admin-logout {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.admin-logout:hover {
+  border-color: var(--accent-dim);
+  color: var(--fg);
+}
+
+.admin-main {
+  padding: 32px 36px 64px;
+  max-width: 1100px;
+  width: 100%;
+}
+
+.admin-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.admin-head h1 {
+  font-size: 24px;
+  margin: 0;
+}
+
+/* Dashboard stat cards */
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
+}
+.admin-stat {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  background: var(--surface);
+  text-decoration: none;
+  color: var(--fg);
+  transition: border-color 0.15s;
+}
+.admin-stat:hover {
+  border-color: var(--accent-dim);
+}
+.admin-stat__num {
+  font-size: 30px;
+  font-weight: 650;
+  font-family: var(--mono, ui-monospace, monospace);
+}
+.admin-stat__label {
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+/* Tables */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.admin-table th,
+.admin-table td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.admin-table th {
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.admin-table tr:hover td {
+  background: var(--surface);
+}
+.admin-table .mono {
+  font-family: var(--mono, ui-monospace, monospace);
+}
+
+.admin-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.admin-pill {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+.admin-pill--ok {
+  color: var(--accent);
+  border-color: var(--accent-dim);
+}
+.admin-pill--warn {
+  color: oklch(80% 0.15 70);
+  border-color: oklch(50% 0.1 70);
+}
+
+/* Forms */
+.admin-form {
+  display: grid;
+  gap: 16px;
+  max-width: 720px;
+}
+.admin-form .field {
+  margin: 0;
+}
+.admin-form .row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.admin-form textarea {
+  min-height: 120px;
+  font-family: var(--mono, ui-monospace, monospace);
+}
+.admin-form .hint {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 4px;
+}
+.admin-form__actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.admin-empty {
+  color: var(--muted);
+  padding: 40px 0;
+  text-align: center;
+}
+
+.admin-danger {
+  background: transparent;
+  border: 1px solid oklch(50% 0.12 25);
+  color: oklch(72% 0.16 25);
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.admin-danger:hover {
+  background: oklch(30% 0.1 25 / 0.3);
+}
+
+/* Login */
+.admin-login {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+  color: var(--fg);
+  padding: 20px;
+}
+.admin-login__card {
+  width: 100%;
+  max-width: 360px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px;
+  background: var(--surface);
+  display: grid;
+  gap: 14px;
+}
+.admin-login__card h1 {
+  font-size: 22px;
+  margin: 0 0 4px;
+}
+.admin-login__err {
+  color: oklch(72% 0.16 25);
+  font-size: 13px;
+  margin: 0;
+}
+
+/* Markdown editor split */
+.md-editor {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.md-editor textarea {
+  min-height: 360px;
+}
+.md-preview {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  background: var(--surface);
+  overflow: auto;
+  max-height: 480px;
+}
+.md-preview h1,
+.md-preview h2,
+.md-preview h3 {
+  margin-top: 0.6em;
+}
+.md-import {
+  display: grid;
+  gap: 10px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 8px;
+}
+.md-import__row {
+  display: flex;
+  gap: 8px;
+}
+
+@media (max-width: 860px) {
+  .admin-shell {
+    grid-template-columns: 1fr;
+  }
+  .admin-side {
+    position: static;
+    height: auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .admin-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .admin-side__foot {
+    margin: 0 0 0 auto;
+    flex-direction: row;
+    border: none;
+    padding: 0;
+  }
+  .admin-main {
+    padding: 20px;
+  }
+  .admin-form .row2,
+  .md-editor {
+    grid-template-columns: 1fr;
+  }
+}
