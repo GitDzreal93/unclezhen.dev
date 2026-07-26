@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getProduct } from "@/lib/data";
 import ProductForm from "../ProductForm";
@@ -16,6 +17,12 @@ export default async function EditProduct({
     <>
       <div className="admin-head">
         <h1>编辑商品</h1>
+        <div className="admin-head__meta">
+          <span className="mono">{product.id}</span>
+          <Link className="btn btn--ghost btn--sm" href="/admin/products">
+            返回列表
+          </Link>
+        </div>
       </div>
       <ProductForm product={product} isNew={false} />
     </>

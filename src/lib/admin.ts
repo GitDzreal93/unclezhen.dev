@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { query } from "./db";
 import { assertAdmin } from "./admin-auth";
+import { renderMarkdown } from "./markdown";
 
 // All mutations funnel through here. Each asserts admin auth (middleware already
 // guards /admin/* but server actions are directly invokable), then revalidates
@@ -49,6 +50,23 @@ export async function deletePost(id: string) {
   await query("DELETE FROM posts WHERE id=$1", [id]);
   revalidatePath("/blog");
   revalidatePath("/admin/posts");
+}
+
+// Render a Markdown draft to sanitized HTML for the editor's live preview.
+// Kept server-side so marked/DOMPurify never enter the client bundle.
+export async function previewMarkdown(md: string): Promise<string> {
+  await assertAdmin();
+  return renderMarkdown(md ?? "");
+}
+
+// Convert pasted rich text (HTML) into Markdown for the editor's import flow.
+export async function htmlToMarkdown(html: string): Promise<string> {
+  await assertAdmin();
+  // turndown is a dependency of the DB seed; load it lazily so it stays out of
+  // the request path unless an admin actually imports rich text.
+  const { default: TurndownService } = await import("turndown");
+  const td = new TurndownService({ headingStyle: "atx", codeBlockStyle: "fenced" });
+  return td.turndown(html ?? "");
 }
 
 // ---- Projects ----

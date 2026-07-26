@@ -11,6 +11,7 @@ const NAV = [
   { href: "/admin/orders", label: "订单" },
   { href: "/admin/posts", label: "博客" },
   { href: "/admin/projects", label: "项目" },
+  { href: "/admin/settings", label: "设置" },
 ];
 
 export default function AdminSidebar() {

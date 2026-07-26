@@ -340,7 +340,7 @@ export default function HomeScene() {
       }
       const panelSpecs = [
         { lines: ["> whoami", "zhen_shu", "role: builder"], pos: [-2.8, 1.1, -1.2], rot: 0.25 },
-        { lines: ["> ls modules/", "blog  projects", "courses  shop"], pos: [2.9, -0.2, -0.8], rot: -0.3 },
+        { lines: ["> ls modules/", "blog  projects", "shop  game"], pos: [2.9, -0.2, -0.8], rot: -0.3 },
         { lines: ["> ./render --ip", "webgl: ok", "scroll: linked"], pos: [-2.4, -1.0, 0.2], rot: 0.15 },
       ];
       panelSpecs.forEach((spec) => {

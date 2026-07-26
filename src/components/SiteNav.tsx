@@ -8,7 +8,7 @@ type CTA = { href: string; label: string };
 
 export default function SiteNav({
   active,
-  cta = { href: "/courses", label: "./enroll" },
+  cta = { href: "/shop", label: "./shop" },
 }: {
   active?: string;
   cta?: CTA;

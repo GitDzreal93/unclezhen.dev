@@ -35,7 +35,8 @@ export default function ProductForm({
   }
 
   return (
-    <form className="admin-form" onSubmit={onSubmit}>
+    <form className="admin-form admin-form--panel" onSubmit={onSubmit}>
+      <div className="form-section-label">基础信息</div>
       <div className="row2">
         <div className="field">
           <label htmlFor="id">商品 ID</label>
@@ -47,7 +48,7 @@ export default function ProductForm({
             required
             placeholder="如 tpl-personal"
           />
-          {!isNew && <p className="hint">ID 不可修改</p>}
+          {!isNew && <p className="hint">创建后不可修改</p>}
         </div>
         <div className="field">
           <label htmlFor="name">名称</label>
@@ -55,7 +56,7 @@ export default function ProductForm({
         </div>
       </div>
 
-      <div className="row2">
+      <div className="row3">
         <div className="field">
           <label htmlFor="cat">分类</label>
           <input id="cat" name="cat" defaultValue={product?.cat} placeholder="模板 / 源码 / 资料" />
@@ -64,25 +65,43 @@ export default function ProductForm({
           <label htmlFor="price">价格（元）</label>
           <input id="price" name="price" type="number" min={0} step={1} defaultValue={product?.price ?? 0} required />
         </div>
+        <div className="field">
+          <label htmlFor="sort">排序</label>
+          <input id="sort" name="sort" type="number" step={1} defaultValue={0} />
+        </div>
       </div>
 
       <div className="field">
         <label htmlFor="descr">描述</label>
-        <textarea id="descr" name="descr" defaultValue={product?.descr} />
+        <textarea id="descr" name="descr" rows={2} defaultValue={product?.descr} />
       </div>
 
+      <div className="form-section-label">发货</div>
       <div className="row2">
         <div className="field">
-          <label htmlFor="deliveryMode">发货方式</label>
-          <select
-            id="deliveryMode"
-            name="deliveryMode"
-            value={mode}
-            onChange={(e) => setMode(e.target.value as "fixed" | "card")}
-          >
-            <option value="fixed">固定内容（所有买家同一份）</option>
-            <option value="card">卡密池（每单发一条唯一内容）</option>
-          </select>
+          <label>发货方式</label>
+          <div className="seg" role="radiogroup" aria-label="发货方式">
+            <label>
+              <input
+                type="radio"
+                name="deliveryMode"
+                value="fixed"
+                checked={mode === "fixed"}
+                onChange={() => setMode("fixed")}
+              />{" "}
+              固定内容
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="deliveryMode"
+                value="card"
+                checked={mode === "card"}
+                onChange={() => setMode("card")}
+              />{" "}
+              卡密池
+            </label>
+          </div>
         </div>
         {mode === "fixed" && (
           <div className="field">
@@ -104,6 +123,7 @@ export default function ProductForm({
           <textarea
             id="fixedContent"
             name="fixedContent"
+            rows={2}
             defaultValue={product?.fixedContent}
             placeholder="如：下载链接 + 提取码"
           />
@@ -118,19 +138,14 @@ export default function ProductForm({
         </div>
       )}
 
-      <div className="field">
-        <label htmlFor="sort">排序（小的在前）</label>
-        <input id="sort" name="sort" type="number" step={1} defaultValue={0} />
-      </div>
-
       {error && <p className="admin-login__err">{error}</p>}
 
       <div className="admin-form__actions">
-        <button className="btn btn--primary" type="submit" disabled={pending}>
+        <button className="btn btn--primary btn--sm" type="submit" disabled={pending}>
           {pending ? "保存中…" : "保存"}
         </button>
         <button
-          className="btn btn--ghost"
+          className="btn btn--ghost btn--sm"
           type="button"
           onClick={() => router.push("/admin/products")}
         >

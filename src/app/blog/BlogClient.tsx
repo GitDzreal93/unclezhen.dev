@@ -3,7 +3,10 @@
 import { useMemo, useState } from "react";
 import type { Post } from "@/lib/data";
 
-export default function BlogClient({ posts }: { posts: Post[] }) {
+// The blog page renders Markdown → HTML server-side and attaches bodyHtml.
+type BlogPost = Post & { bodyHtml?: string };
+
+export default function BlogClient({ posts }: { posts: BlogPost[] }) {
   const [activeTag, setActiveTag] = useState("全部");
   const [q, setQ] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
@@ -102,7 +105,7 @@ export default function BlogClient({ posts }: { posts: Post[] }) {
                   ))}
                 </div>
                 <h1>{openPost.title}</h1>
-                <div className="body" dangerouslySetInnerHTML={{ __html: openPost.body }} />
+                <div className="body" dangerouslySetInnerHTML={{ __html: openPost.bodyHtml ?? "" }} />
               </article>
             </div>
           )}
@@ -128,7 +131,7 @@ export default function BlogClient({ posts }: { posts: Post[] }) {
               ))}
           </div>
           <p className="muted" style={{ marginTop: 18, fontSize: 13 }}>
-            内容存于 PostgreSQL，上线后可接 Markdown / CMS。
+            内容存于 PostgreSQL，后台以 Markdown 撰写、支持富文本粘贴导入。
           </p>
         </aside>
       </div>

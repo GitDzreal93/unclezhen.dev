@@ -11,13 +11,12 @@ export default function SiteFooter() {
               <span>zhen_shu</span>
             </Link>
             <p style={{ marginTop: 12, fontFamily: "var(--font-mono)", fontSize: 13 }}>
-              hacker / builder · blog · projects · courses · shop · game
+              hacker / builder · blog · projects · shop · game
             </p>
           </div>
           <ul className="footer-links">
             <li><Link href="/blog">/blog</Link></li>
             <li><Link href="/projects">/projects</Link></li>
-            <li><Link href="/courses">/courses</Link></li>
             <li><Link href="/shop">/shop</Link></li>
             <li><Link href="/">/game</Link></li>
           </ul>

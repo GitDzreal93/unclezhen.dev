@@ -54,7 +54,6 @@ export default function GameClient({
       { id: "home", name: "/home", href: "/home", desc: "3D IP 首页 · 认识臻叔", x: 248, y: 200, r: 22, found: false, hue: 145 },
       { id: "blog", name: "/blog", href: "/blog", desc: "技术博客 · 工程笔记", x: 585, y: 145, r: 22, found: false, hue: 160 },
       { id: "projects", name: "/projects", href: "/projects", desc: "项目展示 · 交付与实验", x: 878, y: 327, r: 22, found: false, hue: 130 },
-      { id: "courses", name: "/courses", href: "/courses", desc: "课程售卖 · 体系化短训", x: 405, y: 455, r: 22, found: false, hue: 100 },
       { id: "shop", name: "/shop", href: "/shop", desc: "软件商店 · 模板与源码", x: 720, y: 255, r: 22, found: false, hue: 175 },
     ];
 

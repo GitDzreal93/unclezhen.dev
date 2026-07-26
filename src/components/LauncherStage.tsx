@@ -10,8 +10,7 @@ const LINKS: LinkItem[] = [
   { href: "/home", idx: "01", name: "/home", hint: "3D IP", key: "home" },
   { href: "/blog", idx: "02", name: "/blog", hint: "技术博客", key: "blog" },
   { href: "/projects", idx: "03", name: "/projects", hint: "项目展示", key: "projects" },
-  { href: "/courses", idx: "04", name: "/courses", hint: "课程售卖", key: "courses" },
-  { href: "/shop", idx: "05", name: "/shop", hint: "软件商店", key: "shop" },
+  { href: "/shop", idx: "04", name: "/shop", hint: "软件商店", key: "shop" },
 ];
 
 export default function LauncherStage() {
@@ -48,7 +47,7 @@ export default function LauncherStage() {
           </div>
 
           <p className="lead">
-            选择模块进入。首页含滚动驱动 3D IP；博客 / 项目 / 课程 / 商店均为可交互原型，右侧开扫地机走到节点即高亮对应分类。
+            选择模块进入。首页含滚动驱动 3D IP；博客 / 项目 / 商店均为可交互原型，右侧开扫地机走到节点即高亮对应分类。
           </p>
 
           <div className="launch-actions">
@@ -77,7 +76,7 @@ export default function LauncherStage() {
           </ul>
 
           <div className="launch-foot">
-            <span>5 routes · exit 0</span>
+            <span>4 routes · exit 0</span>
             <span className="hint-keys">Tab 聚焦 · <kbd>Enter</kbd> 进入</span>
           </div>
         </div>

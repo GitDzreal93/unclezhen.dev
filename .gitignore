@@ -9,3 +9,15 @@ npm-debug.log*
 next-env.d.ts
 *.tsbuildinfo
 .gstack/
+
+# Admin design tool artifacts — keep DESIGN.md + HTML prototypes only,
+# ignore generated screenshots and tool working dirs.
+docs/admin/previews/
+docs/admin/screens/
+docs/admin/.file-versions/
+docs/admin/.od-skills/
+docs/admin/image.png
+docs/admin/image-[0-9].png
+docs/admin/*.artifact.json
+docs/admin/admin.css
+

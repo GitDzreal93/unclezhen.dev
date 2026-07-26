@@ -61,7 +61,7 @@ export default function HomePage() {
                       </div>
                       <div className="stat">
                         <div className="stat__n">—</div>
-                        <div className="stat__l">courses · todo</div>
+                        <div className="stat__l">shop · todo</div>
                       </div>
                     </div>
                     <div className="scroll-hint">
@@ -97,8 +97,8 @@ export default function HomePage() {
                   </div>
                   <div className="term-body">
                     <div className="path-line"><span className="g">~/lab</span> <span className="g">❯</span> open modules/</div>
-                    <h1>四条业务线 · 同一套系统</h1>
-                    <p className="lead">blog · projects · courses · shop —— 继续向下进入内容区，或直接 jump。</p>
+                    <h1>三条业务线 · 同一套系统</h1>
+                    <p className="lead">blog · projects · shop —— 继续向下进入内容区，或直接 jump。</p>
                     <div className="hero-actions">
                       <a className="btn btn--primary" href="#modules">cd ./modules</a>
                       <Link className="btn btn--ghost" href="/shop">cd ./shop</Link>
@@ -119,7 +119,7 @@ export default function HomePage() {
               </div>
               <div className="about__text">
                 <p>我是臻叔。白天把复杂系统拆成可上线产物，晚上把坑写成教程。界面要有手感——像终端里敲对命令的那一下反馈。</p>
-                <p>这个站是作品集 + 知识库 + 店铺：博客沉淀方法，项目展示交付，课程帮你少走弯路，商店放可买的软件与模板。</p>
+                <p>这个站是作品集 + 知识库 + 店铺：博客沉淀方法，项目展示交付，商店放可买的软件与模板。</p>
                 <div className="code-block">
                   <div><span className="k">const</span> zhen = &#123;</div>
                   <div>  role: <span className="s">&quot;creative engineer&quot;</span>,</div>
@@ -161,7 +161,7 @@ export default function HomePage() {
                   <h2>$ ls -la ~/site</h2>
                 </div>
                 <p className="muted" style={{ maxWidth: "28ch", fontSize: 13, fontFamily: "var(--font-mono)" }}>
-                  四个入口 · 学习 / 合作 / 购买
+                  三个入口 · 学习 / 合作 / 购买
                 </p>
               </div>
               <div className="grid-2" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))" }}>
@@ -181,17 +181,9 @@ export default function HomePage() {
                     <span className="link">open <ArrowIcon /></span>
                   </div>
                 </Link>
-                <Link className="card" href="/courses">
-                  <div className="module-card">
-                    <div className="module-card__icon">03</div>
-                    <h3>/courses</h3>
-                    <p>体系化课程与短训。大纲清晰，适合想快速上手的开发者。</p>
-                    <span className="link">open <ArrowIcon /></span>
-                  </div>
-                </Link>
                 <Link className="card" href="/shop">
                   <div className="module-card">
-                    <div className="module-card__icon">04</div>
+                    <div className="module-card__icon">03</div>
                     <h3>/shop</h3>
                     <p>工具、模板与源码包。购物车与演示结算已接好。</p>
                     <span className="link">open <ArrowIcon /></span>
@@ -199,7 +191,7 @@ export default function HomePage() {
                 </Link>
                 <Link className="card" href="/">
                   <div className="module-card">
-                    <div className="module-card__icon">05</div>
+                    <div className="module-card__icon">04</div>
                     <h3>/game</h3>
                     <p>扫地机器人房间漫游。扫光斑解锁站点传送卡。</p>
                     <span className="link">play <ArrowIcon /></span>
