@@ -1,0 +1,57 @@
+.order-page {
+  padding-top: 48px;
+  padding-bottom: 80px;
+  max-width: 720px;
+}
+.order-page h1 {
+  margin: 4px 0 8px;
+}
+
+.order-card {
+  padding: 24px;
+  display: grid;
+  gap: 12px;
+}
+.order-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.order-row:last-of-type {
+  border-bottom: none;
+}
+
+.order-delivery {
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.order-delivery h3 {
+  margin: 0 0 10px;
+}
+.order-content {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.order-pending {
+  margin-top: 8px;
+}
+.order-pending a {
+  color: var(--accent);
+}
+
+.order-lookup {
+  display: grid;
+  gap: 16px;
+  max-width: 420px;
+  margin-top: 20px;
+}
