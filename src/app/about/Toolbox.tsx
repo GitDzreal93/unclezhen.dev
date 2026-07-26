@@ -8,7 +8,7 @@ const LogoPit = dynamic(() => import("@/components/LogoPit"), {
   loading: () => null,
 });
 
-type Tool = { name: string; hex: string; path: string };
+type Tool = { name: string; hex: string; path?: string; text?: string };
 
 /**
  * Tech-stack toolbox: a LogoPit — the skill icons themselves are the physical
@@ -18,7 +18,9 @@ type Tool = { name: string; hex: string; path: string };
 export default function Toolbox({ tools }: { tools: Tool[] }) {
   return (
     <div className="toolpit">
-      <LogoPit className="toolpit__bg" tools={tools} followCursor={true} />
+      {/* count = tools + 1: index 0 is the invisible cursor influencer, so each
+          logo appears exactly once (no duplicates). */}
+      <LogoPit className="toolpit__bg" tools={tools} count={tools.length + 1} followCursor={true} />
     </div>
   );
 }

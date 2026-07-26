@@ -4,7 +4,6 @@ import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import { BRAND } from "./brand-icons";
 import Toolbox from "./Toolbox";
-import OriginalBallpit from "./OriginalBallpit";
 import "./about.css";
 
 export const metadata: Metadata = {
@@ -44,10 +43,13 @@ const MAIL = {
 };
 
 const TOOLS = [
-  BRAND.typescript, BRAND.react, BRAND.nextjs, BRAND.threejs,
-  BRAND.go, BRAND.rust, BRAND.node, BRAND.python,
-  BRAND.postgres, BRAND.docker, BRAND.vite, BRAND.tailwind,
-  BRAND.git, BRAND.linux, BRAND.vercel,
+  BRAND.python, BRAND.go, BRAND.typescript, BRAND.flutter, BRAND.java,
+  BRAND.linux, BRAND.git, BRAND.javascript, BRAND.shell, BRAND.react,
+  BRAND.tailwind, BRAND.antdesign, BRAND.elementui, BRAND.vue, BRAND.nextjs,
+  BRAND.claudecode, BRAND.vscode, BRAND.codex, BRAND.node, BRAND.workbuddy,
+  BRAND.jira, BRAND.jenkins, BRAND.kubernetes, BRAND.docker, BRAND.springboot,
+  BRAND.mysql, BRAND.selectdb, BRAND.postgres, BRAND.kafka, BRAND.rocketmq,
+  BRAND.elasticsearch, BRAND.rabbitmq, BRAND.android, BRAND.ios, BRAND.swift,
 ];
 
 const SOCIALS = [
@@ -192,23 +194,13 @@ export default async function AboutPage() {
           </section>
 
           {/* — toolbox: logo chips (my version) — */}
-          <section className="about-sec">
+          <section className="about-sec about-sec--last">
             <div className="eyebrow">// toolbox</div>
             <h2 className="h2">stack · {TOOLS.length} tools</h2>
             <p className="lead" style={{ marginTop: 6 }}>
               这些图标就是物理体——移鼠标推开它们，点击让它们炸开。
             </p>
             <Toolbox tools={TOOLS} />
-          </section>
-
-          {/* — reference: original React Bits Ballpit for comparison — */}
-          <section className="about-sec about-sec--last">
-            <div className="eyebrow">// reference</div>
-            <h2 className="h2">original ballpit</h2>
-            <p className="lead" style={{ marginTop: 6 }}>
-              原版组件（绿球、受重力下落、丝滑），用来和上面的图标版对照。
-            </p>
-            <OriginalBallpit />
           </section>
         </div>
       </main>

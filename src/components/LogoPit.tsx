@@ -532,6 +532,8 @@ class W {
 }
 
 // Draw one brand logo onto a white rounded "chip" canvas → reusable texture.
+// Tools carry either an SVG `path` (24×24 viewBox) or a `text` lettermark for
+// brands with no upstream simple-icons glyph.
 function buildLogoTexture(tool) {
   const size = 256;
   const cv = document.createElement("canvas");
@@ -542,16 +544,23 @@ function buildLogoTexture(tool) {
   ctx.beginPath();
   ctx.roundRect(pad, pad, size - pad * 2, size - pad * 2, size * 0.22);
   ctx.fill();
-  const scale = (size * 0.5) / 24;
-  ctx.save();
-  ctx.translate(size / 2, size / 2);
-  ctx.scale(scale, scale);
-  ctx.translate(-12, -12);
   ctx.fillStyle = "#" + tool.hex;
-  try {
-    ctx.fill(new Path2D(tool.path));
-  } catch {}
-  ctx.restore();
+  if (tool.text) {
+    ctx.font = `700 ${size * 0.42}px ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(tool.text, size / 2, size * 0.54);
+  } else {
+    const scale = (size * 0.5) / 24;
+    ctx.save();
+    ctx.translate(size / 2, size / 2);
+    ctx.scale(scale, scale);
+    ctx.translate(-12, -12);
+    try {
+      ctx.fill(new Path2D(tool.path));
+    } catch {}
+    ctx.restore();
+  }
   const tex = new CanvasTexture(cv);
   tex.colorSpace = n;
   tex.anisotropy = 4;
@@ -703,7 +712,7 @@ const LogoPit = ({
   ...props
 }: {
   className?: string;
-  tools?: { name: string; hex: string; path: string }[];
+  tools?: { name: string; hex: string; path?: string; text?: string }[];
   followCursor?: boolean;
   [key: string]: any;
 }) => {
