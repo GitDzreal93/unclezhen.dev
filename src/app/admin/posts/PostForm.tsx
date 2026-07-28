@@ -34,6 +34,8 @@ export default function PostForm({
   const importRef = useRef<HTMLTextAreaElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState<string | null>(null);
 
   // Debounced live preview: render Markdown → sanitized HTML on the server.
   useEffect(() => {
@@ -117,6 +119,45 @@ export default function PostForm({
       })
       .catch(() => setError("富文本转换失败"))
       .finally(() => setImporting(false));
+  }
+
+  // Image upload: post the file to the image-host API, then splice the
+  // returned Markdown image tag into the body at the cursor.
+  async function onPickImage(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setUploading(f.name);
+    setError("");
+    try {
+      const fd = new FormData();
+      fd.append("file", f);
+      const res = await fetch("/api/admin/upload-image", { method: "POST", body: fd });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "上传失败");
+      const md: string = data.markdown;
+      const ta = bodyRef.current;
+      if (ta) {
+        const start = ta.selectionStart;
+        const end = ta.selectionEnd;
+        const sep = body && !body.endsWith("\n") ? "\n\n" : "";
+        const next = body.slice(0, start) + sep + md + body.slice(end);
+        setBody(next);
+        markDirty();
+        const pos = start + sep.length + md.length;
+        requestAnimationFrame(() => {
+          ta.focus();
+          ta.setSelectionRange(pos, pos);
+        });
+      } else {
+        setBody((b) => (b ? `${b}\n\n${md}` : md));
+        markDirty();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "上传失败");
+    } finally {
+      setUploading(null);
+      if (fileRef.current) fileRef.current.value = "";
+    }
   }
 
   const panesClass = [
@@ -271,6 +312,22 @@ export default function PostForm({
         >
           导入
         </button>
+        <button
+          type="button"
+          className="tool-btn"
+          onClick={() => fileRef.current?.click()}
+          disabled={!!uploading}
+          title="上传图片到图床并在光标处插入"
+        >
+          {uploading ? `上传中…` : "图片"}
+        </button>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          onChange={onPickImage}
+          hidden
+        />
         <div className="spacer" />
         <span className="hint-k">
           <kbd>⌘</kbd>

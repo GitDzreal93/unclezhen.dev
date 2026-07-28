@@ -90,7 +90,22 @@ CREATE TABLE IF NOT EXISTS contacts (
   message    text NOT NULL DEFAULT '',
   created_at timestamptz NOT NULL DEFAULT now()
 );
+
+-- Image hosting: the asset itself lives in a GitHub repo (served via a CDN);
+-- the DB only stores the link. host and path are split so the CDN origin can
+-- be swapped later (UPDATE images SET host = ...) without touching paths.
+CREATE TABLE IF NOT EXISTS images (
+  id           text PRIMARY KEY,
+  host         text NOT NULL,
+  path         text NOT NULL,
+  filename     text NOT NULL DEFAULT '',
+  bytes        int  NOT NULL DEFAULT 0,
+  content_type text NOT NULL DEFAULT '',
+  alt          text NOT NULL DEFAULT '',
+  created_at   timestamptz NOT NULL DEFAULT now()
+);
 `;
+
 
 // Idempotent migrations: add virtual-goods columns to products, payment columns
 // to orders, and drop the legacy courses/enrollments tables. Safe to re-run.

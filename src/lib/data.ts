@@ -217,3 +217,34 @@ export async function getOrderByOutTradeNo(
   );
   return rows.length ? mapOrder(rows[0]) : null;
 }
+
+// ---- Images ----
+// The binary lives in a GitHub repo (served via CDN); the DB only stores the
+// link. host + path are kept split so the CDN origin can be swapped later.
+
+export type Image = {
+  id: string;
+  host: string;
+  path: string;
+  filename: string;
+  bytes: number;
+  contentType: string;
+  alt: string;
+  createdAt: string;
+};
+
+export async function getImages(): Promise<Image[]> {
+  const rows = await query<any>(
+    "SELECT id,host,path,filename,bytes,content_type,alt,created_at FROM images ORDER BY created_at DESC"
+  );
+  return rows.map((r) => ({
+    id: r.id,
+    host: r.host,
+    path: r.path,
+    filename: r.filename,
+    bytes: r.bytes,
+    contentType: r.content_type,
+    alt: r.alt,
+    createdAt: String(r.created_at ?? ""),
+  }));
+}
