@@ -3,7 +3,8 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { Order } from "@/lib/data";
-import { markOrderPaid } from "@/lib/admin";
+import { markOrderPaid, deleteOrder } from "@/lib/admin";
+import DeleteButton from "../DeleteButton";
 
 export default function OrdersTable({ orders }: { orders: Order[] }) {
   const router = useRouter();
@@ -78,9 +79,21 @@ export default function OrdersTable({ orders }: { orders: Order[] }) {
                     </button>
                   </div>
                 ) : (
-                  <button className="btn btn--ghost btn--sm" type="button" onClick={() => openFix(o)}>
-                    补发/改
-                  </button>
+                  <div className="admin-actions">
+                    <button className="btn btn--ghost btn--sm" type="button" onClick={() => openFix(o)}>
+                      补发/改
+                    </button>
+                    <DeleteButton
+                      id={o.outTradeNo}
+                      action={deleteOrder}
+                      confirm={
+                        o.status === "paid"
+                          ? `删除已支付订单「${o.outTradeNo}」？该操作不可撤销，已售卡密将解除关联。`
+                          : `删除待支付订单「${o.outTradeNo}」？该操作不可撤销。`
+                      }
+                      label="删除"
+                    />
+                  </div>
                 )}
               </td>
             </tr>

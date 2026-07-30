@@ -193,3 +193,19 @@ export async function markOrderPaid(fd: FormData) {
   );
   revalidatePath("/admin/orders");
 }
+
+// Hard-delete an order. Used to clear test orders, duplicates, or records that
+// should not exist. Deleting a paid order is destructive: any cards that were
+// sold to it are now orphaned (their order_id still points at the deleted row
+// until next time CASCADE rules propagate) — so the UI confirms before calling.
+export async function deleteOrder(outTradeNo: string) {
+  await assertAdmin();
+  if (!outTradeNo) throw new Error("缺少订单号");
+  // Unlink any sold cards so the FK is cleared even without ON DELETE CASCADE.
+  await query(
+    `UPDATE cards SET order_id=NULL WHERE order_id=(SELECT id FROM orders WHERE out_trade_no=$1)`,
+    [outTradeNo]
+  );
+  await query("DELETE FROM orders WHERE out_trade_no=$1", [outTradeNo]);
+  revalidatePath("/admin/orders");
+}
