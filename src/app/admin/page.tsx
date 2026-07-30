@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { query } from "@/lib/db";
 import { getOrders, getProducts } from "@/lib/data";
+import { ADMIN_COOKIE, tokenExpiryMs } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +33,12 @@ function today(): string {
   return `${d.getFullYear()}-${m}-${day}`;
 }
 
+function fmtExpiry(exp: number): string {
+  const d = new Date(exp);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getMonth() + 1}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 export default async function AdminDashboard() {
   const [c, orders, products] = await Promise.all([
     counts(),
@@ -39,6 +47,12 @@ export default async function AdminDashboard() {
   ]);
   const recentOrders = orders.slice(0, 5);
   const inventory = products.slice(0, 5);
+
+  const token = (await cookies()).get(ADMIN_COOKIE)?.value;
+  const expiryMs = tokenExpiryMs(token);
+  const sessionLabel = expiryMs
+    ? `会话至 ${fmtExpiry(expiryMs)}`
+    : "无活动会话";
 
   const stats = [
     { href: "/admin/products", num: c.products, label: "商品" },
@@ -56,7 +70,9 @@ export default async function AdminDashboard() {
         <div className="admin-head__meta">
           <span>{today()}</span>
           <span aria-hidden="true">·</span>
-          <span>本地会话</span>
+          <span title={expiryMs ? new Date(expiryMs).toISOString() : ""}>
+            {sessionLabel}
+          </span>
         </div>
       </div>
 

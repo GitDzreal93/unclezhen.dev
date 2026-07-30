@@ -63,8 +63,14 @@ export default function PostForm({
     if (!dirty) setDirty(true);
   }
 
+  // ⌘/Ctrl+S handler is registered once; latest state is read through refs.
+  // Avoids re-binding on every render, which is wasteful and a code smell.
+  const saveRef = useRef<() => void>(() => {});
+  const pendingRef = useRef(pending);
+  pendingRef.current = pending;
+
   function doSave() {
-    if (pending) return;
+    if (pendingRef.current) return;
     setError("");
     const fd = new FormData();
     fd.set("id", id);
@@ -85,24 +91,23 @@ export default function PostForm({
       }
     });
   }
+  saveRef.current = doSave;
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     doSave();
   }
 
-  // ⌘/Ctrl+S saves and stays on the page.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") {
         e.preventDefault();
-        doSave();
+        saveRef.current();
       }
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-    // doSave closes over the latest state via re-registration each render.
-  });
+  }, []);
 
   // Rich-text paste: convert the HTML clipboard payload to Markdown on the
   // server (turndown) and append to the body.

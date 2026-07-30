@@ -8,9 +8,13 @@ import { saveProduct } from "@/lib/admin";
 export default function ProductForm({
   product,
   isNew,
+  unusedCardCount,
 }: {
   product?: Product;
   isNew: boolean;
+  // Live unused card count, only meaningful for deliveryMode==='card'.
+  // null = unknown / not applicable.
+  unusedCardCount?: number | null;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -132,8 +136,18 @@ export default function ProductForm({
       ) : (
         <div className="field">
           <p className="hint">
-            卡密模式的库存 = 未售卡密数，请到「卡密池」批量导入卡密。
-            {isNew && " 保存商品后再去添加。"}
+            卡密模式的库存 = 未售卡密数。
+            {!isNew && typeof unusedCardCount === "number" && (
+              <>
+                {" "}当前未售卡密：<strong style={{ color: "var(--accent)" }}>{unusedCardCount}</strong>。
+              </>
+            )}
+            {isNew && " 保存商品后再去「卡密池」批量导入。"}
+            {!isNew && (
+              <>
+                {" "}去 <a href={`/admin/cards?p=${encodeURIComponent(product!.id)}`}>卡密池</a> 批量导入。
+              </>
+            )}
           </p>
         </div>
       )}

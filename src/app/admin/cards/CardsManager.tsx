@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { Card } from "@/lib/data";
 import { addCards, deleteCard } from "@/lib/admin";
@@ -48,6 +48,39 @@ export default function CardsManager({
     });
   }
 
+  // Live preview of the bulk import: total non-empty lines, dupes against the
+  // existing unused cards for this product, and in-paste dupes.
+  const preview = useMemo(() => {
+    const lines = bulk
+      .split("\n")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const seen = new Set<string>();
+    const inPasteDups = new Set<string>();
+    let dup = 0;
+    let empty = 0;
+    const allLines = bulk.split("\n");
+    for (const raw of allLines) {
+      const t = raw.trim();
+      if (!t) {
+        empty++;
+        continue;
+      }
+      if (seen.has(t)) {
+        inPasteDups.add(t);
+        dup++;
+      } else {
+        seen.add(t);
+      }
+    }
+    const existingUnused = new Set(
+      cards.filter((c) => c.status === "unused").map((c) => c.content)
+    );
+    const existingDups = lines.filter((l) => existingUnused.has(l)).length;
+    const willInsert = Math.max(0, lines.length - dup - existingDups);
+    return { total: lines.length, empty, dup, existingDups, willInsert };
+  }, [bulk, cards]);
+
   return (
     <>
       <form className="toolbar" onSubmit={onAdd}>
@@ -68,8 +101,13 @@ export default function CardsManager({
         </div>
         <div className="field" style={{ alignSelf: "end", marginLeft: "auto" }}>
           <label className="sr-only" htmlFor="import-btn">导入</label>
-          <button id="import-btn" className="btn btn--primary btn--sm" type="submit" disabled={pending}>
-            {pending ? "导入中…" : "导入卡密"}
+          <button
+            id="import-btn"
+            className="btn btn--primary btn--sm"
+            type="submit"
+            disabled={pending || preview.total === 0 || preview.willInsert === 0}
+          >
+            {pending ? "导入中…" : `导入卡密${preview.willInsert > 0 ? `（${preview.willInsert}）` : ""}`}
           </button>
         </div>
       </form>
@@ -82,6 +120,29 @@ export default function CardsManager({
           onChange={(e) => setBulk(e.target.value)}
           placeholder={"CARD-AAAA-1111\nCARD-BBBB-2222\nhttps://pan.example.com/x 提取码 abcd"}
         />
+        {bulk.trim() && (
+          <p className="hint" style={{ marginTop: 4 }}>
+            共 <strong>{preview.total}</strong> 条
+            {preview.empty > 0 && (
+              <>
+                · 空行 <strong>{preview.empty}</strong>
+              </>
+            )}
+            {preview.dup > 0 && (
+              <>
+                · 粘贴内重复 <strong>{preview.dup}</strong>
+              </>
+            )}
+            {preview.existingDups > 0 && (
+              <>
+                · 与已存在未售重复 <strong style={{ color: "var(--warn)" }}>
+                  {preview.existingDups}
+                </strong>
+              </>
+            )}
+            {" · "}将新增 <strong style={{ color: "var(--accent)" }}>{preview.willInsert}</strong> 条
+          </p>
+        )}
         {error && <p className="admin-login__err">{error}</p>}
       </div>
 
