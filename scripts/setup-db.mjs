@@ -144,10 +144,10 @@ const POSTS = POSTS_HTML.map((p) => ({ ...p, body: turndown.turndown(p.body) }))
 
 const PROJECTS = [
   { id: "ip-site", name: "臻叔个人站", type: "产品", year: "2026", blurb: "带 3D IP 英雄区的多职能个人站：博客、项目、课程与商店。", problem: "个人品牌站点往往只有简历列表，缺少记忆点与商业闭环。", solution: "以手绘 IP 做 Three.js 舞台，深色网格工坊气质，四条业务入口可独立演进。", result: "原型已覆盖响应式导航、内容筛选与购买流程示意。", stack: ["Three.js", "HTML/CSS", "原生 JS"], role: "设计 + 前端" },
-  { id: "ops-dash", name: "内容运营台", type: "工具", year: "2025", blurb: "课程与文章发布节奏看板，支持筛选与状态流转。", problem: "多渠道内容排期散落在表格，状态不同步。", solution: "统一看板 + 标签过滤 + 状态 pill，给运营一目了然的本周焦点。", result: "示意项目 · 指标待替换为真实数据。", stack: ["React", "TypeScript"], role: "前端负责人" },
-  { id: "motion-kit", name: "动效组件包", type: "开源", year: "2025", blurb: "可复用的文字与背景动效，强调可访问与降级。", problem: "炫技组件难落地，性能与 reduced-motion 常被忽略。", solution: "每个组件带 fallback 与文档示例，默认尊重系统动效偏好。", result: "示意项目 · 星标数待填。", stack: ["React", "CSS", "Framer Motion"], role: "作者" },
-  { id: "b2b-proto", name: "B2B 采购原型", type: "交付", year: "2024", blurb: "从询价到下单的多角色流程，桌面优先可点原型。", problem: "业务评审需要可点的全流程，而不是静态图。", solution: "分角色入口、表单校验、状态回执，减少评审会上的想象成本。", result: "示意项目 · 客户名可匿名。", stack: ["原型", "设计系统"], role: "交互 + 前端" },
-  { id: "live-room", name: "直播课控台", type: "产品", year: "2024", blurb: "讲师侧控台：章节、问答、资料投放一体。", problem: "上课时窗口太多，讲师注意力被工具打断。", solution: "单屏分区：大纲、实时提问、资料库，快捷键提示。", result: "示意项目 · 完课率等指标待填。", stack: ["WebRTC", "React"], role: "产品顾问 + 前端" },
+  { id: "ops-dash", name: "内容运营台", type: "工具", year: "2025", blurb: "课程与文章发布节奏看板，支持筛选与状态流转。", problem: "多渠道内容排期散落在表格，状态不同步。", solution: "统一看板 + 标签过滤 + 状态 pill，给运营一目了然的本周焦点。", result: "看板覆盖本周发布节奏、标签筛选与状态流转三块。", stack: ["React", "TypeScript"], role: "前端负责人" },
+  { id: "motion-kit", name: "动效组件包", type: "开源", year: "2025", blurb: "可复用的文字与背景动效，强调可访问与降级。", problem: "炫技组件难落地，性能与 reduced-motion 常被忽略。", solution: "每个组件带 fallback 与文档示例，默认尊重系统动效偏好。", result: "组件按按钮、文字、背景三组整理，每组均提供 reduced-motion 降级示例。", stack: ["React", "CSS", "Framer Motion"], role: "作者" },
+  { id: "b2b-proto", name: "B2B 采购原型", type: "交付", year: "2024", blurb: "从询价到下单的多角色流程，桌面优先可点原型。", problem: "业务评审需要可点的全流程，而不是静态图。", solution: "分角色入口、表单校验、状态回执，减少评审会上的想象成本。", result: "原型打通报价、审批、订单、回执四个节点，可走完整流程。", stack: ["原型", "设计系统"], role: "交互 + 前端" },
+  { id: "live-room", name: "直播课控台", type: "产品", year: "2024", blurb: "讲师侧控台：章节、问答、资料投放一体。", problem: "上课时窗口太多，讲师注意力被工具打断。", solution: "单屏分区：大纲、实时提问、资料库，快捷键提示。", result: "控台分大纲、实时提问、资料库三区，讲师单屏即可控场。", stack: ["WebRTC", "React"], role: "产品顾问 + 前端" },
   { id: "shop-tpl", name: "数字商品模板", type: "模板", year: "2023", blurb: "面向独立开发者的轻量商店模板，可二开。", problem: "卖源码/模板时搭建商店成本高。", solution: "商品卡、购物车、结算成功页一套打通，主题 token 可换。", result: "本站商店页即衍生形态。", stack: ["HTML", "JS"], role: "作者" },
 ];
 
