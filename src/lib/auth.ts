@@ -47,16 +47,24 @@ export async function verifyToken(token: string | undefined): Promise<boolean> {
   const dot = token.indexOf(".");
   if (dot < 0) return false;
   const expiry = token.slice(0, dot);
-  const sig = token.slice(dot + 1);
   const exp = Number(expiry);
   if (!Number.isFinite(exp) || exp < Date.now()) return false;
-  let expected: string;
-  try {
-    expected = await hmac(expiry, getSecret());
-  } catch {
-    return false;
-  }
+  const expected = await hmac(expiry, getSecret()).catch(() => null);
+  if (!expected) return false;
+  // Constant-time compare against the supplied signature (everything after the
+  // first dot), not the re-signed expiry.
+  const sig = token.slice(dot + 1);
   return timingSafeEqual(sig, expected);
+}
+
+// Extract the expiry timestamp (ms) from a session token without verifying the
+// signature. For UI display only — verifyToken is the security boundary.
+export function tokenExpiryMs(token: string | undefined): number | null {
+  if (!token) return null;
+  const dot = token.indexOf(".");
+  if (dot < 0) return null;
+  const exp = Number(token.slice(0, dot));
+  return Number.isFinite(exp) ? exp : null;
 }
 
 export function checkPassword(input: unknown): boolean {
