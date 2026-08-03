@@ -29,15 +29,15 @@ function labelFor(locale: Locale, key: keyof typeof NAV_LABELS_ZH): string {
 // actual strings come from the dict. Both languages share the same set
 // of keys; if either is missing, t() falls back to zh.
 const NAV_LABELS_ZH = {
-  dashboard: 0,
-  products: 0,
-  cards: 0,
-  orders: 0,
-  posts: 0,
-  media: 0,
-  projects: 0,
-  nav: 0,
-  settings: 0,
+  "admin.dashboard": 0,
+  "admin.products": 0,
+  "admin.cards": 0,
+  "admin.orders": 0,
+  "admin.posts": 0,
+  "admin.media": 0,
+  "admin.projects": 0,
+  "admin.nav": 0,
+  "admin.settings": 0,
 } as const;
 
 export default function AdminSidebar({ locale }: { locale: Locale }) {
