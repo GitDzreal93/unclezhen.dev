@@ -1,0 +1,36 @@
+# Two containers, as requested:
+#   db  -> PostgreSQL (the data/middleware tier), data on a named volume
+#   app -> the Next.js service (built from ./Dockerfile)
+# Variables are substituted from the auto-loaded ./.env file in this directory.
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: unclezhen-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    # No host port published: only the app reaches it over this network.
+
+  app:
+    build: .
+    container_name: unclezhen-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    ports:
+      - "80:3000"
+
+volumes:
+  pgdata:

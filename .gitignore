@@ -5,6 +5,10 @@ build/
 .DS_Store
 *.pem
 npm-debug.log*
+# Env files hold secrets — never commit. .env.example is the safe template.
+.env
+.env.local
+.env.production
 .env*.local
 next-env.d.ts
 *.tsbuildinfo
