@@ -2,16 +2,25 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { NAV_ITEMS } from "@/lib/nav";
+import type { NavItem } from "@/lib/data";
+import type { Locale } from "@/lib/i18n/dict";
+import type { Theme } from "@/lib/theme/cookie";
+import { navLabel, t } from "@/lib/i18n/dict";
+import LocaleSwitcher from "@/components/LocaleSwitcher";
+import ThemeSwitcher from "@/components/ThemeSwitcher";
 
-type CTA = { href: string; label: string };
-
+// Top nav: brand + flat list of menu items + locale/theme switchers. The
+// drawer mirrors the list (no switchers in the drawer to keep it simple).
 export default function SiteNav({
+  items,
   active,
-  cta = { href: "/shop", label: "./shop" },
+  locale,
+  theme,
 }: {
+  items: NavItem[];
   active?: string;
-  cta?: CTA;
+  locale: Locale;
+  theme: Theme;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -32,32 +41,33 @@ export default function SiteNav({
 
   return (
     <>
-      <nav className="site-nav" aria-label="主导航">
+      <nav className="site-nav" aria-label={t(locale, "nav.toggle")}>
         <div className="site-nav__inner">
           <Link className="brand" href="/home">
             <span className="brand__mark">&gt;</span>
-            <span>zhen_shu</span>
+            <span>{t(locale, "brand.name")}</span>
           </Link>
           <ul className="nav-links">
-            {NAV_ITEMS.map((item) => (
+            {items.map((item) => (
               <li key={item.key}>
                 <Link
                   href={item.href}
                   aria-current={active === item.key ? "page" : undefined}
                 >
-                  {item.label}
+                  {navLabel(locale, item.key, item.label)}
                 </Link>
               </li>
             ))}
           </ul>
-          <Link className="nav-cta" href={cta.href}>
-            {cta.label}
-          </Link>
+          <div className="nav-controls">
+            <LocaleSwitcher locale={locale} />
+            <ThemeSwitcher theme={theme} />
+          </div>
           <button
             className="nav-toggle"
             type="button"
             aria-expanded={open}
-            aria-label="打开菜单"
+            aria-label={t(locale, "nav.toggle")}
             onClick={() => setOpen((v) => !v)}
           >
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -73,17 +83,18 @@ export default function SiteNav({
       </nav>
       <div className={`nav-drawer${open ? " is-open" : ""}`}>
         <ul>
-          {NAV_ITEMS.map((item) => (
+          {items.map((item) => (
             <li key={item.key}>
               <Link href={item.href} onClick={() => setOpen(false)}>
-                {item.label}
+                {navLabel(locale, item.key, item.label)}
               </Link>
             </li>
           ))}
         </ul>
-        <Link className="drawer-cta" href={cta.href} onClick={() => setOpen(false)}>
-          {cta.label}
-        </Link>
+        <div className="nav-drawer__controls">
+          <LocaleSwitcher locale={locale} />
+          <ThemeSwitcher theme={theme} />
+        </div>
       </div>
     </>
   );

@@ -1,18 +1,29 @@
 import type { Metadata } from "next";
+import { getLocale } from "@/lib/i18n/cookie";
+import { getTheme } from "@/lib/theme/cookie";
+import { t } from "@/lib/i18n/dict";
 import "./globals.css";
 
-export const metadata: Metadata = {
-  title: "臻叔 · hacker / builder",
-  description: "臻叔个人站：首页 3D IP、博客、项目、课程与商店。",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  return {
+    title: t(locale, "site.meta.title"),
+    description: t(locale, "site.meta.desc"),
+  };
+}
 
-export default function RootLayout({
+// Theme + locale are read from cookies on every request and surfaced as
+// the `<html data-theme="..." lang="...">` attributes. CSS variables under
+// `[data-theme="..."]` in globals.css drive the look; the lang attribute
+// feeds the i18n strings pulled from `t(locale, key)` in each page.
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const [locale, theme] = await Promise.all([getLocale(), getTheme()]);
   return (
-    <html lang="zh-CN">
+    <html lang={locale === "zh" ? "zh-CN" : "en"} data-theme={theme}>
       <body>{children}</body>
     </html>
   );

@@ -3,22 +3,47 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import LogoutButton from "./LogoutButton";
+import { t, type Locale } from "@/lib/i18n/dict";
 
-const NAV = [
-  { href: "/admin", label: "仪表盘", exact: true },
-  { href: "/admin/products", label: "商品" },
-  { href: "/admin/cards", label: "卡密池" },
-  { href: "/admin/orders", label: "订单" },
-  { href: "/admin/posts", label: "博客" },
-  { href: "/admin/media", label: "媒体" },
-  { href: "/admin/projects", label: "项目" },
-  { href: "/admin/settings", label: "设置" },
+type NavItem = { href: string; label: string; exact?: boolean };
+
+const NAV_KEYS: { href: string; key: keyof typeof NAV_LABELS_ZH; exact?: boolean }[] = [
+  { href: "/admin", key: "admin.dashboard", exact: true },
+  { href: "/admin/products", key: "admin.products" },
+  { href: "/admin/cards", key: "admin.cards" },
+  { href: "/admin/orders", key: "admin.orders" },
+  { href: "/admin/posts", key: "admin.posts" },
+  { href: "/admin.media", key: "admin.media" },
+  { href: "/admin/projects", key: "admin.projects" },
+  { href: "/admin/nav", key: "admin.nav" },
+  { href: "/admin/settings", key: "admin.settings" },
 ];
 
-export default function AdminSidebar() {
+// Labels live in the i18n dict; this local map is the canonical
+// `locale → t(key)` shortcut for the sidebar's 9 entries.
+function labelFor(locale: Locale, key: keyof typeof NAV_LABELS_ZH): string {
+  return t(locale, key);
+}
+
+// These exist only to give the NAV_KEYS array a strict key type — the
+// actual strings come from the dict. Both languages share the same set
+// of keys; if either is missing, t() falls back to zh.
+const NAV_LABELS_ZH = {
+  dashboard: 0,
+  products: 0,
+  cards: 0,
+  orders: 0,
+  posts: 0,
+  media: 0,
+  projects: 0,
+  nav: 0,
+  settings: 0,
+} as const;
+
+export default function AdminSidebar({ locale }: { locale: Locale }) {
   const pathname = usePathname();
 
-  function isActive(n: (typeof NAV)[number]) {
+  function isActive(n: (typeof NAV_KEYS)[number]) {
     if (n.exact) return pathname === n.href;
     return pathname.startsWith(n.href);
   }
@@ -29,21 +54,21 @@ export default function AdminSidebar() {
         <span className="admin-brand__mark">&gt;</span> zhen_admin
       </Link>
       <nav className="admin-nav">
-        {NAV.map((n) => (
+        {NAV_KEYS.map((n) => (
           <Link
             key={n.href}
             href={n.href}
             aria-current={isActive(n) ? "page" : undefined}
           >
-            {n.label}
+            {labelFor(locale, n.key)}
           </Link>
         ))}
       </nav>
       <div className="admin-side__foot">
         <Link className="admin-side__site" href="/home">
-          ← 回到站点
+          {t(locale, "admin.backToSite")}
         </Link>
-        <LogoutButton />
+        <LogoutButton locale={locale} />
       </div>
     </aside>
   );

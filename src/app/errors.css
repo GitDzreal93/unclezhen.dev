@@ -1,0 +1,212 @@
+/* Error / not-found pages — terminal-window aesthetic that matches the
+ * site's hacker/workshop identity (Industrial anchor: pitch-black surface,
+ * mono fonts, single green signal color, 1px borders, no shadows except the
+ * one in the chrome). Loaded by not-found.tsx, error.tsx, and
+ * admin/error.tsx. global-error.tsx inlines the minimum because it renders
+ * without the root layout. */
+
+.err-stage {
+  min-height: calc(100vh - 80px);
+  display: grid;
+  place-items: center;
+  padding: 48px 20px;
+}
+
+.err-window {
+  max-width: 640px;
+  width: 100%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius);
+  overflow: hidden;
+  font-family: var(--font-mono);
+  color: var(--fg);
+}
+
+.err-chrome {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.err-dots {
+  display: flex;
+  gap: 5px;
+}
+.err-dots i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: oklch(38% 0.02 150);
+  display: block;
+}
+.err-dots i:nth-child(1) {
+  background: color-mix(in oklch, var(--accent) 70%, transparent);
+}
+.err-dots i:nth-child(2) {
+  background: oklch(60% 0.10 85);
+}
+.err-dots i:nth-child(3) {
+  background: color-mix(in oklch, var(--danger) 65%, transparent);
+}
+
+.err-body {
+  padding: 24px 22px 26px;
+  display: grid;
+  gap: 18px;
+}
+
+.err-prompt {
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.err-prompt .path {
+  color: var(--fg);
+}
+.err-prompt .err {
+  color: var(--danger);
+}
+.err-prompt .ok {
+  color: var(--accent);
+}
+
+.err-h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.err-h1 .exit {
+  color: var(--muted);
+  font-weight: 400;
+  font-size: 16px;
+  margin-left: 10px;
+}
+
+.err-msg {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--fg);
+  word-break: break-word;
+}
+
+.err-digest {
+  margin: 0;
+  font-size: 11px;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  word-break: break-all;
+  border-top: 1px dashed var(--border);
+  padding-top: 12px;
+}
+
+.err-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+}
+
+.err-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--bg);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+.err-btn:hover {
+  background: color-mix(in oklch, var(--accent) 85%, white 15%);
+}
+.err-btn kbd {
+  font-family: var(--font-mono);
+  background: oklch(11% 0.012 155);
+  color: var(--accent);
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+}
+
+.err-btn-ghost {
+  background: transparent;
+  color: var(--fg);
+  border-color: var(--border);
+}
+.err-btn-ghost:hover {
+  border-color: var(--muted);
+  background: var(--surface-2);
+}
+.err-btn-ghost kbd {
+  background: var(--surface);
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+
+.err-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-family: var(--font-mono);
+}
+.err-pill::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--danger);
+  display: inline-block;
+}
+.err-pill.is-ok::before {
+  background: var(--accent);
+}
+
+/* Inline the terminal-prompt visual for the not-found "command" line. */
+.err-cmdline {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.err-cmdline .ps1 {
+  color: var(--accent);
+}
+.err-cmdline .arg {
+  color: var(--fg);
+}
+.err-cmdline .arg.is-missing {
+  color: var(--danger);
+  text-decoration: underline wavy oklch(50% 0.15 25);
+  text-underline-offset: 4px;
+}
+
+/* Admin variant — same chrome, tighter spacing so it sits inside .admin-shell. */
+.err-stage-admin {
+  min-height: 0;
+  padding: 8px;
+  display: block;
+}
+.err-window-admin {
+  max-width: 720px;
+  margin: 0;
+}

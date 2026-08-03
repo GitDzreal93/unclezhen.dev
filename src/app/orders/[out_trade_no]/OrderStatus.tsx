@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { t, type Locale } from "@/lib/i18n/dict";
 
 export default function OrderStatus({
   outTradeNo,
@@ -10,6 +11,7 @@ export default function OrderStatus({
   amount,
   email,
   deliveredContent,
+  locale,
 }: {
   outTradeNo: string;
   initialStatus: "pending" | "paid";
@@ -18,6 +20,7 @@ export default function OrderStatus({
   amount: number;
   email: string;
   deliveredContent: string;
+  locale: Locale;
 }) {
   const [status, setStatus] = useState(initialStatus);
   const [delivered, setDelivered] = useState(deliveredContent);
@@ -49,40 +52,40 @@ export default function OrderStatus({
   return (
     <div className="order-card card">
       <div className="order-row">
-        <span className="muted">订单号</span>
+        <span className="muted">{t(locale, "orders.outTradeNo")}</span>
         <span className="mono">{outTradeNo}</span>
       </div>
       <div className="order-row">
-        <span className="muted">商品</span>
+        <span className="muted">{t(locale, "orders.item.product")}</span>
         <span>
           {productName}
           {qty > 1 ? ` ×${qty}` : ""}
         </span>
       </div>
       <div className="order-row">
-        <span className="muted">金额</span>
+        <span className="muted">{t(locale, "orders.item.amount")}</span>
         <span className="mono">¥{amount}</span>
       </div>
       <div className="order-row">
-        <span className="muted">邮箱</span>
+        <span className="muted">{t(locale, "orders.email")}</span>
         <span className="mono">{email}</span>
       </div>
       <div className="order-row">
-        <span className="muted">状态</span>
+        <span className="muted">{t(locale, "orders.item.status")}</span>
         <span className={`tag${status === "paid" ? " tag--accent" : ""}`}>
-          {status === "paid" ? "已支付" : "待支付"}
+          {status === "paid" ? t(locale, "orders.paid") : t(locale, "orders.pending")}
         </span>
       </div>
 
       {status === "paid" ? (
         <div className="order-delivery">
-          <h3>你的内容</h3>
-          <pre className="order-content">{delivered || "（发货内容为空，请联系站长）"}</pre>
+          <h3>{t(locale, "orders.delivery")}</h3>
+          <pre className="order-content">{delivered || t(locale, "orders.deliveryEmpty")}</pre>
         </div>
       ) : (
         <p className="muted order-pending">
-          若已完成支付，稍等片刻页面会自动刷新出发货内容。也可保存订单号，稍后到
-          <a href="/orders"> 订单查询</a> 找回。
+          {t(locale, "orders.pendingNote")}
+          <a href="/orders"> {t(locale, "orders.heading")}</a> {t(locale, "orders.link")}.
         </p>
       )}
     </div>

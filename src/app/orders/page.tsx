@@ -1,27 +1,38 @@
+import type { Metadata } from "next";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import { getVisibleNavItems } from "@/lib/data";
+import { getLocale } from "@/lib/i18n/cookie";
+import { getTheme } from "@/lib/theme/cookie";
+import { t } from "@/lib/i18n/dict";
 import OrderLookup from "./OrderLookup";
 import "./orders.css";
 
-export const metadata = {
-  title: "订单查询 · 臻叔",
-  description: "用订单号和邮箱找回已购内容。",
-};
+export const dynamic = "force-dynamic";
 
-export default function OrdersLookupPage() {
+export async function generateMetadata() {
+  const locale = await getLocale();
+  return { title: t(locale, "orders.meta.title") };
+}
+
+export default async function OrdersLookupPage() {
+  const [items, locale, theme] = await Promise.all([
+    getVisibleNavItems(),
+    getLocale(),
+    getTheme(),
+  ]);
   return (
     <>
-      <a className="skip" href="#main">跳到主要内容</a>
-      <SiteNav />
+      <SiteNav items={items} locale={locale} theme={theme} />
       <main id="main">
         <div className="wrap order-page">
-          <div className="eyebrow">Orders</div>
-          <h1>订单查询</h1>
-          <p className="lead">用订单号 + 下单邮箱找回已购内容。</p>
-          <OrderLookup />
+          <div className="eyebrow">{t(locale, "orders.eyebrow")}</div>
+          <h1>{t(locale, "orders.heading")}</h1>
+          <p className="lead">{t(locale, "orders.lead")}</p>
+          <OrderLookup locale={locale} />
         </div>
       </main>
-      <SiteFooter />
+      <SiteFooter locale={locale} />
     </>
   );
 }

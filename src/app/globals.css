@@ -1,6 +1,17 @@
 @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
 
-:root {
+/* —— Theme tokens ——
+ * Each theme redefines the same set of color tokens. Both themes also
+ * set theme-agnostic tokens (--font-*, --radius, --line, --input-bg,
+ * --backdrop, --grid-overlay, --scanline) which are derived from the
+ * theme's foreground/background so they adapt automatically.
+ *
+ * Dark is the default (matches the original palette). Light is opt-in
+ * via `<html data-theme="light">`, which the ThemeSwitcher server action
+ * sets via cookie and the root layout applies on every request. */
+
+:root,
+:root[data-theme="dark"] {
   --bg: oklch(11% 0.012 155);
   --surface: oklch(15% 0.016 155);
   --surface-2: oklch(19% 0.02 155);
@@ -12,6 +23,50 @@
   --success: oklch(74% 0.16 150);
   --warn: oklch(78% 0.12 85);
   --danger: oklch(68% 0.16 25);
+
+  /* Theme-agnostic utility tokens derived from the colors above. */
+  --line: color-mix(in oklch, var(--fg) 8%, transparent);
+  --line-strong: color-mix(in oklch, var(--fg) 14%, transparent);
+  --input-bg: color-mix(in oklch, var(--bg) 92%, var(--surface));
+  --backdrop: color-mix(in oklch, var(--bg) 55%, transparent);
+  --grid-overlay: color-mix(in oklch, var(--accent) 4%, transparent);
+  --scanline: rgba(0, 0, 0, 0.35);
+  --on-accent: oklch(11% 0.012 155);
+  --accent-soft: color-mix(in oklch, var(--accent) 12%, transparent);
+  --accent-border: color-mix(in oklch, var(--accent) 42%, transparent);
+  --surface-glass: color-mix(in oklch, var(--surface) 86%, transparent);
+  --shadow: oklch(4% 0.012 155 / 0.32);
+  --shadow-strong: oklch(4% 0.012 155 / 0.48);
+}
+
+:root[data-theme="light"] {
+  --bg: oklch(97% 0.005 155);
+  --surface: oklch(100% 0 0);
+  --surface-2: oklch(94% 0.008 155);
+  --fg: oklch(20% 0.02 145);
+  --muted: oklch(45% 0.02 150);
+  --border: oklch(82% 0.012 150);
+  --accent: oklch(58% 0.18 145);
+  --accent-dim: oklch(82% 0.08 145);
+  --success: oklch(56% 0.16 150);
+  --warn: oklch(68% 0.13 85);
+  --danger: oklch(54% 0.18 25);
+
+  --line: color-mix(in oklch, var(--fg) 10%, transparent);
+  --line-strong: color-mix(in oklch, var(--fg) 18%, transparent);
+  --input-bg: oklch(96% 0.005 155);
+  --backdrop: color-mix(in oklch, oklch(40% 0.02 155) 35%, transparent);
+  --grid-overlay: color-mix(in oklch, var(--accent) 5%, transparent);
+  --scanline: rgba(0, 0, 0, 0.04);
+  --on-accent: oklch(100% 0 0);
+  --accent-soft: color-mix(in oklch, var(--accent) 10%, transparent);
+  --accent-border: color-mix(in oklch, var(--accent) 38%, transparent);
+  --surface-glass: color-mix(in oklch, var(--surface) 84%, transparent);
+  --shadow: oklch(30% 0.012 155 / 0.12);
+  --shadow-strong: oklch(30% 0.012 155 / 0.2);
+}
+
+:root {
   --font-display: "JetBrains Mono", "IBM Plex Mono", ui-monospace, Menlo, monospace;
   --font-body: "IBM Plex Sans", "SF Pro Text", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, Menlo, monospace;
@@ -52,8 +107,8 @@ body::before {
   pointer-events: none;
   z-index: 0;
   background-image:
-    linear-gradient(rgba(80, 255, 140, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(80, 255, 140, 0.035) 1px, transparent 1px);
+    linear-gradient(var(--grid-overlay) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-overlay) 1px, transparent 1px);
   background-size: 40px 40px;
   mask-image: radial-gradient(ellipse 90% 70% at 50% 20%, black, transparent 80%);
 }
@@ -69,8 +124,8 @@ body::after {
     0deg,
     transparent,
     transparent 3px,
-    rgba(0, 0, 0, 0.35) 3px,
-    rgba(0, 0, 0, 0.35) 4px
+    var(--scanline) 3px,
+    var(--scanline) 4px
   );
 }
 
@@ -124,19 +179,8 @@ textarea {
   color: inherit;
 }
 
-.skip {
-  position: absolute;
-  left: -999px;
-  top: 0;
-  background: var(--accent);
-  color: var(--bg);
-  padding: 8px 12px;
-  z-index: 100;
-}
-.skip:focus {
-  left: 12px;
-  top: 12px;
-}
+/* .skip rules removed — the "跳到主要内容" link was removed from all pages
+ * for visual cleanliness. Keyboard users can still tab through the nav. */
 
 /* —— Nav —— */
 .site-nav {
@@ -146,7 +190,7 @@ textarea {
   height: var(--nav-h);
   display: flex;
   align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--line);
   background: color-mix(in oklch, var(--bg) 82%, transparent);
   backdrop-filter: blur(16px) saturate(1.2);
 }
@@ -207,7 +251,7 @@ textarea {
 .nav-links a:hover,
 .nav-links a[aria-current="page"] {
   color: var(--fg);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--line);
 }
 
 .nav-cta {
@@ -242,7 +286,7 @@ textarea {
   width: 44px;
   height: 44px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--line);
   background: var(--surface);
   display: grid;
   place-items: center;
@@ -283,8 +327,82 @@ textarea {
   font-size: 16px;
   font-weight: 500;
   color: var(--fg);
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--surface-glass);
+  border: 1px solid var(--line);
+}
+
+/* A compact control pod keeps language and theme together instead of
+ * presenting two unrelated, heavy buttons. */
+.nav-controls,
+.nav-drawer__controls,
+.launch-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--surface) 82%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in oklch, var(--fg) 7%, transparent), 0 6px 20px var(--shadow);
+  backdrop-filter: blur(12px) saturate(1.15);
+}
+
+.nav-controls {
+  margin-left: auto;
+}
+
+.nav-drawer__controls {
+  margin-top: 16px;
+}
+
+.nav-locale,
+.nav-theme {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: color 0.18s var(--ease), background 0.18s var(--ease), box-shadow 0.18s var(--ease), transform 0.18s var(--ease);
+}
+.nav-locale:hover,
+.nav-theme:hover {
+  color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent-border), 0 0 14px color-mix(in oklch, var(--accent) 18%, transparent);
+  transform: translateY(-1px);
+}
+.nav-theme {
+  width: 30px;
+}
+.nav-locale__label {
+  line-height: 1;
+}
+.nav-theme__icon {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.nav-theme[aria-pressed="true"] {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.nav-locale:active,
+.nav-theme:active {
+  transform: translateY(0) scale(0.94);
 }
 
 .nav-drawer .drawer-cta {
@@ -295,7 +413,7 @@ textarea {
   padding: 14px;
   border-radius: 4px;
   background: var(--accent);
-  color: oklch(12% 0.03 155);
+  color: var(--on-accent);
   font-family: var(--font-mono);
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -424,7 +542,7 @@ h3,
 
 .btn--primary {
   background: var(--accent);
-  color: oklch(12% 0.03 155);
+  color: var(--on-accent);
   border-color: color-mix(in oklch, var(--accent) 80%, white);
   box-shadow: 0 0 24px color-mix(in oklch, var(--accent) 28%, transparent);
 }
@@ -436,12 +554,12 @@ h3,
 
 .btn--ghost {
   background: transparent;
-  border-color: rgba(120, 255, 170, 0.22);
+  border-color: var(--accent-border);
   color: var(--fg);
 }
 
 .btn--ghost:hover {
-  background: rgba(80, 255, 140, 0.06);
+  background: var(--accent-soft);
   border-color: color-mix(in oklch, var(--accent) 45%, transparent);
   color: var(--accent);
 }
@@ -454,8 +572,8 @@ h3,
 
 /* —— Cards —— */
 .card {
-  background: color-mix(in oklch, var(--surface) 92%, black);
-  border: 1px solid rgba(100, 255, 160, 0.1);
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: var(--radius);
   overflow: hidden;
   transition: border-color 0.2s var(--ease), transform 0.25s var(--ease), box-shadow 0.25s var(--ease);
@@ -464,7 +582,7 @@ h3,
 .card:hover {
   border-color: color-mix(in oklch, var(--accent) 40%, transparent);
   transform: translateY(-2px);
-  box-shadow: 0 0 0 1px color-mix(in oklch, var(--accent) 12%, transparent), 0 18px 40px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--accent) 12%, transparent), 0 18px 40px var(--shadow);
 }
 
 .card__body {
@@ -489,8 +607,8 @@ h3,
   align-items: center;
   padding: 3px 8px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line);
+  background: var(--line);
   font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.04em;
@@ -520,7 +638,7 @@ h3,
 
 /* —— Footer —— */
 .site-footer {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--line);
   padding: 40px 0 56px;
   position: relative;
   z-index: 1;
@@ -591,7 +709,7 @@ h3,
   min-height: 44px;
   padding: 0 14px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--line);
   background: var(--surface);
   color: var(--fg);
   outline: none;
@@ -616,7 +734,7 @@ h3,
   min-height: 36px;
   padding: 0 12px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--line);
   background: transparent;
   color: var(--muted);
   font-size: 13px;
@@ -628,8 +746,8 @@ h3,
 .filter-btn.is-active,
 .filter-btn:hover {
   color: var(--fg);
-  border-color: rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--line-strong);
+  background: var(--line);
 }
 
 .filter-btn.is-active {
@@ -663,7 +781,7 @@ h3,
 .empty-state {
   padding: 48px 24px;
   text-align: center;
-  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border: 1px dashed var(--line-strong);
   border-radius: var(--radius);
   color: var(--muted);
 }
@@ -673,7 +791,7 @@ h3,
   position: fixed;
   inset: 0;
   z-index: 80;
-  background: rgba(0, 0, 0, 0.55);
+  background: var(--backdrop);
   backdrop-filter: blur(6px);
   display: none;
   align-items: center;
@@ -688,10 +806,10 @@ h3,
 .modal {
   width: min(100%, 420px);
   background: var(--surface);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--line-strong);
   border-radius: 18px;
   padding: 24px;
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 30px 80px var(--shadow-strong);
 }
 
 .modal h3 {
@@ -728,8 +846,8 @@ h3,
   min-height: 44px;
   padding: 10px 12px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: var(--bg);
+  border: 1px solid var(--line-strong);
+  background: var(--input-bg);
   outline: none;
 }
 
@@ -753,7 +871,7 @@ h3,
   padding: 12px 18px;
   border-radius: 999px;
   background: var(--surface-2);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--line-strong);
   font-size: 14px;
   font-weight: 500;
   opacity: 0;

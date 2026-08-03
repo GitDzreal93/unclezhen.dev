@@ -1,20 +1,10 @@
 @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
 
+/* Color + font tokens come from globals.css (loaded before this file via
+ * the root layout). The admin only adds admin-specific sizing/control
+ * tokens below. */
+
 :root {
-  --bg: oklch(11% 0.012 155);
-  --surface: oklch(15% 0.016 155);
-  --surface-2: oklch(19% 0.02 155);
-  --fg: oklch(93% 0.02 145);
-  --muted: oklch(62% 0.03 150);
-  --border: oklch(28% 0.03 150);
-  --accent: oklch(78% 0.19 145);
-  --accent-dim: oklch(42% 0.1 145);
-  --success: oklch(74% 0.16 150);
-  --warn: oklch(78% 0.12 85);
-  --danger: oklch(68% 0.16 25);
-  --font-display: "JetBrains Mono", "IBM Plex Mono", ui-monospace, Menlo, monospace;
-  --font-body: "IBM Plex Sans", "SF Pro Text", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, Menlo, monospace;
   --mono: var(--font-mono);
   --radius: 5px;
   --radius-sm: 3px;
@@ -52,26 +42,8 @@ a { color: inherit; text-decoration: none; }
   outline-offset: 2px;
 }
 
-.skip {
-  position: absolute;
-  left: -999px;
-  top: 0;
-  z-index: 100;
-  padding: 8px 12px;
-  background: var(--accent);
-  color: oklch(12% 0.03 155);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  border-radius: var(--radius-sm);
-}
-.skip:focus {
-  left: 12px;
-  top: 12px;
-  outline: 2px solid var(--fg);
-  outline-offset: 2px;
-}
+/* .skip rules removed — the "跳到主要内容" link was removed from all
+ * pages. Keyboard users tab through nav and main as normal. */
 
 button, input, select, textarea { font: inherit; color: inherit; }
 button:disabled, .btn:disabled {

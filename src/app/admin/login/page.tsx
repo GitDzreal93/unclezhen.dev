@@ -2,8 +2,9 @@
 
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { t, type Locale } from "@/lib/i18n/dict";
 
-function AdminLoginForm() {
+function AdminLoginForm({ locale }: { locale: Locale }) {
   const router = useRouter();
   const params = useSearchParams();
   const [password, setPassword] = useState("");
@@ -22,14 +23,14 @@ function AdminLoginForm() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setError(data.error || "登录失败");
+        setError((data as { error?: string })?.error || t(locale, "admin.login.fail"));
         return;
       }
       const from = params.get("from") || "/admin";
       router.replace(from);
       router.refresh();
     } catch {
-      setError("网络错误，请重试");
+      setError(t(locale, "admin.login.networkError"));
     } finally {
       setSubmitting(false);
     }
@@ -38,22 +39,22 @@ function AdminLoginForm() {
   return (
     <div className="admin-login">
       <form className="admin-login__card" onSubmit={onSubmit}>
-        <div className="eyebrow">// admin</div>
-        <h1>后台登录</h1>
+        <div className="eyebrow">{t(locale, "admin.login.eyebrow")}</div>
+        <h1>{t(locale, "admin.login.heading")}</h1>
         <div className="field">
-          <label htmlFor="pw">管理密码</label>
+          <label htmlFor="pw">{t(locale, "admin.login.password")}</label>
           <input
             id="pw"
             type="password"
             autoFocus
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="输入管理密码"
+            placeholder={t(locale, "admin.login.passwordPlaceholder")}
           />
         </div>
         {error && <p className="admin-login__err">{error}</p>}
         <button className="btn btn--primary" type="submit" disabled={submitting}>
-          {submitting ? "登录中…" : "登录"}
+          {submitting ? t(locale, "admin.login.submitting") : t(locale, "admin.login.submit")}
         </button>
       </form>
     </div>
@@ -63,7 +64,7 @@ function AdminLoginForm() {
 export default function AdminLoginPage() {
   return (
     <Suspense fallback={<div className="admin-login" />}>
-      <AdminLoginForm />
+      <AdminLoginForm locale="zh" />
     </Suspense>
   );
 }

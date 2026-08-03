@@ -42,9 +42,9 @@
 
 .hud-stats span {
   padding: 8px 12px;
-  border: 1px solid rgba(100, 255, 160, 0.16);
+  border: 1px solid var(--accent-border);
   border-radius: 4px;
-  background: rgba(0, 0, 0, 0.28);
+  background: var(--surface-glass);
   color: var(--muted);
 }
 
@@ -62,7 +62,7 @@
 
 .stage-frame {
   position: relative;
-  border: 1px solid rgba(100, 255, 160, 0.2);
+  border: 1px solid var(--accent-border);
   border-radius: 8px;
   background:
     radial-gradient(ellipse 70% 50% at 50% 40%, rgba(40, 120, 70, 0.12), transparent 60%),
@@ -140,6 +140,28 @@
   text-transform: uppercase;
 }
 
+.portal-toast__hint {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  color: color-mix(in oklch, var(--fg) 58%, transparent);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.portal-toast__hint kbd {
+  padding: 2px 5px;
+  border: 1px solid color-mix(in oklch, var(--accent) 38%, transparent);
+  border-radius: 3px;
+  background: color-mix(in oklch, var(--accent) 10%, transparent);
+  color: var(--accent);
+  font: inherit;
+  font-weight: 600;
+}
+
 /* Green hint line beneath the room map. */
 .game-hint {
   margin: 0;
@@ -190,7 +212,7 @@
 }
 
 .dpad button {
-  border: 1px solid rgba(100, 255, 160, 0.2);
+  border: 1px solid var(--accent-border);
   border-radius: 6px;
   background: var(--surface);
   color: var(--fg);
@@ -236,8 +258,8 @@
   font: inherit;
   padding: 2px 7px;
   border-radius: 3px;
-  border: 1px solid rgba(100, 255, 160, 0.2);
-  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--accent-border);
+  background: var(--surface-2);
   color: var(--fg);
   margin: 0 2px;
 }
@@ -254,9 +276,9 @@
   letter-spacing: 0.04em;
   padding: 6px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(100, 255, 160, 0.14);
+  border: 1px solid var(--line);
   color: var(--muted);
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--surface-glass);
 }
 
 .found-list a.is-found {

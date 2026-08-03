@@ -44,6 +44,14 @@ export type Card = {
   createdAt: string;
 };
 
+export type NavItem = {
+  key: string;
+  label: string;
+  href: string;
+  sort: number;
+  visible: boolean;
+};
+
 export type OrderStatus = "pending" | "paid";
 
 export type Order = {
@@ -216,6 +224,51 @@ export async function getOrderByOutTradeNo(
     [outTradeNo]
   );
   return rows.length ? mapOrder(rows[0]) : null;
+}
+
+// ---- Nav ----
+
+// Snake→camel remap kept explicit for symmetry with mapProduct, even though
+// the column names already happen to match the type.
+function mapNavItem(r: any): NavItem {
+  return {
+    key: r.key,
+    label: r.label,
+    href: r.href,
+    sort: r.sort,
+    visible: Boolean(r.visible),
+  };
+}
+
+// Admin uses this — no visibility filter, returns all rows so the toggle UI
+// can show and edit every entry regardless of state.
+export async function getNavItems(): Promise<NavItem[]> {
+  const rows = await query<any>(
+    "SELECT key,label,href,sort,visible FROM nav_items ORDER BY sort ASC"
+  );
+  return rows.map(mapNavItem);
+}
+
+// Public consumers (SiteNav, LauncherStage, GameClient, home module grid)
+// use this — filtered to visible=true so a single UPDATE in the admin
+// reflects everywhere at once.
+export async function getVisibleNavItems(): Promise<NavItem[]> {
+  const rows = await query<any>(
+    "SELECT key,label,href,sort,visible FROM nav_items WHERE visible = true ORDER BY sort ASC"
+  );
+  return rows.map(mapNavItem);
+}
+
+// Single-key visibility check. Used by the data-driven page routes (/blog,
+// /projects, /shop) so a hidden item returns 404 on direct URL access. The
+// "home" and "game" keys are never toggled off, but the check still works
+// if the DB is ever edited by hand.
+export async function isNavItemVisible(key: string): Promise<boolean> {
+  const rows = await query<{ visible: boolean }>(
+    "SELECT visible FROM nav_items WHERE key=$1",
+    [key]
+  );
+  return rows.length > 0 && Boolean(rows[0].visible);
 }
 
 // ---- Images ----

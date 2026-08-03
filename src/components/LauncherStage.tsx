@@ -2,20 +2,42 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import type { NavItem } from "@/lib/data";
+import type { Locale } from "@/lib/i18n/dict";
+import type { Theme } from "@/lib/theme/cookie";
+import { navLabel, t } from "@/lib/i18n/dict";
+import LocaleSwitcher from "@/components/LocaleSwitcher";
+import ThemeSwitcher from "@/components/ThemeSwitcher";
 import GameClient from "@/components/GameClient";
 
-type LinkItem = { href: string; idx: string; name: string; hint: string; key: string };
+const HINT_KEYS: Record<string, string> = {
+  home: "launcher.hint.home",
+  blog: "launcher.hint.blog",
+  projects: "launcher.hint.projects",
+  shop: "launcher.hint.shop",
+  about: "launcher.hint.about",
+};
 
-const LINKS: LinkItem[] = [
-  { href: "/home", idx: "01", name: "/home", hint: "3D IP", key: "home" },
-  { href: "/blog", idx: "02", name: "/blog", hint: "技术博客", key: "blog" },
-  { href: "/projects", idx: "03", name: "/projects", hint: "项目展示", key: "projects" },
-  { href: "/shop", idx: "04", name: "/shop", hint: "软件商店", key: "shop" },
-];
-
-export default function LauncherStage() {
+export default function LauncherStage({ items, locale, theme }: { items: NavItem[]; locale: Locale; theme: Theme }) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [foundIds, setFoundIds] = useState<string[]>([]);
+
+  // Build the displayed list by projecting visible nav rows through the
+  // code-owned hint key map. Items without a hint stay out of this launcher.
+  const links = items
+    .map((it, i) => {
+      const hintKey = HINT_KEYS[it.key];
+      const hint = hintKey ? t(locale, hintKey) : null;
+      if (!hint) return null;
+      return {
+        key: it.key,
+        href: it.href,
+        name: navLabel(locale, it.key, it.label),
+        hint,
+        idx: String(i + 1).padStart(2, "0"),
+      };
+    })
+    .filter((x): x is NonNullable<typeof x> => x !== null);
 
   return (
     <div className="launch-split">
@@ -43,20 +65,20 @@ export default function LauncherStage() {
 
           <div>
             <div className="eyebrow">site map</div>
-            <h1>臻叔个人站</h1>
+            <h1>{t(locale, "launcher.title")}</h1>
           </div>
 
           <p className="lead">
-            选择模块进入。首页含滚动驱动 3D IP；博客 / 项目 / 商店均为可交互原型，右侧开扫地机走到节点即高亮对应分类。
+            {t(locale, "launcher.lead")}
           </p>
 
           <div className="launch-actions">
-            <Link className="btn btn--primary" href="/home">进入首页</Link>
-            <Link className="btn btn--ghost" href="/projects">看项目</Link>
+            <Link className="btn btn--primary" href="/home">{t(locale, "launcher.enterHome")}</Link>
+            <Link className="btn btn--ghost" href="/projects">{t(locale, "launcher.viewProjects")}</Link>
           </div>
 
-          <ul className="launch-links" aria-label="站点页面">
-            {LINKS.map((l) => {
+          <ul className="launch-links" aria-label={t(locale, "launcher.siteMap")}>
+            {links.map((l) => {
               const cls = [
                 activeId === l.key ? "is-active" : "",
                 foundIds.includes(l.key) ? "is-found" : "",
@@ -76,13 +98,13 @@ export default function LauncherStage() {
           </ul>
 
           <div className="launch-foot">
-            <span>4 routes · exit 0</span>
-            <span className="hint-keys">Tab 聚焦 · <kbd>Enter</kbd> 进入</span>
+            <span>{t(locale, "launcher.routes", { count: links.length })}</span>
+            <span className="hint-keys">{t(locale, "launcher.keyboard")}</span>
           </div>
         </div>
       </div>
 
-      <aside className="launch-game" aria-label="扫地机小游戏">
+      <aside className="launch-game" aria-label={t(locale, "launcher.gameAria")}>
         <div className="launch-chrome">
           <div className="launch-chrome__left">
             <span className="launch-dots" aria-hidden="true">
@@ -93,9 +115,13 @@ export default function LauncherStage() {
           <span className="launch-status">playable</span>
         </div>
         <div className="launch-game__body">
-          <GameClient embedded onActiveChange={setActiveId} onFoundChange={setFoundIds} />
+          <GameClient items={items} embedded locale={locale} onActiveChange={setActiveId} onFoundChange={setFoundIds} />
         </div>
       </aside>
+      <div className="launch-controls">
+        <LocaleSwitcher locale={locale} />
+        <ThemeSwitcher theme={theme} />
+      </div>
     </div>
   );
 }

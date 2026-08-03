@@ -104,6 +104,24 @@ CREATE TABLE IF NOT EXISTS images (
   alt          text NOT NULL DEFAULT '',
   created_at   timestamptz NOT NULL DEFAULT now()
 );
+
+-- Public site navigation. One row per menu entry (home / blog / projects /
+-- shop / game). The 'visible' column controls three display sites in sync:
+--   - top nav bar in /home /blog /projects /shop (SiteNav)
+--   - launcher left 'site map' list at / (LauncherStage)
+--   - canvas game portals at / (GameClient)
+-- Plus the /home module-card grid.
+-- Presentation extras (hint text, canvas x/y/r/hue, module-card blurb) live
+-- in code — see EXTRAS in LauncherStage / LAYOUT in GameClient / HINTS in
+-- the admin NavTable. A nav_items row whose key has no presentation entry
+-- is intentionally skipped from those consumers.
+CREATE TABLE IF NOT EXISTS nav_items (
+  key     text PRIMARY KEY,
+  label   text NOT NULL,
+  href    text NOT NULL,
+  sort    int  NOT NULL DEFAULT 0,
+  visible boolean NOT NULL DEFAULT true
+);
 `;
 
 
@@ -162,6 +180,20 @@ const PRODUCTS = [
   { id: "pack-brand", name: "深色品牌起步包", cat: "设计", price: 49, descr: "OKLch 令牌、字体配对与组件状态示意。", delivery_mode: "fixed", fixed_content: "下载链接：https://pan.example.com/pack-brand 提取码：demo", stock: -1 },
 ];
 
+// Public site navigation. The launcher/game omit "about" by virtue of having
+// no presentation entry for that key (see EXTRAS in LauncherStage, LAYOUT in
+// GameClient). Keep the sort field authoritative for cross-consumer order.
+//
+// /about points to /home#about — it scrolls to the existing #about section
+// on the home page rather than spawning a separate route.
+const NAV_ITEMS = [
+  { key: "home",     label: "/home",     href: "/home",          sort: 0 },
+  { key: "blog",     label: "/blog",     href: "/blog",          sort: 1 },
+  { key: "projects", label: "/projects", href: "/projects",      sort: 2 },
+  { key: "shop",     label: "/shop",     href: "/shop",          sort: 3 },
+  { key: "about",    label: "/about",    href: "/home#about",    sort: 4 },
+];
+
 async function main() {
   const client = await pool.connect();
   try {
@@ -193,6 +225,22 @@ async function main() {
         [p.id, p.name, p.cat, p.price, p.descr, p.delivery_mode, p.fixed_content, p.stock, i]
       );
     }
+    for (let i = 0; i < NAV_ITEMS.length; i++) {
+      const n = NAV_ITEMS[i];
+      await client.query(
+        `INSERT INTO nav_items (key,label,href,sort,visible) VALUES ($1,$2,$3,$4,true)
+         ON CONFLICT (key) DO UPDATE SET label=EXCLUDED.label,href=EXCLUDED.href,sort=EXCLUDED.sort`,
+        [n.key, n.label, n.href, n.sort]
+      );
+    }
+    // Drop any rows whose key is no longer in NAV_ITEMS (e.g. removing
+    // "game" when a nav item is retired from the seed). Visible state is
+    // NOT touched on the surviving rows.
+    const keepKeys = NAV_ITEMS.map((n) => n.key);
+    await client.query(
+      "DELETE FROM nav_items WHERE key <> ALL($1::text[])",
+      [keepKeys]
+    );
 
     await client.query("COMMIT");
     console.log("✔ schema created, migrated and seeded");

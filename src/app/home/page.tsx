@@ -4,12 +4,14 @@ import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import HomeScene from "@/components/HomeScene";
 import ContactCta from "@/components/ContactCta";
+import { getVisibleNavItems } from "@/lib/data";
+import { getLocale } from "@/lib/i18n/cookie";
+import { getTheme } from "@/lib/theme/cookie";
+import { navLabel, t, type Locale } from "@/lib/i18n/dict";
+import type { Theme } from "@/lib/theme/cookie";
 import "./home.css";
 
-export const metadata: Metadata = {
-  title: "臻叔 · hacker / builder",
-  description: "把 WebGL / 工程交付 / 内容商业化塞进同一个 monorepo。",
-};
+export const dynamic = "force-dynamic";
 
 const ArrowIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -17,11 +19,23 @@ const ArrowIcon = () => (
   </svg>
 );
 
-export default function HomePage() {
+// Blurb copy per module-card key. The home page itself is filtered out of
+// the module grid; everything else gets a blurb via the i18n dict, with a
+// graceful fallback to the empty string for unknown keys.
+function moduleBlurb(locale: Locale, key: string): string {
+  return t(locale, `module.${key}`);
+}
+
+export default async function HomePage() {
+  const [items, locale, theme] = await Promise.all([
+    getVisibleNavItems(),
+    getLocale(),
+    getTheme(),
+  ]);
+  const modules = items.filter((i) => i.key !== "home");
+
   return (
     <div className="home-page">
-      <a className="skip" href="#main">跳到主要内容</a>
-
       <HomeScene />
 
       <div className="hud-bar">
@@ -30,7 +44,7 @@ export default function HomePage() {
         <div className="hud-chip">scene <b id="hud-scene">boot</b></div>
       </div>
 
-      <SiteNav active="home" />
+      <SiteNav items={items} active="home" locale={locale} theme={theme} />
 
       <main id="main">
         <div className="scroll-track" id="scroll-track">
@@ -44,28 +58,28 @@ export default function HomePage() {
                   </div>
                   <div className="term-body">
                     <div className="path-line"><span className="g">~/lab</span> <span className="g">❯</span> whoami</div>
-                    <h1>我是 <span className="hl">臻叔</span><br />hacker · builder · teacher</h1>
-                    <p className="lead">把 WebGL / 工程交付 / 内容商业化塞进同一个 monorepo。向下滚动——场景会跟你一起转。</p>
+                    <h1>{t(locale, "home.hero.title")} <span className="hl">{t(locale, "home.hero.name")}</span><br />{t(locale, "home.hero.heading")}</h1>
+                    <p className="lead">{t(locale, "home.hero.lead")}</p>
                     <div className="hero-actions">
-                      <Link className="btn btn--primary" href="/projects">ls ./projects</Link>
-                      <a className="btn btn--ghost" href="#about">cat ./about</a>
+                      <Link className="btn btn--primary" href="/projects">{t(locale, "home.hero.cta.projects")}</Link>
+                      <a className="btn btn--ghost" href="#about">{t(locale, "home.hero.cta.about")}</a>
                     </div>
                     <div className="stat-row">
                       <div className="stat">
-                        <div className="stat__n">10+</div>
-                        <div className="stat__l">yrs eng</div>
+                        <div className="stat__n">{t(locale, "home.stat.yrs")}</div>
+                        <div className="stat__l">{t(locale, "home.stat.yrs.label")}</div>
                       </div>
                       <div className="stat">
-                        <div className="stat__n">—</div>
-                        <div className="stat__l">posts · todo</div>
+                        <div className="stat__n">{t(locale, "home.stat.posts")}</div>
+                        <div className="stat__l">{t(locale, "home.stat.posts.label")}</div>
                       </div>
                       <div className="stat">
-                        <div className="stat__n">—</div>
-                        <div className="stat__l">shop · todo</div>
+                        <div className="stat__n">{t(locale, "home.stat.shop")}</div>
+                        <div className="stat__l">{t(locale, "home.stat.shop.label")}</div>
                       </div>
                     </div>
                     <div className="scroll-hint">
-                      <span>scroll to orbit</span>
+                      <span>{t(locale, "home.scroll.hint")}</span>
                       <span className="bar"><i id="scroll-bar"></i></span>
                     </div>
                   </div>
@@ -80,10 +94,10 @@ export default function HomePage() {
                   </div>
                   <div className="term-body">
                     <div className="path-line"><span className="g">~/lab</span> <span className="g">❯</span> ./render --ip --webgl --scroll</div>
-                    <h1>IP 进场 · 轨道网络</h1>
-                    <p className="lead">手绘 IP 做顶点波动；星野粒子、轨道节点连线、悬浮终端面板与网格地面随滚动推进。拖拽可覆盖旋转。</p>
+                    <h1>{t(locale, "home.scene01.title")}</h1>
+                    <p className="lead">{t(locale, "home.scene01.lead")}</p>
                     <div className="hero-actions">
-                      <Link className="btn btn--ghost" href="/blog">read ./blog</Link>
+                      <Link className="btn btn--ghost" href="/blog">{t(locale, "home.scene01.cta")}</Link>
                     </div>
                   </div>
                 </div>
@@ -97,11 +111,11 @@ export default function HomePage() {
                   </div>
                   <div className="term-body">
                     <div className="path-line"><span className="g">~/lab</span> <span className="g">❯</span> open modules/</div>
-                    <h1>三条业务线 · 同一套系统</h1>
-                    <p className="lead">blog · projects · shop —— 继续向下进入内容区，或直接 jump。</p>
+                    <h1>{t(locale, "home.scene02.title")}</h1>
+                    <p className="lead">{t(locale, "home.scene02.lead")}</p>
                     <div className="hero-actions">
-                      <a className="btn btn--primary" href="#modules">cd ./modules</a>
-                      <Link className="btn btn--ghost" href="/shop">cd ./shop</Link>
+                      <a className="btn btn--primary" href="#modules">{t(locale, "home.scene02.cta1")}</a>
+                      <Link className="btn btn--ghost" href="/shop">{t(locale, "home.scene02.cta2")}</Link>
                     </div>
                   </div>
                 </div>
@@ -114,12 +128,12 @@ export default function HomePage() {
           <section className="section about" id="about">
             <div className="wrap about__grid">
               <div>
-                <div className="eyebrow">// about</div>
-                <h2>$ cat README.md</h2>
+                <div className="eyebrow">{t(locale, "home.about.kicker")}</div>
+                <h2>{t(locale, "home.about.heading")}</h2>
               </div>
               <div className="about__text">
-                <p>我是臻叔。白天把复杂系统拆成可上线产物，晚上把坑写成教程。界面要有手感——像终端里敲对命令的那一下反馈。</p>
-                <p>这个站是作品集 + 知识库 + 店铺：博客沉淀方法，项目展示交付，商店放可买的软件与模板。</p>
+                <p>{t(locale, "home.about.p1")}</p>
+                <p>{t(locale, "home.about.p2")}</p>
                 <div className="code-block">
                   <div><span className="k">const</span> zhen = &#123;</div>
                   <div>  role: <span className="s">&quot;creative engineer&quot;</span>,</div>
@@ -131,22 +145,22 @@ export default function HomePage() {
                   <li>
                     <span>frontend</span>
                     <span className="bar-track"><i style={{ width: "92%" }}></i></span>
-                    <span className="lvl">react/ts</span>
+                    <span className="lvl">{t(locale, "home.about.skills.frontend")}</span>
                   </li>
                   <li>
                     <span>motion/gl</span>
                     <span className="bar-track"><i style={{ width: "78%" }}></i></span>
-                    <span className="lvl">three/css</span>
+                    <span className="lvl">{t(locale, "home.about.skills.motion")}</span>
                   </li>
                   <li>
                     <span>ship 0→1</span>
-                    <span className="bar-track"><i style={{ width: "86%" }}></i></span>
-                    <span className="lvl">product</span>
+                    <span className="bar-track"><i style={{ width: "78%" }}></i></span>
+                    <span className="lvl">{t(locale, "home.about.skills.ship")}</span>
                   </li>
                   <li>
                     <span>teach</span>
                     <span className="bar-track"><i style={{ width: "80%" }}></i></span>
-                    <span className="lvl">course</span>
+                    <span className="lvl">{t(locale, "home.about.skills.teach")}</span>
                   </li>
                 </ul>
               </div>
@@ -157,62 +171,40 @@ export default function HomePage() {
             <div className="wrap">
               <div className="section-head">
                 <div>
-                  <div className="eyebrow">// modules</div>
-                  <h2>$ ls -la ~/site</h2>
+                  <div className="eyebrow">{t(locale, "home.modules.kicker")}</div>
+                  <h2>{t(locale, "home.modules.heading")}</h2>
                 </div>
                 <p className="muted" style={{ maxWidth: "28ch", fontSize: 13, fontFamily: "var(--font-mono)" }}>
-                  三个入口 · 学习 / 合作 / 购买
+                  {t(locale, "home.modules.count", { n: modules.length })}
                 </p>
               </div>
               <div className="grid-2" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))" }}>
-                <Link className="card" href="/blog">
-                  <div className="module-card">
-                    <div className="module-card__icon">01</div>
-                    <h3>/blog</h3>
-                    <p>工程实践、动效拆解、架构笔记。可检索、可按标签过滤。</p>
-                    <span className="link">open <ArrowIcon /></span>
-                  </div>
-                </Link>
-                <Link className="card" href="/projects">
-                  <div className="module-card">
-                    <div className="module-card__icon">02</div>
-                    <h3>/projects</h3>
-                    <p>真实交付与实验场。问题 · 方案 · 技术栈 · 结果。</p>
-                    <span className="link">open <ArrowIcon /></span>
-                  </div>
-                </Link>
-                <Link className="card" href="/shop">
-                  <div className="module-card">
-                    <div className="module-card__icon">03</div>
-                    <h3>/shop</h3>
-                    <p>工具、模板与源码包。购物车与演示结算已接好。</p>
-                    <span className="link">open <ArrowIcon /></span>
-                  </div>
-                </Link>
-                <Link className="card" href="/">
-                  <div className="module-card">
-                    <div className="module-card__icon">04</div>
-                    <h3>/game</h3>
-                    <p>扫地机器人房间漫游。扫光斑解锁站点传送卡。</p>
-                    <span className="link">play <ArrowIcon /></span>
-                  </div>
-                </Link>
+                {modules.map((m, i) => (
+                  <Link key={m.key} className="card" href={m.href}>
+                    <div className="module-card">
+                      <div className="module-card__icon">{String(i + 1).padStart(2, "0")}</div>
+                      <h3>{navLabel(locale, m.key, m.label)}</h3>
+                      <p>{moduleBlurb(locale, m.key)}</p>
+                      <span className="link">{t(locale, "home.modules.open")} <ArrowIcon /></span>
+                    </div>
+                  </Link>
+                ))}
               </div>
             </div>
           </section>
 
           <div className="cta-band">
             <div>
-              <div className="eyebrow">// contact</div>
-              <h2>ssh collab@zhen</h2>
-              <p>内训 · 原型 · 动效落地 · 顾问。留言后通常 48h 内回复（原型不真实发送）。</p>
+              <div className="eyebrow">{t(locale, "home.contact.kicker")}</div>
+              <h2>{t(locale, "home.contact.heading")}</h2>
+              <p>{t(locale, "home.contact.lead")}</p>
             </div>
-            <ContactCta />
+            <ContactCta locale={locale} />
           </div>
         </div>
       </main>
 
-      <SiteFooter />
+      <SiteFooter locale={locale} />
     </div>
   );
 }

@@ -1,6 +1,9 @@
-import { getOrderByOutTradeNo } from "@/lib/data";
+import { getOrderByOutTradeNo, getVisibleNavItems } from "@/lib/data";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import { getLocale } from "@/lib/i18n/cookie";
+import { getTheme } from "@/lib/theme/cookie";
+import { t } from "@/lib/i18n/dict";
 import OrderStatus from "./OrderStatus";
 import "../orders.css";
 
@@ -12,18 +15,22 @@ export default async function OrderPage({
   params: Promise<{ out_trade_no: string }>;
 }) {
   const { out_trade_no } = await params;
-  const order = await getOrderByOutTradeNo(out_trade_no);
+  const [order, items, locale, theme] = await Promise.all([
+    getOrderByOutTradeNo(out_trade_no),
+    getVisibleNavItems(),
+    getLocale(),
+    getTheme(),
+  ]);
 
   return (
     <>
-      <a className="skip" href="#main">跳到主要内容</a>
-      <SiteNav />
+      <SiteNav items={items} locale={locale} theme={theme} />
       <main id="main">
         <div className="wrap order-page">
           <div className="eyebrow">Order</div>
-          <h1>订单详情</h1>
+          <h1>{t(locale, "orders.heading")}</h1>
           {!order ? (
-            <p className="lead">找不到订单 {out_trade_no}。</p>
+            <p className="lead">{t(locale, "orders.notFound", { code: out_trade_no })}</p>
           ) : (
             <OrderStatus
               outTradeNo={order.outTradeNo}
@@ -33,11 +40,12 @@ export default async function OrderPage({
               amount={order.amount}
               email={order.email}
               deliveredContent={order.deliveredContent}
+              locale={locale}
             />
           )}
         </div>
       </main>
-      <SiteFooter />
+      <SiteFooter locale={locale} />
     </>
   );
 }

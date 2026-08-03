@@ -1,6 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
+import type { NavItem } from "@/lib/data";
+import type { Locale } from "@/lib/i18n/dict";
+import { navLabel, t } from "@/lib/i18n/dict";
 import "./game.css";
 
 type Portal = {
@@ -15,20 +18,59 @@ type Portal = {
   hue: number;
 };
 
+// Canvas-specific layout for the four room portals. "game" intentionally has
+// no entry — the game lives on this page, so a self-portal would be
+// nonsensical. If you add a new nav_items row, give it a LAYOUT entry or the
+// canvas will silently skip it.
+const LAYOUT: Record<string, { x: number; y: number; r: number; hue: number; descKey: string }> = {
+  home:     { x: 248, y: 200, r: 22, hue: 145, descKey: "game.portal.home" },
+  blog:     { x: 585, y: 145, r: 22, hue: 160, descKey: "game.portal.blog" },
+  projects: { x: 878, y: 327, r: 22, hue: 130, descKey: "game.portal.projects" },
+  shop:     { x: 720, y: 255, r: 22, hue: 175, descKey: "game.portal.shop" },
+};
+
 export default function GameClient({
+  items,
   embedded = false,
+  locale,
   onActiveChange,
   onFoundChange,
 }: {
+  items: NavItem[];
   embedded?: boolean;
+  locale?: Locale;
   onActiveChange?: (id: string | null) => void;
   onFoundChange?: (ids: string[]) => void;
 }) {
+  const currentLocale = locale ?? "zh";
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const activeCb = useRef(onActiveChange);
   const foundCb = useRef(onFoundChange);
   activeCb.current = onActiveChange;
   foundCb.current = onFoundChange;
+
+  // Project the visible nav rows through the code-owned LAYOUT map. Items
+  // with no LAYOUT entry are dropped (e.g. "game"). Memoize on items ref so
+  // the effect's [portals] dep doesn't churn on every parent render.
+  const portals = useMemo<Portal[]>(() => {
+    const out: Portal[] = [];
+    for (const it of items) {
+      const lay = LAYOUT[it.key];
+      if (!lay) continue;
+      out.push({
+        id: it.key,
+        name: navLabel(currentLocale, it.key, it.label),
+        href: it.href,
+        desc: t(currentLocale, lay.descKey),
+        x: lay.x,
+        y: lay.y,
+        r: lay.r,
+        hue: lay.hue,
+        found: false,
+      });
+    }
+    return out;
+  }, [items, currentLocale]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -41,20 +83,13 @@ export default function GameClient({
     const room = { x: wall, y: wall, w: W - wall * 2, h: H - wall * 2 };
 
     const obstacles = [
-      { x: 90, y: 64, w: 180, h: 64, label: "沙发" },
-      { x: 788, y: 82, w: 158, h: 82, label: "书桌" },
-      { x: 810, y: 182, w: 101, h: 45, label: "椅" },
-      { x: 135, y: 382, w: 225, h: 73, label: "床" },
-      { x: 473, y: 273, w: 101, h: 82, label: "茶几" },
-      { x: 630, y: 436, w: 203, h: 50, label: "电视柜" },
-      { x: 338, y: 109, w: 56, h: 145, label: "书架" },
-    ];
-
-    const portals: Portal[] = [
-      { id: "home", name: "/home", href: "/home", desc: "3D IP 首页 · 认识臻叔", x: 248, y: 200, r: 22, found: false, hue: 145 },
-      { id: "blog", name: "/blog", href: "/blog", desc: "技术博客 · 工程笔记", x: 585, y: 145, r: 22, found: false, hue: 160 },
-      { id: "projects", name: "/projects", href: "/projects", desc: "项目展示 · 交付与实验", x: 878, y: 327, r: 22, found: false, hue: 130 },
-      { id: "shop", name: "/shop", href: "/shop", desc: "软件商店 · 模板与源码", x: 720, y: 255, r: 22, found: false, hue: 175 },
+      { x: 90, y: 64, w: 180, h: 64, label: t(currentLocale, "game.furniture.sofa") },
+      { x: 788, y: 82, w: 158, h: 82, label: t(currentLocale, "game.furniture.desk") },
+      { x: 810, y: 182, w: 101, h: 45, label: t(currentLocale, "game.furniture.chair") },
+      { x: 135, y: 382, w: 225, h: 73, label: t(currentLocale, "game.furniture.bed") },
+      { x: 473, y: 273, w: 101, h: 82, label: t(currentLocale, "game.furniture.table") },
+      { x: 630, y: 436, w: 203, h: 50, label: t(currentLocale, "game.furniture.tv") },
+      { x: 338, y: 109, w: 56, h: 145, label: t(currentLocale, "game.furniture.shelf") },
     ];
 
     const bot = {
@@ -72,10 +107,10 @@ export default function GameClient({
     let last = performance.now();
     const dust: { x: number; y: number; a: number; s: number }[] = [];
     const trail: { x: number; y: number; life: number }[] = [];
-    let toastTimer: ReturnType<typeof setTimeout> | null = null;
     let battery = 100;
     let raf = 0;
     let activeId: string | null = null;
+    let activePortal: Portal | null = null;
 
     for (let i = 0; i < 90; i++) {
       dust.push({
@@ -118,6 +153,13 @@ export default function GameClient({
     };
 
     function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Enter" && activePortal) {
+        const t = e.target as HTMLElement | null;
+        if (t && /INPUT|TEXTAREA|SELECT/.test(t.tagName)) return;
+        e.preventDefault();
+        window.location.assign(activePortal.href);
+        return;
+      }
       const d = keyMap[e.key];
       if (!d) return;
       const t = e.target as HTMLElement | null;
@@ -175,19 +217,19 @@ export default function GameClient({
       const tt = document.getElementById("toast-title");
       const td = document.getElementById("toast-desc");
       const link = document.getElementById("toast-link") as HTMLAnchorElement | null;
-      if (tt) tt.textContent = "清扫完成 · " + p.name;
+      if (tt) tt.textContent = t(currentLocale, "game.portal.title", { name: p.name });
       if (td) td.textContent = p.desc;
       if (link) {
         link.href = p.href;
-        link.textContent = "goto " + p.name;
+        link.textContent = t(currentLocale, "game.goto", { name: p.name });
       }
       toast?.classList.add("is-show");
       const live = document.getElementById("sr-live");
-      if (live) live.textContent = "发现传送点 " + p.name + "，" + p.desc;
-      if (toastTimer) clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => {
-        toast?.classList.remove("is-show");
-      }, 5200);
+      if (live) live.textContent = t(currentLocale, "game.portal.live", { name: p.name });
+    }
+
+    function hidePortal() {
+      document.getElementById("portal-toast")?.classList.remove("is-show");
     }
 
     function update(dt: number) {
@@ -197,150 +239,105 @@ export default function GameClient({
       if (keys.up) vy -= 1;
       if (keys.down) vy += 1;
       const moving = vx !== 0 || vy !== 0;
+
+      const mag = moving ? Math.hypot(vx, vy) : 0;
       if (moving) {
-        const len = Math.hypot(vx, vy) || 1;
-        vx /= len; vy /= len;
+        vx = (vx / mag) * bot.maxSpeed;
+        vy = (vy / mag) * bot.maxSpeed;
+      }
+      const nx = bot.x + vx;
+      const ny = bot.y + vy;
+      if (!blocked(nx, ny)) {
+        bot.x = nx;
+        bot.y = ny;
+      }
+      if (moving) {
         bot.angle = Math.atan2(vy, vx);
-        bot.speed = Math.min(bot.maxSpeed, bot.speed + dt * 8);
-      } else {
-        bot.speed = Math.max(0, bot.speed - dt * 10);
+        bot.brush += dt * 6;
       }
+      bot.speed = mag;
 
-      const step = bot.speed * (dt * 60);
-      if (step > 0 && moving) {
-        const nx = bot.x + vx * step;
-        const ny = bot.y + vy * step;
-        if (!blocked(nx, bot.y)) bot.x = nx;
-        if (!blocked(bot.x, ny)) bot.y = ny;
-      }
-
-      bot.brush += dt * (moving ? 14 : 3);
-      if (moving) {
-        battery = Math.max(12, battery - dt * 1.2);
+      if (moving && Math.random() < 0.6) {
         trail.push({ x: bot.x, y: bot.y, life: 1 });
-        if (trail.length > 40) trail.shift();
-      } else {
-        battery = Math.min(100, battery + dt * 2);
+        if (trail.length > 60) trail.shift();
       }
-      for (let t = trail.length - 1; t >= 0; t--) {
-        trail[t].life -= dt * 1.4;
-        if (trail[t].life <= 0) trail.splice(t, 1);
-      }
+      for (const t of trail) t.life -= dt * 0.6;
+      while (trail.length && trail[0].life <= 0) trail.shift();
 
-      for (let d = dust.length - 1; d >= 0; d--) {
-        const du = dust[d];
-        if (Math.hypot(du.x - bot.x, du.y - bot.y) < bot.r + 10) {
-          dust.splice(d, 1);
+      // Brush clears dust.
+      for (let i = dust.length - 1; i >= 0; i--) {
+        const d = dust[i];
+        if (Math.hypot(d.x - bot.x, d.y - bot.y) < bot.r + d.s) {
+          dust.splice(i, 1);
         }
       }
 
-      portals.forEach((p) => {
-        if (p.found) return;
-        if (Math.hypot(p.x - bot.x, p.y - bot.y) < p.r + bot.r - 4) {
-          p.found = true;
-          renderFoundList();
-          showPortal(p);
-          foundCb.current?.(portals.filter((q) => q.found).map((q) => q.id));
-        }
-      });
+      // Battery slowly drains; recharging when idle in the corner.
+      battery -= moving ? dt * 1.6 : -dt * 0.6;
+      if (battery < 0) battery = 100;
+      if (battery > 100) battery = 100;
 
-      // Active node: whichever portal the bot is hovering near, for mutual
-      // highlight with the left-hand category list.
-      let near: string | null = null;
-      let nearDist = Infinity;
-      portals.forEach((p) => {
-        const d2 = Math.hypot(p.x - bot.x, p.y - bot.y);
-        if (d2 < p.r + bot.r + 26 && d2 < nearDist) {
-          nearDist = d2;
-          near = p.id;
+      let closest: Portal | null = null;
+      let closestDist = Infinity;
+      for (const p of portals) {
+        const dx = p.x - bot.x;
+        const dy = p.y - bot.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist < p.r + bot.r) {
+          if (!p.found) {
+            p.found = true;
+            foundCb.current?.(portals.filter((x) => x.found).map((x) => x.id));
+            renderFoundList();
+          }
         }
-      });
-      if (near !== activeId) {
-        activeId = near;
+        if (dist < closestDist) {
+          closestDist = dist;
+          closest = p;
+        }
+      }
+      const newActive = closest && closestDist < 80 ? closest : null;
+      if (newActive?.id !== activeId) {
+        activeId = newActive?.id ?? null;
+        activePortal = newActive;
         activeCb.current?.(activeId);
+        if (activePortal) {
+          showPortal(activePortal);
+        } else {
+          hidePortal();
+        }
       }
-
-      const sb = document.getElementById("stat-bat");
-      const sm = document.getElementById("stat-mode");
-      if (sb) sb.textContent = Math.round(battery) + "%";
-      if (sm) sm.textContent = moving ? "clean" : "dock";
-    }
-
-    function roundRect(c: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
-      c.beginPath();
-      c.moveTo(x + r, y);
-      c.arcTo(x + w, y, x + w, y + h, r);
-      c.arcTo(x + w, y + h, x, y + h, r);
-      c.arcTo(x, y + h, x, y, r);
-      c.arcTo(x, y, x + w, y, r);
-      c.closePath();
-    }
-
-    function drawFloor() {
-      ctx.fillStyle = "#1a261e";
-      ctx.fillRect(room.x, room.y, room.w, room.h);
-      ctx.strokeStyle = "rgba(80,255,140,0.04)";
-      ctx.lineWidth = 1;
-      for (let y = room.y; y < room.y + room.h; y += 28) {
-        ctx.beginPath();
-        ctx.moveTo(room.x, y);
-        ctx.lineTo(room.x + room.w, y);
-        ctx.stroke();
-      }
-      for (let x = room.x; x < room.x + room.w; x += 48) {
-        ctx.beginPath();
-        ctx.moveTo(x, room.y);
-        ctx.lineTo(x, room.y + room.h);
-        ctx.stroke();
-      }
-      ctx.fillStyle = "rgba(40,90,60,0.25)";
-      roundRect(ctx, 428, 227, 225, 127, 12);
-      ctx.fill();
-      ctx.strokeStyle = "rgba(100,255,160,0.12)";
-      ctx.stroke();
     }
 
     function drawWalls() {
-      ctx.fillStyle = "#0d1611";
-      ctx.fillRect(0, 0, W, H);
-      ctx.clearRect(room.x, room.y, room.w, room.h);
-      drawFloor();
-      ctx.strokeStyle = "rgba(100,255,160,0.28)";
-      ctx.lineWidth = 6;
-      ctx.strokeRect(room.x - 3, room.y - 3, room.w + 6, room.h + 6);
-      ctx.strokeStyle = "rgba(0,0,0,0.45)";
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = "rgba(100,255,160,0.18)";
+      ctx.lineWidth = 1;
       ctx.strokeRect(room.x, room.y, room.w, room.h);
-      ctx.fillStyle = "#0a120e";
-      ctx.fillRect(W * 0.5 - 36, room.y + room.h - 4, 72, 14);
-      ctx.fillStyle = "rgba(100,255,160,0.15)";
-      ctx.fillRect(W * 0.5 - 36, room.y + room.h + 2, 72, 4);
+      ctx.fillStyle = "rgba(100,255,160,0.04)";
+      ctx.fillRect(room.x, room.y, room.w, room.h);
     }
 
     function drawFurniture() {
-      obstacles.forEach((o) => {
-        ctx.fillStyle = "rgba(20,36,26,0.95)";
-        roundRect(ctx, o.x, o.y, o.w, o.h, 6);
-        ctx.fill();
-        ctx.strokeStyle = "rgba(100,255,160,0.14)";
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-        ctx.fillStyle = "rgba(100,255,160,0.04)";
-        ctx.fillRect(o.x + 4, o.y + 4, o.w - 8, 8);
-        ctx.fillStyle = "rgba(160,200,170,0.35)";
-        ctx.font = "11px JetBrains Mono, monospace";
+      ctx.fillStyle = "rgba(140,180,150,0.10)";
+      ctx.strokeStyle = "rgba(140,180,150,0.45)";
+      ctx.lineWidth = 1;
+      for (const o of obstacles) {
+        ctx.fillRect(o.x, o.y, o.w, o.h);
+        ctx.strokeRect(o.x, o.y, o.w, o.h);
+        ctx.fillStyle = "rgba(180,220,190,0.55)";
+        ctx.font = "10px JetBrains Mono, monospace";
         ctx.textAlign = "center";
-        ctx.fillText(o.label, o.x + o.w / 2, o.y + o.h / 2 + 4);
-      });
+        ctx.fillText(o.label, o.x + o.w / 2, o.y + o.h / 2 + 3);
+        ctx.fillStyle = "rgba(140,180,150,0.10)";
+      }
     }
 
     function drawDust() {
-      dust.forEach((d) => {
-        ctx.fillStyle = "rgba(180,200,170," + d.a + ")";
+      for (const d of dust) {
+        ctx.fillStyle = "rgba(220,230,210," + d.a * 0.6 + ")";
         ctx.beginPath();
         ctx.arc(d.x, d.y, d.s, 0, Math.PI * 2);
         ctx.fill();
-      });
+      }
     }
 
     function drawPortals(time: number) {
@@ -487,13 +484,15 @@ export default function GameClient({
 
     return () => {
       cancelAnimationFrame(raf);
-      if (toastTimer) clearTimeout(toastTimer);
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
       canvas.removeEventListener("pointerdown", onPointerDown);
       dpadCleanups.forEach((fn) => fn());
     };
-  }, []);
+    // Re-run on portal set change so the canvas picks up the new portal
+    // positions. Trade-off: in-progress game state (found portals, bot
+    // position, dust) is reset. Acceptable for the admin-only toggle flow.
+  }, [portals]);
 
   return (
     <div className={embedded ? "game-page game-page--embed" : "game-page"} id="game-main">
@@ -501,15 +500,15 @@ export default function GameClient({
         <header className="game-hero">
           <div>
             <div className="eyebrow">// game</div>
-            <h1>扫地机器人 · 房间漫游</h1>
+            <h1>{t(currentLocale, "game.heading")}</h1>
             <p className="lead">
-              在仿真房间里扫光斑。每个光斑是一张站点传送卡——扫过即可跳转首页、博客、项目、课程或商店。
+              {t(currentLocale, "game.lead")}
             </p>
           </div>
           <div className="hud-stats" aria-live="polite">
-            <span>found <b id="stat-found">0</b>/<b id="stat-total">5</b></span>
-            <span>battery <b id="stat-bat">100%</b></span>
-            <span>mode <b id="stat-mode">idle</b></span>
+            <span>{t(currentLocale, "game.found")} <b id="stat-found">0</b>/<b id="stat-total">{portals.length}</b></span>
+            <span>{t(currentLocale, "game.battery")} <b id="stat-bat">100%</b></span>
+            <span>{t(currentLocale, "game.mode")} <b id="stat-mode">{t(currentLocale, "game.idle")}</b></span>
           </div>
         </header>
       )}
@@ -517,9 +516,9 @@ export default function GameClient({
       <div className="game-stage-wrap">
         {embedded && (
           <div className="hud-stats hud-stats--embed" aria-live="polite">
-            <span>found <b id="stat-found">0</b>/<b id="stat-total">5</b></span>
-            <span>battery <b id="stat-bat">100%</b></span>
-            <span>mode <b id="stat-mode">idle</b></span>
+            <span>{t(currentLocale, "game.found")} <b id="stat-found">0</b>/<b id="stat-total">{portals.length}</b></span>
+            <span>{t(currentLocale, "game.battery")} <b id="stat-bat">100%</b></span>
+            <span>{t(currentLocale, "game.mode")} <b id="stat-mode">{t(currentLocale, "game.idle")}</b></span>
           </div>
         )}
         <div className="stage-frame">
@@ -529,33 +528,34 @@ export default function GameClient({
             width={1080}
             height={600}
             role="img"
-            aria-label="俯视房间：用方向键移动扫地机器人清扫光斑"
+            aria-label={t(currentLocale, "game.aria")}
           ></canvas>
           <div className="stage-overlay" aria-hidden="true"></div>
           <div className="portal-toast" id="portal-toast" role="dialog" aria-live="polite">
-            <strong id="toast-title">发现传送点</strong>
+            <strong id="toast-title">{t(currentLocale, "game.portal.title", { name: "" })}</strong>
             <span id="toast-desc"></span>
             <div>
-              <a id="toast-link" href="/home">前往</a>
+              <a id="toast-link" href="/home">{t(currentLocale, "game.goto", { name: "" })}</a>
             </div>
+            <span className="portal-toast__hint"><kbd>Enter</kbd> {t(currentLocale, "game.portal.enter")}</span>
           </div>
 
           {/* D-pad overlays the room map itself — semi-transparent, lights up on press. */}
-          <div className="dpad" aria-label="虚拟方向键">
+          <div className="dpad" aria-label={t(currentLocale, "game.heading")}>
             <span className="spacer"></span>
-            <button type="button" className="u" data-dir="up" aria-label="上">▲</button>
+            <button type="button" className="u" data-dir="up" aria-label="Up">▲</button>
             <span className="spacer"></span>
-            <button type="button" className="l" data-dir="left" aria-label="左">◀</button>
-            <button type="button" className="d" data-dir="down" aria-label="下">▼</button>
-            <button type="button" className="r" data-dir="right" aria-label="右">▶</button>
+            <button type="button" className="l" data-dir="left" aria-label="Left">◀</button>
+            <button type="button" className="d" data-dir="down" aria-label="Down">▼</button>
+            <button type="button" className="r" data-dir="right" aria-label="Right">▶</button>
           </div>
         </div>
 
         <p className="game-hint">
-          方向键 <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> / <kbd>WASD</kbd> 或点击地图内方向键，控制扫地机器人上下左右移动
+          {t(currentLocale, "game.hint")}
         </p>
 
-        {!embedded && <div className="found-list" id="found-list" aria-label="已发现传送点"></div>}
+        {!embedded && <div className="found-list" id="found-list" aria-label={t(currentLocale, "game.found")}></div>}
         <p className="sr-live" id="sr-live" aria-live="polite"></p>
       </div>
     </div>

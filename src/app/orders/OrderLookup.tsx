@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { t, type Locale } from "@/lib/i18n/dict";
 
 type Result = {
   outTradeNo: string;
@@ -11,7 +12,7 @@ type Result = {
   deliveredContent: string;
 };
 
-export default function OrderLookup() {
+export default function OrderLookup({ locale }: { locale: Locale }) {
   const [result, setResult] = useState<Result | null>(null);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -33,12 +34,12 @@ export default function OrderLookup() {
       });
       const json = await res.json();
       if (!res.ok) {
-        setError(json.error || "查询失败");
+        setError(json.error || t(locale, "orders.failGeneric"));
         return;
       }
       setResult(json);
     } catch {
-      setError("网络错误，请重试");
+      setError(t(locale, "orders.networkError"));
     } finally {
       setSubmitting(false);
     }
@@ -48,42 +49,42 @@ export default function OrderLookup() {
     <>
       <form className="order-lookup" onSubmit={onSubmit}>
         <div className="field">
-          <label htmlFor="ot">订单号</label>
+          <label htmlFor="ot">{t(locale, "orders.outTradeNo")}</label>
           <input id="ot" name="outTradeNo" required placeholder="U..." />
         </div>
         <div className="field">
-          <label htmlFor="em">下单邮箱</label>
+          <label htmlFor="em">{t(locale, "orders.email")}</label>
           <input id="em" name="email" type="email" required placeholder="you@example.com" />
         </div>
         <button className="btn btn--primary" type="submit" disabled={submitting}>
-          {submitting ? "查询中…" : "查询"}
+          {submitting ? t(locale, "orders.submitting") : t(locale, "orders.submit")}
         </button>
-        {error && <p className="admin-login__err" style={{ color: "oklch(72% 0.16 25)" }}>{error}</p>}
+        {error && <p className="admin-login__err" style={{ color: "var(--danger)" }}>{error}</p>}
       </form>
 
       {result && (
         <div className="order-card card" style={{ marginTop: 24 }}>
           <div className="order-row">
-            <span className="muted">商品</span>
+            <span className="muted">{t(locale, "orders.item.product")}</span>
             <span>
               {result.productName}
               {result.qty > 1 ? ` ×${result.qty}` : ""}
             </span>
           </div>
           <div className="order-row">
-            <span className="muted">金额</span>
+            <span className="muted">{t(locale, "orders.item.amount")}</span>
             <span className="mono">¥{result.amount}</span>
           </div>
           <div className="order-row">
-            <span className="muted">状态</span>
+            <span className="muted">{t(locale, "orders.item.status")}</span>
             <span className={`tag${result.status === "paid" ? " tag--accent" : ""}`}>
-              {result.status === "paid" ? "已支付" : "待支付"}
+              {result.status === "paid" ? t(locale, "orders.paid") : t(locale, "orders.pending")}
             </span>
           </div>
           {result.status === "paid" && (
             <div className="order-delivery">
-              <h3>你的内容</h3>
-              <pre className="order-content">{result.deliveredContent || "（发货内容为空，请联系站长）"}</pre>
+              <h3>{t(locale, "orders.delivery")}</h3>
+              <pre className="order-content">{result.deliveredContent || t(locale, "orders.deliveryEmpty")}</pre>
             </div>
           )}
         </div>

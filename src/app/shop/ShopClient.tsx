@@ -4,23 +4,25 @@ import { useMemo, useState } from "react";
 import type { Product } from "@/lib/data";
 import Modal from "@/components/Modal";
 import { toast } from "@/components/toast";
+import { t, type Locale } from "@/lib/i18n/dict";
 
-export default function ShopClient({ products }: { products: Product[] }) {
-  const [active, setActive] = useState("全部");
+export default function ShopClient({ products, locale }: { products: Product[]; locale: Locale }) {
+  const allFilter = t(locale, "shop.allFilter");
+  const [active, setActive] = useState(allFilter);
   const [cart, setCart] = useState<Record<string, number>>({});
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const cats = useMemo(() => {
-    const s = new Set<string>(["全部"]);
+    const s = new Set<string>([allFilter]);
     products.forEach((p) => s.add(p.cat));
     return Array.from(s);
-  }, [products]);
+  }, [products, allFilter]);
 
   const list = useMemo(
-    () => products.filter((p) => active === "全部" || p.cat === active),
-    [products, active]
+    () => products.filter((p) => active === allFilter || p.cat === active),
+    [products, active, allFilter]
   );
 
   const productMap = useMemo(() => new Map(products.map((p) => [p.id, p])), [products]);
@@ -39,7 +41,7 @@ export default function ShopClient({ products }: { products: Product[] }) {
 
   function add(id: string) {
     setCart((c) => ({ ...c, [id]: (c[id] || 0) + 1 }));
-    toast("已加入购物车");
+    toast(t(locale, "shop.toast.added"));
   }
 
   function setQty(id: string, n: number) {
@@ -63,13 +65,16 @@ export default function ShopClient({ products }: { products: Product[] }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: data.get("email"), items }),
       });
-      if (!res.ok) throw new Error("failed");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error((data as { error?: string })?.error || `Order failed (HTTP ${res.status})`);
+      }
       setCart({});
       setCheckoutOpen(false);
-      toast("下单成功（演示）");
+      toast(t(locale, "shop.toast.ordered"));
       form.reset();
-    } catch {
-      toast("下单失败，请稍后再试");
+    } catch (err) {
+      toast(err instanceof Error ? err.message : t(locale, "shop.failGeneric"));
     } finally {
       setSubmitting(false);
     }
@@ -80,21 +85,19 @@ export default function ShopClient({ products }: { products: Product[] }) {
   return (
     <>
       <header className="page-hero wrap">
-        <div className="eyebrow">Shop</div>
-        <h1>软件与模板</h1>
-        <p className="lead">
-          可直接购买的源码包、模板与小工具。购物车与结算为可交互原型，订单会写入数据库。
-        </p>
+        <div className="eyebrow">{t(locale, "shop.eyebrow")}</div>
+        <h1>{t(locale, "shop.heading")}</h1>
+        <p className="lead">{t(locale, "shop.lead")}</p>
         <div className="toolbar">
           <div className="filters">
-            {cats.map((t) => (
+            {cats.map((cat) => (
               <button
-                key={t}
+                key={cat}
                 type="button"
-                className={`filter-btn${t === active ? " is-active" : ""}`}
-                onClick={() => setActive(t)}
+                className={`filter-btn${cat === active ? " is-active" : ""}`}
+                onClick={() => setActive(cat)}
               >
-                {t}
+                {cat}
               </button>
             ))}
           </div>
@@ -127,7 +130,7 @@ export default function ShopClient({ products }: { products: Product[] }) {
                     className="btn btn--primary btn--sm"
                     onClick={() => add(p.id)}
                   >
-                    加入购物车
+                    {t(locale, "shop.addToCart")}
                   </button>
                 </div>
               </div>
@@ -135,11 +138,11 @@ export default function ShopClient({ products }: { products: Product[] }) {
           ))}
         </div>
 
-        <aside className={`cart-panel${cartOpen ? " is-open" : ""}`} aria-label="购物车">
-          <h2>购物车</h2>
+        <aside className={`cart-panel${cartOpen ? " is-open" : ""}`} aria-label={t(locale, "shop.cart.title")}>
+          <h2>{t(locale, "shop.cart.title")}</h2>
           <div className="cart-items">
             {ids.length === 0 ? (
-              <p className="cart-empty">购物车是空的，挑一件模板或源码吧。</p>
+              <p className="cart-empty">{t(locale, "shop.cart.empty")}</p>
             ) : (
               ids.map((id) => {
                 const p = productMap.get(id)!;
@@ -150,17 +153,17 @@ export default function ShopClient({ products }: { products: Product[] }) {
                       <div className="muted mono" style={{ fontSize: 12 }}>¥{p.price}</div>
                     </div>
                     <div className="qty">
-                      <button type="button" aria-label="减少" onClick={() => setQty(id, cart[id] - 1)}>−</button>
+                      <button type="button" aria-label={t(locale, "shop.qty.dec")} onClick={() => setQty(id, cart[id] - 1)}>−</button>
                       <span className="mono">{cart[id]}</span>
-                      <button type="button" aria-label="增加" onClick={() => setQty(id, cart[id] + 1)}>+</button>
+                      <button type="button" aria-label={t(locale, "shop.qty.inc")} onClick={() => setQty(id, cart[id] + 1)}>+</button>
                     </div>
                     <button
                       type="button"
-                      aria-label="移除"
+                      aria-label={t(locale, "shop.qty.remove")}
                       style={{ border: "none", background: "transparent", color: "var(--muted)", cursor: "pointer", fontSize: 12 }}
                       onClick={() => setQty(id, 0)}
                     >
-                      移除
+                      {t(locale, "shop.qty.remove")}
                     </button>
                   </div>
                 );
@@ -168,7 +171,7 @@ export default function ShopClient({ products }: { products: Product[] }) {
             )}
           </div>
           <div className="cart-total">
-            <span>合计</span>
+            <span>{t(locale, "shop.cart.total")}</span>
             <strong className="mono">¥{totals.sum}</strong>
           </div>
           <button
@@ -178,10 +181,10 @@ export default function ShopClient({ products }: { products: Product[] }) {
             disabled={totals.count === 0}
             onClick={() => setCheckoutOpen(true)}
           >
-            去结算
+            {t(locale, "shop.cart.checkout")}
           </button>
           <p className="muted" style={{ marginTop: 12, fontSize: 12, lineHeight: 1.5 }}>
-            演示环境：点击结算会创建一条订单记录，不接真实支付。
+            {t(locale, "shop.cart.demo")}
           </p>
         </aside>
       </div>
@@ -189,26 +192,26 @@ export default function ShopClient({ products }: { products: Product[] }) {
       <button
         className="fab-cart"
         type="button"
-        aria-label="打开购物车"
+        aria-label={t(locale, "shop.cart.title")}
         onClick={() => setCartOpen((v) => !v)}
       >
-        购物车 <span className="badge">{totals.count}</span>
+        {t(locale, "shop.cart.title")} <span className="badge">{totals.count}</span>
       </button>
 
       <Modal open={checkoutOpen} onClose={() => setCheckoutOpen(false)} labelledBy="co-title">
-        <h3 id="co-title">确认结算</h3>
-        <p>共 {totals.count} 件，合计 ¥{totals.sum}。此为演示下单。</p>
+        <h3 id="co-title">{t(locale, "shop.checkout.title")}</h3>
+        <p>{t(locale, "shop.checkout.desc", { count: totals.count, sum: totals.sum })}</p>
         <form onSubmit={onCheckout}>
           <div className="field">
-            <label htmlFor="co-mail">接收下载链接的邮箱</label>
+            <label htmlFor="co-mail">{t(locale, "shop.checkout.email")}</label>
             <input id="co-mail" name="email" type="email" required placeholder="you@example.com" />
           </div>
           <div className="modal__actions">
             <button className="btn btn--ghost btn--sm" type="button" onClick={() => setCheckoutOpen(false)}>
-              再想想
+              {t(locale, "shop.checkout.cancel")}
             </button>
             <button className="btn btn--primary btn--sm" type="submit" disabled={submitting}>
-              确认下单（演示）
+              {t(locale, "shop.checkout.confirm")}
             </button>
           </div>
         </form>

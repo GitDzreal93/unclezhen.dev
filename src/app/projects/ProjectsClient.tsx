@@ -2,20 +2,22 @@
 
 import { useMemo, useState } from "react";
 import type { Project } from "@/lib/data";
+import { t, type Locale } from "@/lib/i18n/dict";
 
-export default function ProjectsClient({ projects }: { projects: Project[] }) {
-  const [active, setActive] = useState("全部");
+export default function ProjectsClient({ projects, locale }: { projects: Project[]; locale: Locale }) {
+  const allFilter = t(locale, "projects.allFilter");
+  const [active, setActive] = useState(allFilter);
   const [openId, setOpenId] = useState<string | null>(null);
 
   const types = useMemo(() => {
-    const s = new Set<string>(["全部"]);
+    const s = new Set<string>([allFilter]);
     projects.forEach((p) => s.add(p.type));
     return Array.from(s);
-  }, [projects]);
+  }, [projects, allFilter]);
 
   const list = useMemo(
-    () => projects.filter((p) => active === "全部" || p.type === active),
-    [projects, active]
+    () => projects.filter((p) => active === allFilter || p.type === active),
+    [projects, active, allFilter]
   );
 
   const detail = openId ? projects.find((p) => p.id === openId) : null;
@@ -23,19 +25,19 @@ export default function ProjectsClient({ projects }: { projects: Project[] }) {
   return (
     <>
       <header className="page-hero wrap">
-        <div className="eyebrow">Projects</div>
-        <h1>项目展示</h1>
-        <p className="lead">交付案例与实验场。点卡片查看问题、方案与技术栈。</p>
+        <div className="eyebrow">{t(locale, "projects.eyebrow")}</div>
+        <h1>{t(locale, "projects.heading")}</h1>
+        <p className="lead">{t(locale, "projects.lead")}</p>
         <div className="toolbar">
           <div className="filters">
-            {types.map((t) => (
+            {types.map((type) => (
               <button
-                key={t}
+                key={type}
                 type="button"
-                className={`filter-btn${t === active ? " is-active" : ""}`}
-                onClick={() => setActive(t)}
+                className={`filter-btn${type === active ? " is-active" : ""}`}
+                onClick={() => setActive(type)}
               >
-                {t}
+                {type}
               </button>
             ))}
           </div>
@@ -68,7 +70,7 @@ export default function ProjectsClient({ projects }: { projects: Project[] }) {
                   style={{ justifySelf: "start", marginTop: 4 }}
                   onClick={() => setOpenId(p.id)}
                 >
-                  查看详情
+                  {t(locale, "projects.card.cta")}
                 </button>
               </div>
             </article>
@@ -82,7 +84,7 @@ export default function ProjectsClient({ projects }: { projects: Project[] }) {
               type="button"
               onClick={() => setOpenId(null)}
             >
-              收起详情
+              {t(locale, "projects.collapse")}
             </button>
             <div className="detail-grid">
               <div>
@@ -91,13 +93,13 @@ export default function ProjectsClient({ projects }: { projects: Project[] }) {
                   <span className="tag">{detail.type}</span>
                 </div>
                 <h2>{detail.name}</h2>
-                <p>问题：{detail.problem} 方案：{detail.solution}</p>
-                <p style={{ marginTop: 12 }}>结果：{detail.result}</p>
+                <p>{t(locale, "projects.problem")}: {detail.problem} {t(locale, "projects.solution")}: {detail.solution}</p>
+                <p style={{ marginTop: 12 }}>{t(locale, "projects.result")}: {detail.result}</p>
               </div>
               <dl className="kv">
-                <div><dt>角色</dt><dd>{detail.role}</dd></div>
-                <div><dt>技术栈</dt><dd>{detail.stack.join(" · ")}</dd></div>
-                <div><dt>类型</dt><dd>{detail.type}</dd></div>
+                <div><dt>{t(locale, "projects.role")}</dt><dd>{detail.role}</dd></div>
+                <div><dt>{t(locale, "projects.stack")}</dt><dd>{detail.stack.join(" · ")}</dd></div>
+                <div><dt>{t(locale, "projects.type")}</dt><dd>{detail.type}</dd></div>
               </dl>
             </div>
           </div>

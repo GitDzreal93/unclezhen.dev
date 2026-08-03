@@ -5,16 +5,19 @@ import { useRouter } from "next/navigation";
 import type { Order } from "@/lib/data";
 import { markOrderPaid, deleteOrder } from "@/lib/admin";
 import DeleteButton from "../DeleteButton";
+import { toast } from "@/components/toast";
 
 export default function OrdersTable({ orders }: { orders: Order[] }) {
   const router = useRouter();
   const [editing, setEditing] = useState<string | null>(null);
   const [delivered, setDelivered] = useState("");
   const [pending, startTransition] = useTransition();
+  const [errBanner, setErrBanner] = useState("");
 
   function openFix(o: Order) {
     setEditing(o.outTradeNo);
     setDelivered(o.deliveredContent);
+    setErrBanner("");
   }
 
   function submitFix(outTradeNo: string) {
@@ -22,14 +25,25 @@ export default function OrdersTable({ orders }: { orders: Order[] }) {
     fd.set("outTradeNo", outTradeNo);
     fd.set("deliveredContent", delivered);
     startTransition(async () => {
-      await markOrderPaid(fd);
-      setEditing(null);
-      router.refresh();
+      try {
+        await markOrderPaid(fd);
+        setEditing(null);
+        router.refresh();
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "保存失败";
+        setErrBanner(msg);
+        toast(msg);
+      }
     });
   }
 
   return (
     <div className="table-wrap">
+      {errBanner && (
+        <p className="admin-login__err" style={{ margin: "0 0 12px" }}>
+          {errBanner}
+        </p>
+      )}
       <table className="admin-table">
         <thead>
           <tr>

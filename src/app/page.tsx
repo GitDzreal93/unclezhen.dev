@@ -1,19 +1,30 @@
 import type { Metadata } from "next";
 import LauncherStage from "@/components/LauncherStage";
+import { getVisibleNavItems } from "@/lib/data";
+import { getLocale } from "@/lib/i18n/cookie";
+import { getTheme } from "@/lib/theme/cookie";
+import { t } from "@/lib/i18n/dict";
 import "./launcher.css";
 
-export const metadata: Metadata = {
-  title: "臻叔 · 站点导航",
-  description: "臻叔个人站导航：首页 3D IP、博客、项目、课程与商店，右侧内嵌扫地机小游戏。",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  return {
+    title: t(locale, "launcher.meta.title"),
+    description: t(locale, "launcher.meta.desc"),
+  };
+}
 
-export default function LauncherPage() {
+export const dynamic = "force-dynamic";
+
+export default async function LauncherPage() {
+  const [items, locale, theme] = await Promise.all([
+    getVisibleNavItems(),
+    getLocale(),
+    getTheme(),
+  ]);
   return (
-    <>
-      <a className="skip" href="#launcher">跳到导航</a>
-      <main className="launch" id="launcher">
-        <LauncherStage />
-      </main>
-    </>
+    <main className="launch" id="launcher">
+      <LauncherStage items={items} locale={locale} theme={theme} />
+    </main>
   );
 }

@@ -2,8 +2,8 @@
   aspect-ratio: 16/10;
   background:
     radial-gradient(ellipse 80% 70% at 70% 30%, color-mix(in oklch, var(--accent) 22%, transparent), transparent 60%),
-    linear-gradient(160deg, oklch(22% 0.03 250), oklch(16% 0.02 250));
-  border-bottom: 1px solid rgba(255,255,255,.06);
+    linear-gradient(160deg, color-mix(in oklch, var(--surface-2) 92%, var(--accent)), var(--surface));
+  border-bottom: 1px solid var(--line);
   position: relative;
   overflow: hidden;
 }
@@ -19,17 +19,17 @@
   padding: 6px 10px;
   border-radius: 8px;
   background: color-mix(in oklch, var(--bg) 78%, transparent);
-  border: 1px solid rgba(255,255,255,.1);
+  border: 1px solid var(--line-strong);
   backdrop-filter: blur(8px);
   color: var(--muted);
-  box-shadow: 0 8px 20px rgba(0,0,0,.25);
+  box-shadow: 0 8px 20px var(--shadow);
 }
 .proj-card .thumb-grid {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
   background-size: 24px 24px;
   opacity: .7;
 }
@@ -40,17 +40,17 @@
   right: 12%;
   top: 22%;
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,.14);
-  background: rgba(255,255,255,.04);
+  border: 1px solid var(--line-strong);
+  background: var(--surface-glass);
   transform: rotate(-6deg);
-  box-shadow: 0 16px 40px rgba(0,0,0,.3);
+  box-shadow: 0 16px 40px var(--shadow);
 }
 .stack { display: flex; flex-wrap: wrap; gap: 6px; }
 .detail-panel {
   margin-top: 28px;
   padding: 24px;
   border-radius: 18px;
-  border: 1px solid rgba(255,255,255,.1);
+  border: 1px solid var(--line);
   background: var(--surface);
 }
 .detail-panel h2 { margin: 8px 0 12px; }
@@ -69,7 +69,7 @@
   gap: 8px;
   font-size: 14px;
   padding-bottom: 10px;
-  border-bottom: 1px solid rgba(255,255,255,.06);
+  border-bottom: 1px solid var(--line);
 }
 .kv dt { color: var(--muted); font-family: var(--font-mono); font-size: 12px; letter-spacing: .04em; }
 .kv dd { color: var(--fg); }

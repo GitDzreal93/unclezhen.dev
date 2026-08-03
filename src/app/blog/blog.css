@@ -4,14 +4,14 @@
   gap: 8px;
   padding: 20px 22px;
   border-radius: var(--radius);
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--line);
   background: var(--surface);
   cursor: pointer;
   text-align: left;
   width: 100%;
   transition: border-color .2s, transform .2s;
 }
-.post:hover { border-color: rgba(255,255,255,.16); transform: translateY(-1px); }
+.post:hover { border-color: var(--accent-border); transform: translateY(-1px); }
 .post h3 { font-size: 18px; }
 .post p { color: var(--muted); font-size: 14px; max-width: 70ch; }
 .blog-layout {
@@ -28,7 +28,7 @@
 .side-card {
   padding: 18px;
   border-radius: var(--radius);
-  border: 1px solid rgba(255,255,255,.08);
+  border: 1px solid var(--line);
   background: var(--surface);
   position: sticky;
   top: calc(var(--nav-h) + 16px);
@@ -48,6 +48,6 @@
   font-size: 0.9em;
   padding: 1px 6px;
   border-radius: 4px;
-  background: rgba(255,255,255,.06);
+  background: var(--line);
 }
 .back-btn { margin-bottom: 8px; }

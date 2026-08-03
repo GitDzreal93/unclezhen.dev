@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { t, type Locale } from "@/lib/i18n/dict";
 
-export default function SiteFooter() {
+export default function SiteFooter({ locale }: { locale: Locale }) {
   return (
     <footer className="site-footer">
       <div className="site-footer__inner">
@@ -8,10 +9,10 @@ export default function SiteFooter() {
           <div>
             <Link className="brand" href="/home">
               <span className="brand__mark">&gt;</span>
-              <span>zhen_shu</span>
+              <span>{t(locale, "brand.name")}</span>
             </Link>
             <p style={{ marginTop: 12, fontFamily: "var(--font-mono)", fontSize: 13 }}>
-              hacker / builder · blog · projects · shop · game
+              {t(locale, "home.footer.tagline")}
             </p>
           </div>
           <ul className="footer-links">

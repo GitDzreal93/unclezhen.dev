@@ -209,3 +209,36 @@ export async function deleteOrder(outTradeNo: string) {
   await query("DELETE FROM orders WHERE out_trade_no=$1", [outTradeNo]);
   revalidatePath("/admin/orders");
 }
+
+// ---- Nav ----
+
+// Keys that can never be hidden: /home is the site landing, / is the launcher
+// (where the game lives). Hiding them either strands the visitor or makes
+// the launcher itself invisible. The admin UI also enforces this by not
+// rendering a toggle for these rows, but the server action re-checks so a
+// crafted request can't bypass the lock.
+const LOCKED_NAV_KEYS = new Set(["home", "game"]);
+
+export async function setNavItemVisibility(fd: FormData) {
+  await assertAdmin();
+  const key = str(fd.get("key"));
+  if (!key) throw new Error("缺少 key");
+  if (LOCKED_NAV_KEYS.has(key)) {
+    throw new Error(`${key} 是固定入口,不可隐藏`);
+  }
+  const visible = str(fd.get("visible")) === "true";
+  const result = await query(
+    "UPDATE nav_items SET visible=$2 WHERE key=$1",
+    [key, visible]
+  );
+  // pg returns rowCount on result — if 0, the key didn't exist.
+  if (!result.length && (result as unknown as { rowCount?: number }).rowCount === 0) {
+    throw new Error(`找不到导航条目：${key}`);
+  }
+  revalidatePath("/");
+  revalidatePath("/home");
+  revalidatePath("/blog");
+  revalidatePath("/projects");
+  revalidatePath("/shop");
+  revalidatePath("/admin/nav");
+}

@@ -3,8 +3,9 @@
 import { useState } from "react";
 import Modal from "./Modal";
 import { toast } from "./toast";
+import { t, type Locale } from "@/lib/i18n/dict";
 
-export default function ContactCta() {
+export default function ContactCta({ locale }: { locale: Locale }) {
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -24,10 +25,10 @@ export default function ContactCta() {
         }),
       });
       setOpen(false);
-      toast("ping ok · 已记录");
+      toast(t(locale, "contact.toast.ok"));
       form.reset();
     } catch {
-      toast("发送失败，请稍后再试");
+      toast(t(locale, "contact.toast.fail"));
     } finally {
       setSubmitting(false);
     }
@@ -36,23 +37,23 @@ export default function ContactCta() {
   return (
     <>
       <button className="btn btn--primary" type="button" onClick={() => setOpen(true)}>
-        ./ping
+        {t(locale, "home.cta.ping")}
       </button>
       <Modal open={open} onClose={() => setOpen(false)} labelledBy="contact-title">
-        <h3 id="contact-title">./ping</h3>
-        <p>留下联系方式与需求。原型演示，提交后仅记录到数据库。</p>
+        <h3 id="contact-title">{t(locale, "contact.title")}</h3>
+        <p>{t(locale, "contact.desc")}</p>
         <form onSubmit={onSubmit}>
           <div className="field">
-            <label htmlFor="c-name">name</label>
-            <input id="c-name" name="name" required placeholder="称呼" autoComplete="name" />
+            <label htmlFor="c-name">{t(locale, "contact.name")}</label>
+            <input id="c-name" name="name" required placeholder={t(locale, "contact.namePlaceholder")} autoComplete="name" />
           </div>
           <div className="field">
-            <label htmlFor="c-mail">contact</label>
-            <input id="c-mail" name="contact" required placeholder="邮箱或微信" />
+            <label htmlFor="c-mail">{t(locale, "contact.contact")}</label>
+            <input id="c-mail" name="contact" required placeholder={t(locale, "contact.contactPlaceholder")} />
           </div>
           <div className="field">
-            <label htmlFor="c-msg">message</label>
-            <textarea id="c-msg" name="msg" placeholder="内训 / 定制 / 课程合作…"></textarea>
+            <label htmlFor="c-msg">{t(locale, "contact.message")}</label>
+            <textarea id="c-msg" name="msg" placeholder={t(locale, "contact.messagePlaceholder")}></textarea>
           </div>
           <div className="modal__actions">
             <button
@@ -60,10 +61,10 @@ export default function ContactCta() {
               type="button"
               onClick={() => setOpen(false)}
             >
-              cancel
+              {t(locale, "contact.cancel")}
             </button>
             <button className="btn btn--primary btn--sm" type="submit" disabled={submitting}>
-              send
+              {submitting ? "…" : t(locale, "contact.send")}
             </button>
           </div>
         </form>

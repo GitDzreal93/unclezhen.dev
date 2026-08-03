@@ -1,27 +1,39 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
-import { getProducts } from "@/lib/data";
+import { getProducts, getVisibleNavItems, isNavItemVisible } from "@/lib/data";
+import { getLocale } from "@/lib/i18n/cookie";
+import { getTheme } from "@/lib/theme/cookie";
+import { t } from "@/lib/i18n/dict";
 import ShopClient from "./ShopClient";
 import "./shop.css";
 
-export const metadata: Metadata = {
-  title: "商店 · 臻叔",
-  description: "可直接购买的源码包、模板与小工具。",
-};
-
 export const dynamic = "force-dynamic";
 
+export async function generateMetadata() {
+  const locale = await getLocale();
+  return {
+    title: t(locale, "shop.meta.title"),
+    description: t(locale, "shop.meta.desc"),
+  };
+}
+
 export default async function ShopPage() {
-  const products = await getProducts();
+  if (!(await isNavItemVisible("shop"))) notFound();
+  const [products, items, locale, theme] = await Promise.all([
+    getProducts(),
+    getVisibleNavItems(),
+    getLocale(),
+    getTheme(),
+  ]);
   return (
     <>
-      <a className="skip" href="#main">跳到主要内容</a>
-      <SiteNav active="shop" cta={{ href: "#products", label: "./shop" }} />
+      <SiteNav items={items} active="shop" locale={locale} theme={theme} />
       <main id="main">
-        <ShopClient products={products} />
+        <ShopClient products={products} locale={locale} />
       </main>
-      <SiteFooter />
+      <SiteFooter locale={locale} />
     </>
   );
 }

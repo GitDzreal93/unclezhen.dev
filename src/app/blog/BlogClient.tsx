@@ -2,57 +2,59 @@
 
 import { useMemo, useState } from "react";
 import type { Post } from "@/lib/data";
+import { t, type Locale } from "@/lib/i18n/dict";
 
 // The blog page renders Markdown → HTML server-side and attaches bodyHtml.
 type BlogPost = Post & { bodyHtml?: string };
 
-export default function BlogClient({ posts }: { posts: BlogPost[] }) {
-  const [activeTag, setActiveTag] = useState("全部");
+export default function BlogClient({ posts, locale }: { posts: BlogPost[]; locale: Locale }) {
+  const allTag = t(locale, "blog.allTag");
+  const [activeTag, setActiveTag] = useState(allTag);
   const [q, setQ] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
 
   const tags = useMemo(() => {
     const s = new Set<string>();
-    posts.forEach((p) => p.tags.forEach((t) => s.add(t)));
-    return ["全部", ...Array.from(s)];
-  }, [posts]);
+    posts.forEach((p) => p.tags.forEach((tag) => s.add(tag)));
+    return [allTag, ...Array.from(s)];
+  }, [posts, allTag]);
 
   const filtered = useMemo(() => {
     return posts.filter((p) => {
-      const tagOk = activeTag === "全部" || p.tags.includes(activeTag);
+      const tagOk = activeTag === allTag || p.tags.includes(activeTag);
       const qq = q.trim().toLowerCase();
       const text = (p.title + " " + p.excerpt + " " + p.tags.join(" ")).toLowerCase();
       const qOk = !qq || text.includes(qq);
       return tagOk && qOk;
     });
-  }, [posts, activeTag, q]);
+  }, [posts, activeTag, q, allTag]);
 
   const openPost = openId ? posts.find((p) => p.id === openId) : null;
 
   return (
     <>
       <header className="page-hero wrap">
-        <div className="eyebrow">Blog</div>
-        <h1>技术博客</h1>
-        <p className="lead">工程实践、动效拆解与产品笔记。点击文章可展开阅读原型。</p>
+        <div className="eyebrow">{t(locale, "blog.eyebrow")}</div>
+        <h1>{t(locale, "blog.heading")}</h1>
+        <p className="lead">{t(locale, "blog.lead")}</p>
         <div className="toolbar">
           <input
             className="search"
             type="search"
-            placeholder="搜索标题或标签…"
-            aria-label="搜索博客"
+            placeholder={t(locale, "blog.searchPlaceholder")}
+            aria-label={t(locale, "blog.searchAria")}
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
           <div className="filters">
-            {tags.map((t) => (
+            {tags.map((tag) => (
               <button
-                key={t}
+                key={tag}
                 type="button"
-                className={`filter-btn${t === activeTag ? " is-active" : ""}`}
-                onClick={() => setActiveTag(t)}
+                className={`filter-btn${tag === activeTag ? " is-active" : ""}`}
+                onClick={() => setActiveTag(tag)}
               >
-                {t}
+                {tag}
               </button>
             ))}
           </div>
@@ -73,8 +75,8 @@ export default function BlogClient({ posts }: { posts: BlogPost[] }) {
                   >
                     <div className="card__meta">
                       <span className="mono">{p.date}</span>
-                      {p.tags.map((t) => (
-                        <span key={t} className="tag">{t}</span>
+                      {p.tags.map((tag) => (
+                        <span key={tag} className="tag">{tag}</span>
                       ))}
                     </div>
                     <h3>{p.title}</h3>
@@ -83,7 +85,7 @@ export default function BlogClient({ posts }: { posts: BlogPost[] }) {
                 ))}
               </div>
               {filtered.length === 0 && (
-                <div className="empty-state">没有匹配的文章，试试其他关键词。</div>
+                <div className="empty-state">{t(locale, "blog.empty")}</div>
               )}
             </div>
           )}
@@ -95,13 +97,13 @@ export default function BlogClient({ posts }: { posts: BlogPost[] }) {
                 type="button"
                 onClick={() => setOpenId(null)}
               >
-                ← 返回列表
+                {t(locale, "blog.back")}
               </button>
               <article>
                 <div className="card__meta">
                   <span className="mono">{openPost.date}</span>
-                  {openPost.tags.map((t) => (
-                    <span key={t} className="tag">{t}</span>
+                  {openPost.tags.map((tag) => (
+                    <span key={tag} className="tag">{tag}</span>
                   ))}
                 </div>
                 <h1>{openPost.title}</h1>
@@ -112,26 +114,26 @@ export default function BlogClient({ posts }: { posts: BlogPost[] }) {
         </div>
 
         <aside className="side-card">
-          <h3>热门标签</h3>
+          <h3>{t(locale, "blog.hotTags")}</h3>
           <div className="tag-cloud">
             {tags
-              .filter((t) => t !== "全部")
-              .map((t) => (
+              .filter((tag) => tag !== allTag)
+              .map((tag) => (
                 <button
-                  key={t}
+                  key={tag}
                   type="button"
-                  className={`tag${t === activeTag ? " tag--accent" : ""}`}
+                  className={`tag${tag === activeTag ? " tag--accent" : ""}`}
                   onClick={() => {
-                    setActiveTag(t);
+                    setActiveTag(tag);
                     setOpenId(null);
                   }}
                 >
-                  {t}
+                  {tag}
                 </button>
               ))}
           </div>
           <p className="muted" style={{ marginTop: 18, fontSize: 13 }}>
-            内容存于 PostgreSQL，后台以 Markdown 撰写、支持富文本粘贴导入。
+            {t(locale, "blog.footerNote")}
           </p>
         </aside>
       </div>

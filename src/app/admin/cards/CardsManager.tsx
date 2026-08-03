@@ -43,8 +43,13 @@ export default function CardsManager({
   function remove(id: number) {
     if (!window.confirm("删除这条未售卡密？")) return;
     startTransition(async () => {
-      await deleteCard(id);
-      router.refresh();
+      try {
+        await deleteCard(id);
+        router.refresh();
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "删除卡密失败";
+        setError(msg);
+      }
     });
   }
 
