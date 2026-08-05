@@ -16,10 +16,17 @@ export async function POST(req: Request) {
     }
     const token = await createToken();
     const res = NextResponse.json({ ok: true });
+    // Set the Secure flag only when the client actually reaches us over HTTPS —
+    // either behind a reverse proxy (x-forwarded-proto) or by canonical
+    // SITE_URL. Over plain HTTP (current IP access) we must NOT set Secure, or
+    // the browser drops the session cookie and login silently fails.
+    const secure =
+      (req.headers.get("x-forwarded-proto") ?? "").includes("https") ||
+      (process.env.SITE_URL ?? "").startsWith("https");
     res.cookies.set(ADMIN_COOKIE, token, {
       httpOnly: true,
       sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+      secure,
       path: "/",
       maxAge: 60 * 60 * 24 * 7,
     });
