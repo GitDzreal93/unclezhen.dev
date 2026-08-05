@@ -32,6 +32,10 @@ try {
     const markdown = document.querySelector(".article-view .body");
     const title = document.querySelector(".article-view h1");
     const terminal = markdown?.querySelector("pre");
+    const table = markdown?.querySelector("table");
+    const lastCell = table?.querySelector("tr:first-child > :last-child");
+    const tableBox = table?.getBoundingClientRect();
+    const lastCellBox = lastCell?.getBoundingClientRect();
     return {
       articleWidth: article?.getBoundingClientRect().width ?? 0,
       titleWidth: title?.getBoundingClientRect().width ?? 0,
@@ -41,6 +45,8 @@ try {
       terminalHeaderHeight: terminal
         ? Number.parseFloat(getComputedStyle(terminal, "::before").height) || 0
         : 0,
+      tableContentWidth: tableBox && lastCellBox ? lastCellBox.right - tableBox.left : 0,
+      tableWidth: tableBox?.width ?? 0,
     };
   });
 
@@ -51,6 +57,10 @@ try {
   assert.ok(readingPage.markdownFontSize <= 16, "宽屏正文应保持紧凑且舒适的 16px 字号");
   assert.match(readingPage.accent, /145/, "文章强调色应切换为绿色");
   assert.ok(readingPage.terminalHeaderHeight >= 34, "代码块应具有 iTerm2 风格的终端标题栏");
+  assert.ok(
+    readingPage.tableContentWidth >= readingPage.tableWidth * .95,
+    "表格的列内容应铺满整个阅读列",
+  );
 
   await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 1 });
   const mobileWidths = await page.evaluate(() => ({

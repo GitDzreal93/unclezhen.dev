@@ -259,21 +259,22 @@
 }
 
 .markdown-body table {
-  display: block;
+  display: table;
   width: 100%;
-  overflow-x: auto;
   border-collapse: collapse;
+  table-layout: fixed;
   border: 1px solid var(--line-strong);
   font-size: .86em;
   line-height: 1.55;
 }
 
 .markdown-body :is(th, td) {
-  min-width: 9em;
+  min-width: 0;
   padding: .7em .85em;
   border-bottom: 1px solid var(--line);
   text-align: left;
   vertical-align: top;
+  overflow-wrap: anywhere;
 }
 
 .markdown-body th {
