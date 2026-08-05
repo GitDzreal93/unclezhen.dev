@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { query } from "./db";
 import { assertAdmin } from "./admin-auth";
 import { renderMarkdown } from "./markdown";
+import { generateApiToken, normalizeScopes } from "./api-tokens";
 
 // All mutations funnel through here. Each asserts admin auth (middleware already
 // guards /admin/* but server actions are directly invokable), then revalidates
@@ -22,6 +23,41 @@ function list(v: FormDataEntryValue | null): string[] {
     .split(/[\n,]/)
     .map((s) => s.trim())
     .filter(Boolean);
+}
+
+// ---- Public API tokens ----
+
+export async function createApiToken(fd: FormData) {
+  await assertAdmin();
+  const name = str(fd.get("name"));
+  if (!name) throw new Error("请输入 Token 名称");
+  const scopes = normalizeScopes(fd.getAll("scopes"));
+  const expiry = str(fd.get("expiresAt"));
+  let expiresAt: Date | null = null;
+  if (expiry) {
+    expiresAt = new Date(expiry);
+    if (Number.isNaN(expiresAt.getTime()) || expiresAt <= new Date()) throw new Error("过期时间必须晚于当前时间");
+  }
+  const generated = generateApiToken();
+  await query(
+    `INSERT INTO api_tokens (name,prefix,token_hash,scopes,expires_at)
+     VALUES ($1,$2,$3,$4,$5)`,
+    [name, generated.prefix, generated.tokenHash, scopes, expiresAt],
+  );
+  revalidatePath("/admin/api-tokens");
+  return { secret: generated.secret, prefix: generated.prefix };
+}
+
+export async function revokeApiToken(id: string) {
+  await assertAdmin();
+  await query("UPDATE api_tokens SET revoked_at=COALESCE(revoked_at,now()),updated_at=now() WHERE id=$1", [id]);
+  revalidatePath("/admin/api-tokens");
+}
+
+export async function deleteApiToken(id: string) {
+  await assertAdmin();
+  await query("DELETE FROM api_tokens WHERE id=$1", [id]);
+  revalidatePath("/admin/api-tokens");
 }
 
 // ---- Posts ----

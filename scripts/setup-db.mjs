@@ -32,6 +32,8 @@ const turndown = new TurndownService({
 // Base tables (idempotent). Column additions and drops that migrate an existing
 // database happen in MIGRATIONS below.
 const SCHEMA = `
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 CREATE TABLE IF NOT EXISTS posts (
   id           text PRIMARY KEY,
   title        text NOT NULL,
@@ -122,12 +124,58 @@ CREATE TABLE IF NOT EXISTS nav_items (
   sort    int  NOT NULL DEFAULT 0,
   visible boolean NOT NULL DEFAULT true
 );
+
+CREATE TABLE IF NOT EXISTS api_tokens (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name          text NOT NULL,
+  prefix        text NOT NULL,
+  token_hash    text NOT NULL UNIQUE,
+  scopes        text[] NOT NULL DEFAULT '{}',
+  expires_at    timestamptz,
+  revoked_at    timestamptz,
+  last_used_at  timestamptz,
+  last_used_ip  text,
+  created_at    timestamptz NOT NULL DEFAULT now(),
+  updated_at    timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS api_tokens_active_idx
+  ON api_tokens (revoked_at, expires_at, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS api_token_audit_logs (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  token_id      uuid REFERENCES api_tokens(id) ON DELETE SET NULL,
+  method        text NOT NULL,
+  route         text NOT NULL,
+  resource_id   text,
+  status_code   int NOT NULL,
+  request_id    text NOT NULL,
+  source_ip     text,
+  failure_code  text,
+  created_at    timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS api_token_audit_token_time_idx
+  ON api_token_audit_logs (token_id, created_at DESC);
 `;
 
 
 // Idempotent migrations: add virtual-goods columns to products, payment columns
 // to orders, and drop the legacy courses/enrollments tables. Safe to re-run.
 const MIGRATIONS = `
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE TABLE IF NOT EXISTS api_tokens (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(), name text NOT NULL, prefix text NOT NULL,
+  token_hash text NOT NULL UNIQUE, scopes text[] NOT NULL DEFAULT '{}', expires_at timestamptz,
+  revoked_at timestamptz, last_used_at timestamptz, last_used_ip text,
+  created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS api_tokens_active_idx ON api_tokens (revoked_at, expires_at, created_at DESC);
+CREATE TABLE IF NOT EXISTS api_token_audit_logs (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(), token_id uuid REFERENCES api_tokens(id) ON DELETE SET NULL,
+  method text NOT NULL, route text NOT NULL, resource_id text, status_code int NOT NULL,
+  request_id text NOT NULL, source_ip text, failure_code text, created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS api_token_audit_token_time_idx ON api_token_audit_logs (token_id, created_at DESC);
+
 ALTER TABLE products ADD COLUMN IF NOT EXISTS delivery_mode text NOT NULL DEFAULT 'fixed';
 ALTER TABLE products ADD COLUMN IF NOT EXISTS fixed_content text NOT NULL DEFAULT '';
 ALTER TABLE products ADD COLUMN IF NOT EXISTS stock int NOT NULL DEFAULT -1;

@@ -16,6 +16,7 @@ const NAV_KEYS: { href: string; key: keyof typeof NAV_LABELS_ZH; exact?: boolean
   { href: "/admin.media", key: "admin.media" },
   { href: "/admin/projects", key: "admin.projects" },
   { href: "/admin/nav", key: "admin.nav" },
+  { href: "/admin/api-tokens", key: "admin.apiTokens" },
   { href: "/admin/settings", key: "admin.settings" },
 ];
 
@@ -37,6 +38,7 @@ const NAV_LABELS_ZH = {
   "admin.media": 0,
   "admin.projects": 0,
   "admin.nav": 0,
+  "admin.apiTokens": 0,
   "admin.settings": 0,
 } as const;
 
