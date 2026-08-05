@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "db:setup": "node scripts/setup-db.mjs"
+    "db:setup": "node scripts/setup-db.mjs",
+    "verify:api-workspace": "node scripts/verify-api-token-workspace.mjs"
   },
   "dependencies": {
     "isomorphic-dompurify": "^3.19.0",
