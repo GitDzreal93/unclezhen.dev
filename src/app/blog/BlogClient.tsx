@@ -1,17 +1,20 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
 import type { Post } from "@/lib/data";
 import { t, type Locale } from "@/lib/i18n/dict";
 
 // The blog page renders Markdown → HTML server-side and attaches bodyHtml.
 type BlogPost = Post & { bodyHtml?: string };
+type ImagePreview = { src: string; alt: string };
 
 export default function BlogClient({ posts, locale }: { posts: BlogPost[]; locale: Locale }) {
   const allTag = t(locale, "blog.allTag");
   const [activeTag, setActiveTag] = useState(allTag);
   const [q, setQ] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
+  const [preview, setPreview] = useState<ImagePreview | null>(null);
+  const articleBodyRef = useRef<HTMLDivElement>(null);
 
   const tags = useMemo(() => {
     const s = new Set<string>();
@@ -30,6 +33,46 @@ export default function BlogClient({ posts, locale }: { posts: BlogPost[]; local
   }, [posts, activeTag, q, allTag]);
 
   const openPost = openId ? posts.find((p) => p.id === openId) : null;
+
+  useEffect(() => {
+    const images = articleBodyRef.current?.querySelectorAll("img") ?? [];
+    images.forEach((image) => {
+      image.tabIndex = 0;
+      image.setAttribute("role", "button");
+      image.setAttribute("aria-haspopup", "dialog");
+      image.setAttribute("aria-label", image.alt ? `放大图片：${image.alt}` : "放大图片");
+    });
+  }, [openId]);
+
+  useEffect(() => {
+    if (!preview) return;
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Escape") setPreview(null);
+    };
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [preview]);
+
+  const openImagePreview = (image: HTMLImageElement) => {
+    setPreview({ src: image.currentSrc || image.src, alt: image.alt });
+  };
+
+  const handleImageClick = (event: MouseEvent<HTMLDivElement>) => {
+    if (event.target instanceof HTMLImageElement) openImagePreview(event.target);
+  };
+
+  const handleImageKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (!(event.target instanceof HTMLImageElement)) return;
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      openImagePreview(event.target);
+    }
+  };
 
   return (
     <div className="blog-page">
@@ -109,7 +152,13 @@ export default function BlogClient({ posts, locale }: { posts: BlogPost[]; local
                   ))}
                 </div>
                 <h1>{openPost.title}</h1>
-                <div className="body markdown-body" dangerouslySetInnerHTML={{ __html: openPost.bodyHtml ?? "" }} />
+                <div
+                  ref={articleBodyRef}
+                  className="body markdown-body"
+                  onClick={handleImageClick}
+                  onKeyDown={handleImageKeyDown}
+                  dangerouslySetInnerHTML={{ __html: openPost.bodyHtml ?? "" }}
+                />
               </article>
             </div>
           )}
@@ -139,6 +188,22 @@ export default function BlogClient({ posts, locale }: { posts: BlogPost[]; local
           </p>
         </aside>
       </div>
+      {preview && (
+        <div
+          className="image-lightbox"
+          role="dialog"
+          aria-modal="true"
+          aria-label={preview.alt || "图片预览"}
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setPreview(null);
+          }}
+        >
+          <button className="image-lightbox__close" type="button" autoFocus onClick={() => setPreview(null)}>
+            关闭
+          </button>
+          <img src={preview.src} alt={preview.alt} />
+        </div>
+      )}
     </div>
   );
 }

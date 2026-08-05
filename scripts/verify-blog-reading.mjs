@@ -62,6 +62,20 @@ try {
     "表格的列内容应铺满整个阅读列",
   );
 
+  await page.click(".markdown-body img");
+  await page.waitForSelector(".image-lightbox", { timeout: 2000 });
+  const preview = await page.$eval(".image-lightbox img", (image) => ({
+    src: image.getAttribute("src"),
+    width: image.getBoundingClientRect().width,
+  }));
+  assert.ok(
+    preview.src.endsWith("/blog-assets/markdown-showcase-cyberpunk.png"),
+    "预览应使用原始图片",
+  );
+  assert.ok(preview.width > 1000, "桌面端预览应大于正文内图片");
+  await page.keyboard.press("Escape");
+  await page.waitForSelector(".image-lightbox", { hidden: true, timeout: 2000 });
+
   await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 1 });
   const mobileWidths = await page.evaluate(() => ({
     viewport: document.documentElement.clientWidth,
