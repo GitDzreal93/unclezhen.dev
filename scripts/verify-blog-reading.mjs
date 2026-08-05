@@ -30,12 +30,14 @@ try {
     return {
       articleWidth: article?.getBoundingClientRect().width ?? 0,
       markdownH1Count: markdown?.querySelectorAll("h1").length ?? -1,
+      markdownFontSize: markdown ? Number.parseFloat(getComputedStyle(markdown).fontSize) : 0,
     };
   });
 
   assert.ok(readingPage.articleWidth > 0, "文章阅读区应在打开文章后稳定显示");
   assert.equal(readingPage.markdownH1Count, 0, "正文不应重复渲染文章标题");
   assert.ok(readingPage.articleWidth >= 780, "宽屏阅读区应有效使用至少 780px 的宽度");
+  assert.ok(readingPage.markdownFontSize <= 16, "宽屏正文应保持紧凑且舒适的 16px 字号");
 
   await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 1 });
   const mobileWidths = await page.evaluate(() => ({

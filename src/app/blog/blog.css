@@ -62,8 +62,8 @@
   transform: translateY(-1px);
 }
 
-.post h3 { font-size: 19px; }
-.post p { max-width: 74ch; color: var(--muted); font-size: 15px; line-height: 1.65; }
+.post h3 { font-size: 18px; }
+.post p { max-width: 74ch; color: var(--muted); font-size: 14px; line-height: 1.65; }
 
 .blog-layout {
   display: grid;
@@ -114,8 +114,8 @@
   max-width: 16ch;
   margin: 14px 0 26px;
   color: var(--fg);
-  font-size: clamp(31px, 3.4vw, 52px);
-  line-height: 1.18;
+  font-size: clamp(28px, 2.7vw, 42px);
+  line-height: 1.24;
   letter-spacing: -0.045em;
 }
 
@@ -123,8 +123,8 @@
   min-width: 0;
   color: color-mix(in oklch, var(--fg) 82%, var(--muted));
   font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", var(--font-body);
-  font-size: clamp(16px, 1.15vw, 18px);
-  line-height: 1.9;
+  font-size: clamp(15px, .95vw, 16px);
+  line-height: 1.85;
   text-wrap: pretty;
 }
 
@@ -138,25 +138,25 @@
   text-wrap: balance;
 }
 
-.markdown-body h1 { font-size: clamp(30px, 3.1vw, 43px); line-height: 1.22; }
+.markdown-body h1 { font-size: clamp(27px, 2.6vw, 36px); line-height: 1.28; }
 
 .markdown-body h2 {
   margin-top: 2.45em;
   padding-left: 14px;
   border-left: 3px solid var(--blog-accent);
-  font-size: clamp(24px, 2.35vw, 32px);
-  line-height: 1.32;
+  font-size: clamp(22px, 2vw, 28px);
+  line-height: 1.38;
 }
 
 .markdown-body h3 {
   margin-top: 2em;
-  font-size: clamp(20px, 1.85vw, 25px);
-  line-height: 1.4;
+  font-size: clamp(18px, 1.55vw, 22px);
+  line-height: 1.45;
 }
 
 .markdown-body h4 {
   margin-top: 1.75em;
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1.45;
 }
 
@@ -279,8 +279,8 @@
 @media (max-width: 560px) {
   .blog-page .page-hero { padding-bottom: 24px; }
   .post { padding: 18px; }
-  .article-view h1 { font-size: 30px; }
-  .markdown-body { font-size: 16px; line-height: 1.82; }
+  .article-view h1 { font-size: 28px; }
+  .markdown-body { font-size: 15px; line-height: 1.8; }
   .markdown-body pre { margin-inline: -2px; padding: 16px; }
   .markdown-body :is(th, td) { padding: .62em .7em; }
 }
