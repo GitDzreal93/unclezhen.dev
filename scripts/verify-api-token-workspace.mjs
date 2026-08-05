@@ -25,7 +25,7 @@ const browser = await puppeteer.launch({
 
 try {
   const page = await browser.newPage();
-  await page.setViewport({ width: 1440, height: 1000 });
+  await page.setViewport({ width: 2048, height: 1000 });
   await page.goto(`${BASE}/admin/login`, { waitUntil: "domcontentloaded" });
   await page.waitForSelector("#pw", { timeout: 8000 });
   await page.type("#pw", password);
@@ -44,6 +44,11 @@ try {
   if (workspace) {
     const columns = await page.$eval(".api-workspace", (el) => getComputedStyle(el).gridTemplateColumns.trim().split(/\s+/).length);
     check("宽屏使用两栏", columns === 2, `${columns} columns`);
+    const leftCardFill = await page.$eval(".api-workspace__tokens .settings-card", (card) => {
+      const track = card.parentElement?.getBoundingClientRect().width ?? 0;
+      return card.getBoundingClientRect().width / track;
+    });
+    check("左侧 Token 卡片填满工作栏", leftCardFill >= 0.98, `${Math.round(leftCardFill * 100)}%`);
   }
 
   const downloadButton = await page.$("[data-api-doc-download]");

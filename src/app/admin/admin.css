@@ -1258,7 +1258,7 @@ select.select:focus-visible,
   align-items: start;
 }
 .api-workspace__tokens { display: grid; gap: 16px; min-width: 0; }
-.api-workspace__tokens .settings-card { margin: 0; }
+.api-workspace__tokens .settings-card { width: 100%; max-width: none; margin: 0; }
 .api-docs {
   position: sticky;
   top: 16px;
