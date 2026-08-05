@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import { getPosts, getVisibleNavItems, isNavItemVisible } from "@/lib/data";
-import { renderMarkdown } from "@/lib/markdown";
+import { removeLeadingMarkdownTitle, renderMarkdown } from "@/lib/markdown";
 import { getLocale } from "@/lib/i18n/cookie";
 import { getTheme } from "@/lib/theme/cookie";
 import { t } from "@/lib/i18n/dict";
@@ -28,7 +28,10 @@ export default async function BlogPage() {
     getLocale(),
     getTheme(),
   ]);
-  const rendered = posts.map((p) => ({ ...p, bodyHtml: renderMarkdown(p.body) }));
+  const rendered = posts.map((p) => ({
+    ...p,
+    bodyHtml: renderMarkdown(removeLeadingMarkdownTitle(p.body, p.title)),
+  }));
   return (
     <>
       <SiteNav items={items} active="blog" locale={locale} theme={theme} />

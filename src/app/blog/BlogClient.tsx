@@ -32,37 +32,39 @@ export default function BlogClient({ posts, locale }: { posts: BlogPost[]; local
   const openPost = openId ? posts.find((p) => p.id === openId) : null;
 
   return (
-    <>
-      <header className="page-hero wrap">
-        <div className="eyebrow">{t(locale, "blog.eyebrow")}</div>
-        <h1>{t(locale, "blog.heading")}</h1>
-        <p className="lead">{t(locale, "blog.lead")}</p>
-        <div className="toolbar">
-          <input
-            className="search"
-            type="search"
-            placeholder={t(locale, "blog.searchPlaceholder")}
-            aria-label={t(locale, "blog.searchAria")}
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-          />
-          <div className="filters">
-            {tags.map((tag) => (
-              <button
-                key={tag}
-                type="button"
-                className={`filter-btn${tag === activeTag ? " is-active" : ""}`}
-                onClick={() => setActiveTag(tag)}
-              >
-                {tag}
-              </button>
-            ))}
+    <div className="blog-page">
+      {!openPost && (
+        <header className="page-hero wrap">
+          <div className="eyebrow">{t(locale, "blog.eyebrow")}</div>
+          <h1>{t(locale, "blog.heading")}</h1>
+          <p className="lead">{t(locale, "blog.lead")}</p>
+          <div className="toolbar">
+            <input
+              className="search"
+              type="search"
+              placeholder={t(locale, "blog.searchPlaceholder")}
+              aria-label={t(locale, "blog.searchAria")}
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+            />
+            <div className="filters">
+              {tags.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  className={`filter-btn${tag === activeTag ? " is-active" : ""}`}
+                  onClick={() => setActiveTag(tag)}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
+      )}
 
-      <div className="wrap blog-layout">
-        <div>
+      <div className={`wrap blog-layout${openPost ? " blog-layout--reading" : ""}`}>
+        <div className="blog-layout__primary">
           {!openPost && (
             <div className="list-view">
               <div className="post-list">
@@ -99,7 +101,7 @@ export default function BlogClient({ posts, locale }: { posts: BlogPost[]; local
               >
                 {t(locale, "blog.back")}
               </button>
-              <article>
+              <article className="reading-article">
                 <div className="card__meta">
                   <span className="mono">{openPost.date}</span>
                   {openPost.tags.map((tag) => (
@@ -107,7 +109,7 @@ export default function BlogClient({ posts, locale }: { posts: BlogPost[]; local
                   ))}
                 </div>
                 <h1>{openPost.title}</h1>
-                <div className="body" dangerouslySetInnerHTML={{ __html: openPost.bodyHtml ?? "" }} />
+                <div className="body markdown-body" dangerouslySetInnerHTML={{ __html: openPost.bodyHtml ?? "" }} />
               </article>
             </div>
           )}
@@ -137,6 +139,6 @@ export default function BlogClient({ posts, locale }: { posts: BlogPost[]; local
           </p>
         </aside>
       </div>
-    </>
+    </div>
   );
 }
