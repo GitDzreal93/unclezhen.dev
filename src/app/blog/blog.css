@@ -111,12 +111,13 @@
 }
 
 .article-view h1 {
-  max-width: 16ch;
+  max-width: 100%;
   margin: 14px 0 26px;
   color: var(--fg);
   font-size: clamp(28px, 2.7vw, 42px);
   line-height: 1.24;
   letter-spacing: -0.045em;
+  text-wrap: balance;
 }
 
 .markdown-body {
