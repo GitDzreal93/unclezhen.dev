@@ -34,8 +34,6 @@ COPY --from=builder /app/node_modules/@mixmark-io ./node_modules/@mixmark-io
 # static + public assets
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
-# API Token 后台在运行时从 docs/api.md 渲染并导出接口文档。
-COPY --from=builder /app/docs ./docs
 # db seed script (idempotent); deps already in node_modules above
 COPY --from=builder /app/scripts ./scripts
 EXPOSE 3000
