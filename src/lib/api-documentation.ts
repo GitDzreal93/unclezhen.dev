@@ -21,6 +21,7 @@ Authorization: Bearer zhen_your_secret_token
 | products:read / products:write | 读取 / 新增、更新、删除商品 |
 | posts:read / posts:write | 读取 / 新增、更新、删除博客 |
 | projects:read / projects:write | 读取 / 新增、更新、删除项目 |
+| images:write | 上传图片素材到图床，返回 CDN 链接与 Markdown 标签 |
 
 读取和写入是独立授权。缺少、无效、过期或已撤销的 Token 返回 401；Token 有效但权限不足返回 403。
 
@@ -34,6 +35,7 @@ Authorization: Bearer zhen_your_secret_token
 | GET / PATCH / DELETE | /posts/:id | posts:read / posts:write |
 | GET / POST | /projects | projects:read / projects:write |
 | GET / PATCH / DELETE | /projects/:id | projects:read / projects:write |
+| POST | /images | images:write |
 
 集合读取返回 { "data": [...], "meta": { "count": 1 } }，单条返回 { "data": {...} }。新增返回 201，删除返回空响应 204。
 
@@ -52,7 +54,19 @@ POST 必须包含 id，重复 ID 返回 409。PATCH 只提交需要改动的字�
 { "id": "api-product", "name": "API 商品", "cat": "软件", "price": 99, "descr": "商品说明", "stock": -1, "sort": 0 }
 ~~~
 
-商品读取刻意不返回发货内容、发货方式、卡密和订单信息。该 API 也不能管理支付、订单、媒体上传、卡密或导航。
+商品读取刻意不返回发货内容、发货方式、卡密和订单信息。该 API 也不能管理支付、订单、卡密或导航；图片素材通过 images:write 上传（见下文）。
+
+## 图片上传
+
+POST /api/v1/images 以 multipart/form-data 上传一张图片到图床（GitHub 仓库 + jsDelivr CDN），并记录到媒体库。字段：file（必填，仅 image/*，上限 8MB）、alt（可选，替代文本）。
+
+返回单条资源：
+
+~~~json
+{ "data": { "id": "pic-abc12", "url": "https://cdn.jsdelivr.net/gh/.../pic.png", "filename": "pic.png", "markdown": "![示例图](https://cdn.jsdelivr.net/gh/.../pic.png)" } }
+~~~
+
+把返回的 markdown 直接拼进 POST /api/v1/posts 的 body 即可完成「带图发文」。该端点仅支持上传，没有列举/删除；管理已有素材请用后台「媒体」页。
 
 ## 示例
 
@@ -66,6 +80,11 @@ curl -X POST -H "Authorization: Bearer $ZHEN_TOKEN" \\
   -H "Content-Type: application/json" \\
   --data '{"id":"api-example","title":"由 API 创建","date":"2026-08-06","tags":["API"],"excerpt":"自动化内容示例","body":"这篇文章用于验证内容 API。"}' \\
   http://localhost:3003/api/v1/posts
+
+# 上传图片到图床，返回 CDN 链接与可直接用于正文的 Markdown
+curl -X POST -H "Authorization: Bearer $ZHEN_TOKEN" \\
+  -F "file=@/path/to/pic.png" -F "alt=示例图" \\
+  http://localhost:3003/api/v1/images
 ~~~
 
 ## 错误格式
