@@ -21,14 +21,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 25
-    env:
-      # aliyun-cli reads these standard env names; the values come from repo
-      # secrets you must add in Settings → Secrets and variables → Actions:
-      #   ALIBABA_CLOUD_ACCESS_KEY_ID      (RAM user with ECS RunCommand rights)
-      #   ALIBABA_CLOUD_ACCESS_KEY_SECRET
-      ALICLOUD_ACCESS_KEY_ID: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_ID }}
-      ALICLOUD_ACCESS_KEY_SECRET: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_SECRET }}
-      ALICLOUD_REGION: cn-shenzhen
     steps:
       - name: Install aliyun-cli
         run: |
@@ -37,15 +29,30 @@ jobs:
           sudo install -m 0755 /tmp/aliyun /usr/local/bin/aliyun
           aliyun version
 
+      - name: Configure aliyun-cli credentials
+        env:
+          ALIBABA_CLOUD_ACCESS_KEY_ID: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_ID }}
+          ALIBABA_CLOUD_ACCESS_KEY_SECRET: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_SECRET }}
+        run: |
+          # The runner has no profile, and this aliyun-cli build ignores the
+          # ALICLOUD_* env vars — so materialize an AK profile from the secrets.
+          aliyun configure set \
+            --profile default \
+            --mode AK \
+            --access-key-id "$ALIBABA_CLOUD_ACCESS_KEY_ID" \
+            --access-key-secret "$ALIBABA_CLOUD_ACCESS_KEY_SECRET" \
+            --region cn-shenzhen
+
       - name: Verify credentials & target instance
         run: |
           set -e
-          COUNT=$(aliyun ecs DescribeInstances \
+          RAW=$(aliyun ecs DescribeInstances \
             --RegionId cn-shenzhen \
-            --InstanceIds '["i-wz9cplhvit9gwxun78k0"]' \
-            | jq '.Instances.Instance | length')
+            --InstanceIds '["i-wz9cplhvit9gwxun78k0"]')
+          COUNT=$(echo "$RAW" | jq '.Instances.Instance | length')
           if [ "$COUNT" != "1" ]; then
-            echo "::error::ECS i-wz9cplhvit9gwxun78k0 不可达。请确认已在仓库 Settings → Secrets 配置 ALIBABA_CLOUD_ACCESS_KEY_ID / ALIBABA_CLOUD_ACCESS_KEY_SECRET，且该 RAM 用户拥有 ECS 权限。"
+            echo "::error::ECS i-wz9cplhvit9gwxun78k0 不可达或凭证无效。aliyun 原始输出："
+            echo "$RAW"
             exit 1
           fi
           echo "Credentials OK, target instance reachable."
