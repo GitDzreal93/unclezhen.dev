@@ -82,23 +82,25 @@ jobs:
             RESULT=$(aliyun ecs DescribeInvocationResults \
               --RegionId cn-shenzhen \
               --InvokeId "$INVOKE_ID")
-            STATUS=$(echo "$RESULT" | jq -r '.Invocation.InvocationResults.InvocationResult[0].Status // empty')
-            echo "Status: ${STATUS:-<pending>}"
+            # Cloud Assistant exposes status as InvocationStatus (Success/Running/
+            # Failed/Timeout/Error), NOT a field literally named "Status" — that
+            # path is always empty and would spin the poll loop to the deadline.
+            STATUS=$(echo "$RESULT" | jq -r '.Invocation.InvocationResults.InvocationResult[0].InvocationStatus // empty')
+            EXIT_CODE=$(echo "$RESULT" | jq -r '.Invocation.InvocationResults.InvocationResult[0].ExitCode // "unknown"')
+            echo "InvocationStatus: ${STATUS:-<pending>}  ExitCode: $EXIT_CODE"
             case "$STATUS" in
               Running|Pending|Starting|"") continue ;;
             esac
-            # Terminal state — decode the (base64) output and check ExitCode.
-            EXIT_CODE=$(echo "$RESULT" | jq -r '.Invocation.InvocationResults.InvocationResult[0].ExitCode // "unknown"')
+            # Terminal state — decode the (base64) output.
             OUTPUT=$(echo "$RESULT" | jq -r '.Invocation.InvocationResults.InvocationResult[0].Output // ""' | base64 -d 2>/dev/null || true)
             echo "----- remote deploy output -----"
             echo "$OUTPUT"
             echo "--------------------------------"
-            echo "ExitCode: $EXIT_CODE  Status: $STATUS"
-            if [ "$STATUS" = "Finished" ] && [ "$EXIT_CODE" = "0" ]; then
+            if [ "$STATUS" = "Success" ]; then
               echo "Deploy succeeded."
               exit 0
             fi
-            echo "::error::Deploy failed (Status=$STATUS, ExitCode=$EXIT_CODE). Remote output is above."
+            echo "::error::Deploy failed (InvocationStatus=$STATUS, ExitCode=$EXIT_CODE). Remote output is above."
             exit 1
           done
           echo "::error::Timed out waiting for the deploy to finish."
