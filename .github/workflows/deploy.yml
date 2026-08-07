@@ -1,0 +1,98 @@
+name: Deploy to Aliyun ECS
+
+# Auto-deploy to the prod ECS on every push to main, plus a manual button.
+# The deploy is a thin wrapper over what used to be a manual flow: pull the
+# latest main on the server (via a GitHub mirror — direct github.com is
+# unreachable from a China ECS) and rebuild the docker compose stack.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Never run two deploys concurrently — a newer push cancels the in-flight run.
+concurrency:
+  group: deploy-aliyun
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      # aliyun-cli reads these standard env names; the values come from repo
+      # secrets you must add in Settings → Secrets and variables → Actions:
+      #   ALIBABA_CLOUD_ACCESS_KEY_ID      (RAM user with ECS RunCommand rights)
+      #   ALIBABA_CLOUD_ACCESS_KEY_SECRET
+      ALICLOUD_ACCESS_KEY_ID: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_ID }}
+      ALICLOUD_ACCESS_KEY_SECRET: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_SECRET }}
+      ALICLOUD_REGION: cn-shenzhen
+    steps:
+      - name: Install aliyun-cli
+        run: |
+          curl -fsSL https://aliyuncli.alicdn.com/aliyun-cli-linux-latest-amd64.tgz -o /tmp/aliyun.tgz
+          tar -xzf /tmp/aliyun.tgz -C /tmp
+          sudo install -m 0755 /tmp/aliyun /usr/local/bin/aliyun
+          aliyun version
+
+      - name: Verify credentials & target instance
+        run: |
+          set -e
+          COUNT=$(aliyun ecs DescribeInstances \
+            --RegionId cn-shenzhen \
+            --InstanceIds '["i-wz9cplhvit9gwxun78k0"]' \
+            | jq '.Instances.Instance | length')
+          if [ "$COUNT" != "1" ]; then
+            echo "::error::ECS i-wz9cplhvit9gwxun78k0 不可达。请确认已在仓库 Settings → Secrets 配置 ALIBABA_CLOUD_ACCESS_KEY_ID / ALIBABA_CLOUD_ACCESS_KEY_SECRET，且该 RAM 用户拥有 ECS 权限。"
+            exit 1
+          fi
+          echo "Credentials OK, target instance reachable."
+
+      - name: Run deploy on ECS via Cloud Assistant
+        run: |
+          set -euo pipefail
+          # Single-line remote script (Cloud Assistant transports it fine as
+          # plain text; aliyun-cli base64-encodes for the API). reset --hard
+          # guarantees the server matches main exactly — /opt/unclezhen holds
+          # no local edits (secrets live in .env, never tracked).
+          DEPLOY_SCRIPT='set -e; cd /opt/unclezhen && git remote set-url origin https://gh-proxy.com/https://github.com/GitDzreal93/unclezhen.dev.git && git fetch --prune origin main && git reset --hard origin/main && docker compose up -d --build && docker compose ps'
+
+          INVOKE_ID=$(aliyun ecs RunCommand \
+            --RegionId cn-shenzhen \
+            --InstanceId.1 i-wz9cplhvit9gwxun78k0 \
+            --Type RunShellScript \
+            --Timeout 1200 \
+            --CommandContent "$DEPLOY_SCRIPT" \
+            | jq -r '.InvokeId')
+          echo "InvokeId: $INVOKE_ID"
+
+          # Poll until Cloud Assistant reaches a terminal state (max ~20m).
+          DEADLINE=$(( $(date +%s) + 1200 ))
+          while [ "$(date +%s)" -lt "$DEADLINE" ]; do
+            sleep 15
+            RESULT=$(aliyun ecs DescribeInvocationResults \
+              --RegionId cn-shenzhen \
+              --InvokeId "$INVOKE_ID")
+            STATUS=$(echo "$RESULT" | jq -r '.Invocation.InvocationResults.InvocationResult[0].Status // empty')
+            echo "Status: ${STATUS:-<pending>}"
+            case "$STATUS" in
+              Running|Pending|Starting|"") continue ;;
+            esac
+            # Terminal state — decode the (base64) output and check ExitCode.
+            EXIT_CODE=$(echo "$RESULT" | jq -r '.Invocation.InvocationResults.InvocationResult[0].ExitCode // "unknown"')
+            OUTPUT=$(echo "$RESULT" | jq -r '.Invocation.InvocationResults.InvocationResult[0].Output // ""' | base64 -d 2>/dev/null || true)
+            echo "----- remote deploy output -----"
+            echo "$OUTPUT"
+            echo "--------------------------------"
+            echo "ExitCode: $EXIT_CODE  Status: $STATUS"
+            if [ "$STATUS" = "Finished" ] && [ "$EXIT_CODE" = "0" ]; then
+              echo "Deploy succeeded."
+              exit 0
+            fi
+            echo "::error::Deploy failed (Status=$STATUS, ExitCode=$EXIT_CODE). Remote output is above."
+            exit 1
+          done
+          echo "::error::Timed out waiting for the deploy to finish."
+          exit 1
