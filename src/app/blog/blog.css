@@ -80,8 +80,8 @@
   }
 
   .blog-layout--reading {
-    width: min(100% - 48px, 1280px);
-    column-gap: clamp(40px, 4vw, 64px);
+    grid-template-columns: minmax(0, 1fr);
+    width: min(100% - 48px, 1080px);
   }
 }
 
@@ -106,7 +106,7 @@
 
 .reading-article {
   width: 100%;
-  max-width: 880px;
+  max-width: 1080px;
   padding: 0 0 68px;
 }
 
