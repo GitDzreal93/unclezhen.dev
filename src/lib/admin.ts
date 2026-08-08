@@ -370,3 +370,43 @@ export async function reorderSeriesPosts(seriesId: string, orderedIds: string[])
   revalidatePath("/blog");
   revalidatePath("/admin/series");
 }
+
+// ---- Banners (sidebar promo carousel) ----
+
+export async function saveBanner(fd: FormData) {
+  await assertAdmin();
+  const id = str(fd.get("id"));
+  const title = str(fd.get("title"));
+  const imageUrl = str(fd.get("imageUrl"));
+  const linkUrl = str(fd.get("linkUrl"));
+  const sort = int(fd.get("sort"));
+  const visible = str(fd.get("visible")) === "true";
+  if (!id || !imageUrl) throw new Error("id、图片必填");
+  await query(
+    `INSERT INTO banners (id,title,image_url,link_url,sort,visible)
+       VALUES ($1,$2,$3,$4,$5,$6)
+     ON CONFLICT (id) DO UPDATE SET
+       title=EXCLUDED.title, image_url=EXCLUDED.image_url,
+       link_url=EXCLUDED.link_url, sort=EXCLUDED.sort, visible=EXCLUDED.visible`,
+    [id, title, imageUrl, linkUrl, sort, visible]
+  );
+  revalidatePath("/blog");
+  revalidatePath("/admin/banners");
+}
+
+export async function deleteBanner(id: string) {
+  await assertAdmin();
+  await query("DELETE FROM banners WHERE id=$1", [id]);
+  revalidatePath("/blog");
+  revalidatePath("/admin/banners");
+}
+
+export async function setBannerVisibility(fd: FormData) {
+  await assertAdmin();
+  const id = str(fd.get("id"));
+  if (!id) throw new Error("缺少 id");
+  const visible = str(fd.get("visible")) === "true";
+  await query("UPDATE banners SET visible=$2 WHERE id=$1", [id, visible]);
+  revalidatePath("/blog");
+  revalidatePath("/admin/banners");
+}

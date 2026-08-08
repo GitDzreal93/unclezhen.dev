@@ -177,6 +177,19 @@ CREATE TABLE IF NOT EXISTS series_posts (
   PRIMARY KEY (series_id, post_id)
 );
 CREATE INDEX IF NOT EXISTS series_posts_series_idx ON series_posts (series_id, position);
+
+-- Sidebar promo banners (rotating carousel). image_url points at the CDN
+-- (uploaded via the image host); link_url is where a click lands (a series
+-- page or any URL). No seed loop — admin banners survive db:setup.
+CREATE TABLE IF NOT EXISTS banners (
+  id         text PRIMARY KEY,
+  title      text NOT NULL DEFAULT '',
+  image_url  text NOT NULL,
+  link_url   text NOT NULL DEFAULT '',
+  sort       int  NOT NULL DEFAULT 0,
+  visible    boolean NOT NULL DEFAULT true,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
 `;
 
 

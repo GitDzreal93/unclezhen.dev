@@ -402,3 +402,61 @@ export async function getSeriesForPost(postId: string): Promise<SeriesWithCount[
   );
   return rows.map((r) => ({ ...mapSeries(r), postCount: r.post_count }));
 }
+
+// ---- Banners ----
+
+export type Banner = {
+  id: string;
+  title: string;
+  imageUrl: string;
+  linkUrl: string;
+  sort: number;
+};
+
+// Visible banners for the public sidebar carousel, ordered by sort.
+export async function getVisibleBanners(): Promise<Banner[]> {
+  const rows = await query<any>(
+    "SELECT id,title,image_url,link_url,sort FROM banners WHERE visible = true ORDER BY sort ASC, created_at ASC"
+  );
+  return rows.map((r) => ({
+    id: r.id,
+    title: r.title,
+    imageUrl: r.image_url,
+    linkUrl: r.link_url,
+    sort: r.sort,
+  }));
+}
+
+export type AdminBanner = Banner & { visible: boolean };
+
+// All banners (incl. hidden) for the admin table.
+export async function getBanners(): Promise<AdminBanner[]> {
+  const rows = await query<any>(
+    "SELECT id,title,image_url,link_url,sort,visible FROM banners ORDER BY sort ASC, created_at ASC"
+  );
+  return rows.map((r) => ({
+    id: r.id,
+    title: r.title,
+    imageUrl: r.image_url,
+    linkUrl: r.link_url,
+    sort: r.sort,
+    visible: Boolean(r.visible),
+  }));
+}
+
+export async function getBanner(id: string): Promise<AdminBanner | null> {
+  const rows = await query<any>(
+    "SELECT id,title,image_url,link_url,sort,visible FROM banners WHERE id=$1",
+    [id]
+  );
+  if (rows.length === 0) return null;
+  const r = rows[0];
+  return {
+    id: r.id,
+    title: r.title,
+    imageUrl: r.image_url,
+    linkUrl: r.link_url,
+    sort: r.sort,
+    visible: Boolean(r.visible),
+  };
+}

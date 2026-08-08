@@ -2,19 +2,22 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import type { Post, SeriesWithCount } from "@/lib/data";
+import type { Post, SeriesWithCount, Banner } from "@/lib/data";
 import { t, type Locale } from "@/lib/i18n/dict";
+import BannerCarousel from "./BannerCarousel";
 
-// Blog index: tag filter + search over all posts, plus a series list in the
-// sidebar. Each card is a <Link> to /blog/[id] (the old in-place openId expand
-// was replaced by a real dynamic route).
+// Blog index: tag filter + search over all posts. Sidebar shows the series
+// list and a rotating banner carousel (the old hot-tags cloud was redundant
+// with the top filter bar). Each card links to /blog/[id].
 export default function BlogListClient({
   posts,
   series,
+  banners,
   locale,
 }: {
   posts: Post[];
   series: SeriesWithCount[];
+  banners: Banner[];
   locale: Locale;
 }) {
   const allTag = t(locale, "blog.allTag");
@@ -103,21 +106,7 @@ export default function BlogListClient({
               </div>
             </>
           )}
-          <h3>{t(locale, "blog.hotTags")}</h3>
-          <div className="tag-cloud">
-            {tags
-              .filter((tag) => tag !== allTag)
-              .map((tag) => (
-                <button
-                  key={tag}
-                  type="button"
-                  className={`tag${tag === activeTag ? " tag--accent" : ""}`}
-                  onClick={() => setActiveTag(tag)}
-                >
-                  {tag}
-                </button>
-              ))}
-          </div>
+          {banners.length > 0 && <BannerCarousel banners={banners} />}
           <p className="muted" style={{ marginTop: 18, fontSize: 13 }}>
             {t(locale, "blog.footerNote")}
           </p>

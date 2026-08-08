@@ -373,3 +373,37 @@
   font-size: 13px;
 }
 .post-series-nav .tag { font-size: 12px; }
+
+/* ---- Sidebar banner carousel ---- */
+.banner-carousel { margin-bottom: 16px; }
+.banner-carousel__slide {
+  display: block;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  transition: border-color .2s var(--ease);
+}
+.banner-carousel__slide:hover { border-color: var(--blog-accent-border); }
+.banner-carousel__slide img {
+  display: block;
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+}
+.banner-carousel__dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+.banner-carousel__dot {
+  width: 6px;
+  height: 6px;
+  border: none;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--line-strong);
+  cursor: pointer;
+  transition: background .2s var(--ease);
+}
+.banner-carousel__dot.is-active { background: var(--blog-accent); }
