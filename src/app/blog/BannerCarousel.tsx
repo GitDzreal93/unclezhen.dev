@@ -3,9 +3,17 @@
 import { useEffect, useState } from "react";
 import type { Banner } from "@/lib/data";
 
-// Rotating sidebar banner. Auto-advances every 5s when there's more than one;
-// dots let the reader jump. Each banner is a link if linkUrl is set.
-export default function BannerCarousel({ banners }: { banners: Banner[] }) {
+// Rotating banner strip. Two variants:
+//  - "wide"   : full-width 横幅 header above the post list
+//  - "sidebar": 280px card in the right column (legacy)
+// Auto-advances every 5s when there's more than one; dots let the reader jump.
+export default function BannerCarousel({
+  banners,
+  variant = "sidebar",
+}: {
+  banners: Banner[];
+  variant?: "wide" | "sidebar";
+}) {
   const [i, setI] = useState(0);
 
   useEffect(() => {
@@ -18,7 +26,7 @@ export default function BannerCarousel({ banners }: { banners: Banner[] }) {
   const cur = banners[i];
 
   return (
-    <div className="banner-carousel">
+    <div className={`banner-carousel banner-carousel--${variant}`}>
       {cur.linkUrl ? (
         <a href={cur.linkUrl} className="banner-carousel__slide" aria-label={cur.title || "banner"}>
           <img src={cur.imageUrl} alt={cur.title} />

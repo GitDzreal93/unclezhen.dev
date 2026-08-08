@@ -6,9 +6,10 @@ import type { Post, SeriesWithCount, Banner } from "@/lib/data";
 import { t, type Locale } from "@/lib/i18n/dict";
 import BannerCarousel from "./BannerCarousel";
 
-// Blog index: tag filter + search over all posts. Sidebar shows the series
-// list and a rotating banner carousel (the old hot-tags cloud was redundant
-// with the top filter bar). Each card links to /blog/[id].
+// Blog index: tag filter + search over all posts. Layout:
+//   - full-width 横幅 banner at the top (rotating, admin-managed)
+//   - left:  search + post list
+//   - right: 标签 (tag filter) + 合集 (series) + footer note
 export default function BlogListClient({
   posts,
   series,
@@ -55,20 +56,14 @@ export default function BlogListClient({
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
-          <div className="filters">
-            {tags.map((tag) => (
-              <button
-                key={tag}
-                type="button"
-                className={`filter-btn${tag === activeTag ? " is-active" : ""}`}
-                onClick={() => setActiveTag(tag)}
-              >
-                {tag}
-              </button>
-            ))}
-          </div>
         </div>
       </header>
+
+      {banners.length > 0 && (
+        <div className="wrap blog-banner-strip">
+          <BannerCarousel banners={banners} variant="wide" />
+        </div>
+      )}
 
       <div className="wrap blog-layout">
         <div className="blog-layout__primary">
@@ -93,9 +88,25 @@ export default function BlogListClient({
           </div>
         </div>
 
-        <aside className="side-card">
+        <aside className="blog-sidebar">
+          <section className="side-card">
+            <h3>{t(locale, "blog.hotTags")}</h3>
+            <div className="tag-cloud">
+              {tags.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  className={`tag tag--btn${tag === activeTag ? " is-active" : ""}`}
+                  onClick={() => setActiveTag(tag)}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          </section>
+
           {series.length > 0 && (
-            <>
+            <section className="side-card">
               <h3>{t(locale, "blog.seriesTitle")}</h3>
               <div className="tag-cloud series-cloud">
                 {series.map((s) => (
@@ -104,10 +115,10 @@ export default function BlogListClient({
                   </Link>
                 ))}
               </div>
-            </>
+            </section>
           )}
-          {banners.length > 0 && <BannerCarousel banners={banners} />}
-          <p className="muted" style={{ marginTop: 18, fontSize: 13 }}>
+
+          <p className="muted" style={{ fontSize: 13, lineHeight: 1.6 }}>
             {t(locale, "blog.footerNote")}
           </p>
         </aside>

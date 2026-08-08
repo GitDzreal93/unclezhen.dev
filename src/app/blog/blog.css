@@ -86,8 +86,6 @@
 }
 
 .side-card {
-  position: sticky;
-  top: calc(var(--nav-h) + 16px);
   padding: 19px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -96,6 +94,33 @@
 
 .side-card h3 { margin-bottom: 12px; font-size: 15px; }
 .tag-cloud { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* Tag-as-button used in the sidebar filter card. */
+.tag.tag--btn {
+  font: inherit;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--fg);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  transition: color .15s var(--ease), border-color .15s var(--ease), background .15s var(--ease);
+}
+.tag.tag--btn:hover {
+  color: var(--blog-accent);
+  border-color: var(--blog-accent-border);
+}
+.tag.tag--btn.is-active {
+  color: var(--blog-accent);
+  border-color: var(--blog-accent-border);
+  background: var(--blog-accent-soft);
+}
+
+/* Sidebar stacks multiple side-cards. */
+.blog-sidebar { display: grid; gap: 16px; }
+@media (min-width: 960px) {
+  .blog-sidebar { position: sticky; top: calc(var(--nav-h) + 16px); }
+}
 
 .article-view { min-width: 0; }
 
@@ -340,7 +365,7 @@
 @media (max-width: 959px) {
   .blog-page .page-hero { padding-top: 34px; }
   .blog-layout { gap: 24px; }
-  .side-card { position: static; }
+  .blog-sidebar { position: static; }
   .back-btn { margin-top: 8px; }
   .reading-article { padding-bottom: 48px; }
   .markdown-body h2 { margin-top: 2.1em; }
@@ -374,8 +399,34 @@
 }
 .post-series-nav .tag { font-size: 12px; }
 
-/* ---- Sidebar banner carousel ---- */
+/* ---- Banner carousel ---- */
+/* Sidebar variant (legacy). */
 .banner-carousel { margin-bottom: 16px; }
+.banner-carousel--sidebar .banner-carousel__slide img {
+  display: block;
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+}
+
+/* Full-width 横幅 variant above the post list. */
+.blog-banner-strip { margin-bottom: 28px; }
+.banner-carousel--wide .banner-carousel__slide {
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  transition: border-color .2s var(--ease);
+}
+.banner-carousel--wide .banner-carousel__slide:hover {
+  border-color: var(--blog-accent-border);
+}
+.banner-carousel--wide .banner-carousel__slide img {
+  display: block;
+  width: 100%;
+  height: clamp(180px, 28vw, 360px);
+  object-fit: cover;
+}
+
 .banner-carousel__slide {
   display: block;
   border-radius: var(--radius);
