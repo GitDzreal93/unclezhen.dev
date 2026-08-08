@@ -72,6 +72,8 @@ export async function savePost(fd: FormData) {
   const body = str(fd.get("body")); // Markdown
   const sort = int(fd.get("sort"));
   if (!id || !title || !date) throw new Error("id、标题、日期必填");
+  if (id === "series")
+    throw new Error("文章 id 不能为 “series”（保留给合集路由 /blog/series）");
   await query(
     `INSERT INTO posts (id,title,date,tags,excerpt,body,sort) VALUES ($1,$2,$3,$4,$5,$6,$7)
      ON CONFLICT (id) DO UPDATE SET title=EXCLUDED.title,date=EXCLUDED.date,tags=EXCLUDED.tags,excerpt=EXCLUDED.excerpt,body=EXCLUDED.body,sort=EXCLUDED.sort`,
@@ -277,4 +279,94 @@ export async function setNavItemVisibility(fd: FormData) {
   revalidatePath("/projects");
   revalidatePath("/shop");
   revalidatePath("/admin/nav");
+}
+
+// ---- Series (blog post collections) ----
+
+export async function saveSeries(fd: FormData) {
+  await assertAdmin();
+  const id = str(fd.get("id"));
+  const title = str(fd.get("title"));
+  const description = str(fd.get("description"));
+  const sort = int(fd.get("sort"));
+  const showNumber = str(fd.get("showNumber")) === "true";
+  if (!id || !title) throw new Error("id、标题必填");
+  await query(
+    `INSERT INTO series (id,title,description,show_number,sort)
+       VALUES ($1,$2,$3,$4,$5)
+     ON CONFLICT (id) DO UPDATE SET
+       title=EXCLUDED.title, description=EXCLUDED.description,
+       show_number=EXCLUDED.show_number, sort=EXCLUDED.sort`,
+    [id, title, description, showNumber, sort]
+  );
+  revalidatePath("/blog");
+  revalidatePath("/admin/series");
+}
+
+export async function deleteSeries(id: string) {
+  await assertAdmin();
+  // series_posts ON DELETE CASCADE clears memberships automatically.
+  await query("DELETE FROM series WHERE id=$1", [id]);
+  revalidatePath("/blog");
+  revalidatePath("/admin/series");
+}
+
+export async function setSeriesShowNumber(fd: FormData) {
+  await assertAdmin();
+  const id = str(fd.get("id"));
+  if (!id) throw new Error("缺少 id");
+  const showNumber = str(fd.get("showNumber")) === "true";
+  await query("UPDATE series SET show_number=$2 WHERE id=$1", [id, showNumber]);
+  revalidatePath("/blog");
+  revalidatePath("/admin/series");
+}
+
+// Append a post to a series at the end (max position + 1). ON CONFLICT DO
+// NOTHING makes re-adding an already-member a safe no-op.
+export async function addPostToSeries(fd: FormData) {
+  await assertAdmin();
+  const seriesId = str(fd.get("seriesId"));
+  const postId = str(fd.get("postId"));
+  if (!seriesId || !postId) throw new Error("缺少 seriesId/postId");
+  await query(
+    `INSERT INTO series_posts (series_id, post_id, position)
+       VALUES ($1, $2,
+         COALESCE((SELECT MAX(position) FROM series_posts WHERE series_id=$1), -1) + 1)
+     ON CONFLICT (series_id, post_id) DO NOTHING`,
+    [seriesId, postId]
+  );
+  revalidatePath("/blog");
+  revalidatePath("/admin/series");
+}
+
+export async function removePostFromSeries(fd: FormData) {
+  await assertAdmin();
+  const seriesId = str(fd.get("seriesId"));
+  const postId = str(fd.get("postId"));
+  if (!seriesId || !postId) throw new Error("缺少 seriesId/postId");
+  await query(
+    "DELETE FROM series_posts WHERE series_id=$1 AND post_id=$2",
+    [seriesId, postId]
+  );
+  revalidatePath("/blog");
+  revalidatePath("/admin/series");
+}
+
+// Reorder posts within a series to match the given id sequence. Positions are
+// rewritten 0..n-1 from the array order, in a single UPDATE via
+// unnest + WITH ORDINALITY.
+export async function reorderSeriesPosts(seriesId: string, orderedIds: string[]) {
+  await assertAdmin();
+  if (!seriesId || !Array.isArray(orderedIds) || orderedIds.length === 0) return;
+  await query(
+    `UPDATE series_posts sp SET position = sub.new_pos - 1
+       FROM (
+         SELECT post_id, new_pos
+           FROM unnest($2::text[]) WITH ORDINALITY AS t(post_id, new_pos)
+       ) sub
+      WHERE sp.series_id = $1 AND sp.post_id = sub.post_id`,
+    [seriesId, orderedIds]
+  );
+  revalidatePath("/blog");
+  revalidatePath("/admin/series");
 }

@@ -155,6 +155,10 @@ const DICT: Record<Locale, Record<string, string>> = {
     "blog.empty": "没有匹配的文章，试试其他关键词。",
     "blog.hotTags": "热门标签",
     "blog.footerNote": "内容存于 PostgreSQL，后台以 Markdown 撰写、支持富文本粘贴导入。",
+    "blog.seriesTitle": "合集",
+    "blog.seriesEyebrow": "合集",
+    "blog.seriesEmpty": "这个合集还没有文章。",
+    "blog.partOfSeries": "所属合集",
 
     // projects
     "projects.meta.title": "项目展示 · 臻叔",
@@ -259,6 +263,7 @@ const DICT: Record<Locale, Record<string, string>> = {
     "admin.cards": "卡密池",
     "admin.orders": "订单",
     "admin.posts": "博客",
+    "admin.series": "合集",
     "admin.media": "媒体",
     "admin.projects": "项目",
     "admin.nav": "导航菜单",
@@ -420,6 +425,10 @@ const DICT: Record<Locale, Record<string, string>> = {
     "blog.empty": "No matching posts. Try another keyword.",
     "blog.hotTags": "Hot tags",
     "blog.footerNote": "Stored in PostgreSQL, written as Markdown in the admin, supports rich-text paste import.",
+    "blog.seriesTitle": "Series",
+    "blog.seriesEyebrow": "Series",
+    "blog.seriesEmpty": "This series has no posts yet.",
+    "blog.partOfSeries": "Part of",
 
     "projects.meta.title": "Projects · Zhen",
     "projects.meta.desc": "Delivery cases and experiments.",
@@ -518,6 +527,7 @@ const DICT: Record<Locale, Record<string, string>> = {
     "admin.cards": "Card pool",
     "admin.orders": "Orders",
     "admin.posts": "Blog",
+    "admin.series": "Series",
     "admin.media": "Media",
     "admin.projects": "Projects",
     "admin.nav": "Navigation",

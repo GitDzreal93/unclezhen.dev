@@ -52,6 +52,28 @@ export type NavItem = {
   visible: boolean;
 };
 
+export type Series = {
+  id: string;
+  title: string;
+  description: string;
+  showNumber: boolean;
+  sort: number;
+};
+
+// A post as it appears inside a series listing (no body — the series page is
+// an index, not a reader).
+export type SeriesPost = {
+  postId: string;
+  position: number;
+  title: string;
+  date: string;
+  tags: string[];
+  excerpt: string;
+};
+
+export type SeriesWithPosts = Series & { posts: SeriesPost[] };
+export type SeriesWithCount = Series & { postCount: number };
+
 export type OrderStatus = "pending" | "paid";
 
 export type Order = {
@@ -300,4 +322,83 @@ export async function getImages(): Promise<Image[]> {
     alt: r.alt,
     createdAt: String(r.created_at ?? ""),
   }));
+}
+
+// ---- Series ----
+
+function mapSeries(r: any): Series {
+  return {
+    id: r.id,
+    title: r.title,
+    description: r.description ?? "",
+    showNumber: Boolean(r.show_number),
+    sort: r.sort,
+  };
+}
+
+// All series with their post counts — for the admin table and the blog sidebar.
+export async function getSeriesWithCounts(): Promise<SeriesWithCount[]> {
+  const rows = await query<any>(
+    `SELECT s.id,s.title,s.description,s.show_number,s.sort,
+            COUNT(sp.post_id)::int AS post_count
+       FROM series s
+       LEFT JOIN series_posts sp ON sp.series_id = s.id
+      GROUP BY s.id
+      ORDER BY s.sort ASC, s.created_at ASC`
+  );
+  return rows.map((r) => ({ ...mapSeries(r), postCount: r.post_count }));
+}
+
+// Single series metadata — for the admin edit page.
+export async function getSeries(id: string): Promise<Series | null> {
+  const rows = await query<any>(
+    "SELECT id,title,description,show_number,sort FROM series WHERE id=$1",
+    [id]
+  );
+  return rows.length ? mapSeries(rows[0]) : null;
+}
+
+// A series with its posts ordered by position — for the public series page.
+// Returns null for a nonexistent series so the page can 404.
+export async function getSeriesWithPosts(id: string): Promise<SeriesWithPosts | null> {
+  const srows = await query<any>(
+    "SELECT id,title,description,show_number,sort FROM series WHERE id=$1",
+    [id]
+  );
+  if (srows.length === 0) return null;
+  const prows = await query<any>(
+    `SELECT sp.post_id,sp.position,p.title,p.date,p.tags,p.excerpt
+       FROM series_posts sp
+       JOIN posts p ON p.id = sp.post_id
+      WHERE sp.series_id = $1
+      ORDER BY sp.position ASC`,
+    [id]
+  );
+  return {
+    ...mapSeries(srows[0]),
+    posts: prows.map((r) => ({
+      postId: r.post_id,
+      position: r.position,
+      title: r.title,
+      date: fmtDate(r.date),
+      tags: r.tags,
+      excerpt: r.excerpt,
+    })),
+  };
+}
+
+// Which series a post belongs to (with each series' total post count) — for
+// the "part of series" nav on a post page.
+export async function getSeriesForPost(postId: string): Promise<SeriesWithCount[]> {
+  const rows = await query<any>(
+    `SELECT s.id,s.title,s.description,s.show_number,s.sort,
+            COUNT(sp2.post_id)::int AS post_count
+       FROM series s
+       JOIN series_posts sp ON sp.series_id = s.id AND sp.post_id = $1
+       LEFT JOIN series_posts sp2 ON sp2.series_id = s.id
+      GROUP BY s.id
+      ORDER BY s.sort ASC`,
+    [postId]
+  );
+  return rows.map((r) => ({ ...mapSeries(r), postCount: r.post_count }));
 }

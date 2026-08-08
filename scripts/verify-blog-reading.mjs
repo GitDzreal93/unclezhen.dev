@@ -16,12 +16,15 @@ try {
   await page.setViewport({ width: 2048, height: 1000, deviceScaleFactor: 1 });
   await page.goto(`${baseUrl}/blog`, { waitUntil: "networkidle0" });
 
-  await page.evaluate((title) => {
+  // Posts now live at their own URL (/blog/[id]) instead of expanding inline,
+  // so read the target card's href and navigate to it directly.
+  const postHref = await page.evaluate((title) => {
     const post = [...document.querySelectorAll(".post")]
       .find((element) => element.textContent?.includes(title));
     if (!post) throw new Error("目标文章未出现在列表中");
-    post.click();
+    return post.getAttribute("href");
   }, articleTitle);
+  await page.goto(`${baseUrl}${postHref}`, { waitUntil: "networkidle0" });
 
   await page.waitForFunction(() => Boolean(
     document.querySelector(".article-view article")

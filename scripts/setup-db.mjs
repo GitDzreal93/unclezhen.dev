@@ -155,6 +155,28 @@ CREATE TABLE IF NOT EXISTS api_token_audit_logs (
 );
 CREATE INDEX IF NOT EXISTS api_token_audit_token_time_idx
   ON api_token_audit_logs (token_id, created_at DESC);
+
+-- Blog series (collections). A series groups multiple posts with a manual
+-- order; show_number controls whether the public series page renders a
+-- "1. 2. 3." prefix on each post. Many-to-many via series_posts (a post may
+-- belong to several series). Intentionally NO seed loop here — admin-created
+-- series must survive `npm run db:setup` re-runs, and the seed loops below
+-- use ON CONFLICT DO UPDATE which would clobber admin edits.
+CREATE TABLE IF NOT EXISTS series (
+  id          text PRIMARY KEY,
+  title       text NOT NULL,
+  description text NOT NULL DEFAULT '',
+  show_number boolean NOT NULL DEFAULT false,
+  sort        int  NOT NULL DEFAULT 0,
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS series_posts (
+  series_id text NOT NULL REFERENCES series(id) ON DELETE CASCADE,
+  post_id   text NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+  position  int  NOT NULL DEFAULT 0,
+  PRIMARY KEY (series_id, post_id)
+);
+CREATE INDEX IF NOT EXISTS series_posts_series_idx ON series_posts (series_id, position);
 `;
 
 

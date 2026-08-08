@@ -354,3 +354,22 @@
   .markdown-body pre { margin-inline: -2px; padding: 48px 16px 16px; }
   .markdown-body :is(th, td) { padding: .62em .7em; }
 }
+
+/* ---- Series ---- */
+.series-number {
+  font-weight: 600;
+  color: var(--blog-accent);
+}
+.series-cloud { margin-bottom: 16px; }
+.post-series-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  max-width: 880px;
+  margin-top: 2.5em;
+  padding-top: 1.5em;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+}
+.post-series-nav .tag { font-size: 12px; }
