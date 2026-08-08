@@ -155,7 +155,6 @@
 }
 
 .markdown-body > * + * { margin-top: 1.35em; }
-.markdown-body p { max-width: 48em; }
 
 .markdown-body :is(h1, h2, h3, h4) {
   color: var(--fg);
@@ -187,7 +186,6 @@
 }
 
 .markdown-body :is(ul, ol) {
-  max-width: 46em;
   padding-left: 1.5em;
 }
 
@@ -205,7 +203,6 @@
 .markdown-body a:hover { text-decoration-color: currentColor; }
 
 .markdown-body blockquote {
-  max-width: 47em;
   margin-inline: 0;
   padding: 1em 1.2em;
   color: color-mix(in oklch, var(--fg) 88%, var(--muted));
