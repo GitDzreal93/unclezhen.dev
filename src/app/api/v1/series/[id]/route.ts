@@ -5,7 +5,7 @@ import {
 } from "@/lib/series-api";
 import { getSeriesWithPosts } from "@/lib/data";
 
-export const dynamic = DYNAMIC;
+export const dynamic = "force-dynamic";
 type Context = { params: Promise<{ id: string }> };
 
 export async function GET(req: Request, { params }: Context) {

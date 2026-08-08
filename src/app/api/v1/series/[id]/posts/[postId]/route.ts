@@ -3,7 +3,7 @@ import {
   apiNoContent, newRequestId, query, ContentApiError, writeApiAuditLog,
 } from "@/lib/series-api";
 
-export const dynamic = DYNAMIC;
+export const dynamic = "force-dynamic";
 type Context = { params: Promise<{ id: string; postId: string }> };
 
 // Remove a single post from a series (the post itself is not deleted).

@@ -4,7 +4,7 @@ import {
   apiJson, newRequestId, query, ContentApiError, writeApiAuditLog,
 } from "@/lib/series-api";
 
-export const dynamic = DYNAMIC;
+export const dynamic = "force-dynamic";
 type Context = { params: Promise<{ id: string }> };
 
 // Add post(s) to a series. Body: { postId: "x" } or { postIds: ["x","y"] }.

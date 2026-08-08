@@ -5,7 +5,7 @@ import {
 } from "@/lib/series-api";
 import { getSeriesWithCounts } from "@/lib/data";
 
-export const dynamic = DYNAMIC;
+export const dynamic = "force-dynamic";
 const ROUTE = "/api/v1/series";
 
 export async function GET(req: Request) {

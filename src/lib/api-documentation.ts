@@ -84,15 +84,15 @@ POST /api/v1/images 以 multipart/form-data 上传一张图片到图床（GitHub
 
 ## 合集与 Banner
 
-**合集（series）** 把多篇博客文章归入有序集合。创建合集 `POST /api/v1/series`；`GET /api/v1/series/:id` 返回合集元信息 + 文章列表（按合集内顺序）。管理合集内文章：
+**合集（series）** 把多篇博客文章归入有序集合。创建合集 \`POST /api/v1/series\`；\`GET /api/v1/series/:id\` 返回合集元信息 + 文章列表（按合集内顺序）。管理合集内文章：
 
-- `POST /api/v1/series/:id/posts`，body `{ "postId": "x" }` 或 `{ "postIds": ["a","b"] }`，新成员追加到末尾。
-- `PATCH /api/v1/series/:id/posts`，body `{ "postIds": ["a","b","c"] }`，按数组顺序重排（位置 0..n-1）。
-- `DELETE /api/v1/series/:id/posts/:postId`，把文章移出合集（文章本身不删）。
+- \`POST /api/v1/series/:id/posts\`，body \`{ "postId": "x" }\` 或 \`{ "postIds": ["a","b"] }\`，新成员追加到末尾。
+- \`PATCH /api/v1/series/:id/posts\`，body \`{ "postIds": ["a","b","c"] }\`，按数组顺序重排（位置 0..n-1）。
+- \`DELETE /api/v1/series/:id/posts/:postId\`，把文章移出合集（文章本身不删）。
 
-合集的 `showNumber` 控制前台合集页是否显示文章序号（1. 2. 3.）。
+合集的 \`showNumber\` 控制前台合集页是否显示文章序号（1. 2. 3.）。
 
-**Banner** 是博客侧栏轮播的推广位。`POST /api/v1/banners` 创建（image_url 必填，link_url 可选，跳合集 /blog/series/... 或任意 URL）。字段为下划线命名（image_url / link_url / visible）。
+**Banner** 是博客侧栏轮播的推广位。\`POST /api/v1/banners\` 创建（image_url 必填，link_url 可选，跳合集 /blog/series/... 或任意 URL）。字段为下划线命名（image_url / link_url / visible）。
 
 ## 示例
 
