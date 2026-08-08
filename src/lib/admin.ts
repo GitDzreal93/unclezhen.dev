@@ -60,6 +60,21 @@ export async function deleteApiToken(id: string) {
   revalidatePath("/admin/api-tokens");
 }
 
+// Edit an existing token's scopes (e.g. grant more permissions later). The
+// token itself (hash) is unchanged; only the scope list is replaced.
+export async function updateApiTokenScopes(fd: FormData) {
+  await assertAdmin();
+  const id = str(fd.get("id"));
+  if (!id) throw new Error("缺少 id");
+  const scopes = normalizeScopes(fd.getAll("scopes"));
+  const result = await query<any>(
+    "UPDATE api_tokens SET scopes=$2, updated_at=now() WHERE id=$1 RETURNING id",
+    [id, scopes],
+  );
+  if (!result[0]) throw new Error("Token 不存在");
+  revalidatePath("/admin/api-tokens");
+}
+
 // ---- Posts ----
 
 export async function savePost(fd: FormData) {

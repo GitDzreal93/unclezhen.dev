@@ -1,7 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { pool, query } from "./db";
 
-export type ContentResource = "products" | "posts" | "projects";
+export type ContentResource = "products" | "posts" | "projects" | "banners";
 export class ContentApiError extends Error {
   constructor(
     readonly code: "validation_error" | "not_found" | "conflict",
@@ -15,6 +15,7 @@ const fields: Record<ContentResource, readonly string[]> = {
   posts: ["id", "title", "date", "tags", "excerpt", "body", "sort"],
   projects: ["id", "name", "type", "year", "blurb", "problem", "solution", "result", "stack", "role", "sort"],
   products: ["id", "name", "cat", "price", "descr", "stock", "sort"],
+  banners: ["id", "title", "image_url", "link_url", "sort", "visible"],
 };
 
 function object(value: unknown): Json {
@@ -31,6 +32,11 @@ function integer(value: unknown, field: string, min?: number) {
   if (typeof value !== "number" || !Number.isInteger(value) || (min !== undefined && value < min)) {
     throw new ContentApiError("validation_error", "请求字段无效", { [field]: `必须是${min === undefined ? "整数" : `不小于 ${min} 的整数`}` });
   }
+  return value;
+}
+function boolean(value: unknown, field: string) {
+  if (value === undefined) return undefined;
+  if (typeof value !== "boolean") throw new ContentApiError("validation_error", "请求字段无效", { [field]: "必须是布尔值" });
   return value;
 }
 function strings(value: unknown, field: string) {
@@ -65,6 +71,13 @@ export function validatePayload(resource: ContentResource, value: unknown, isCre
     out.id = string(input.id, "id", isCreate); out.name = string(input.name, "name", isCreate);
     for (const key of ["type", "year", "blurb", "problem", "solution", "result", "role"] as const) out[key] = string(input[key], key, key === "type" || key === "year" ? isCreate : false);
     out.stack = strings(input.stack, "stack"); out.sort = integer(input.sort, "sort");
+  } else if (resource === "banners") {
+    out.id = string(input.id, "id", isCreate);
+    out.title = string(input.title, "title");
+    out.image_url = string(input.image_url, "image_url", isCreate);
+    out.link_url = string(input.link_url, "link_url");
+    out.sort = integer(input.sort, "sort");
+    out.visible = boolean(input.visible, "visible");
   } else {
     out.id = string(input.id, "id", isCreate); out.name = string(input.name, "name", isCreate);
     out.cat = string(input.cat, "cat", isCreate); out.price = integer(input.price, "price", 0);
@@ -76,14 +89,15 @@ export function validatePayload(resource: ContentResource, value: unknown, isCre
 
 function publicProduct(row: any) { return { id: row.id, name: row.name, cat: row.cat, price: row.price, descr: row.descr, stock: row.stock }; }
 function fmtPost(row: any) { return { ...row, date: row.date instanceof Date ? row.date.toISOString().slice(0, 10) : String(row.date) }; }
-function revalidate(resource: ContentResource) { revalidatePath(resource === "posts" ? "/blog" : resource === "projects" ? "/projects" : "/shop"); revalidatePath(`/admin/${resource}`); }
+function revalidate(resource: ContentResource) { revalidatePath(resource === "posts" || resource === "banners" ? "/blog" : resource === "projects" ? "/projects" : "/shop"); revalidatePath(`/admin/${resource}`); }
 
 const selects: Record<ContentResource, string> = {
   posts: "id,title,date,tags,excerpt,body,sort",
   projects: "id,name,type,year,blurb,problem,solution,result,stack,role,sort",
   products: "id,name,cat,price,descr,stock,sort",
+  banners: "id,title,image_url,link_url,sort,visible",
 };
-const order: Record<ContentResource, string> = { posts: "date DESC, sort ASC", projects: "sort ASC", products: "sort ASC" };
+const order: Record<ContentResource, string> = { posts: "date DESC, sort ASC", projects: "sort ASC", products: "sort ASC", banners: "sort ASC, created_at ASC" };
 export async function listContent(resource: ContentResource) {
   const rows = await query<any>(`SELECT ${selects[resource]} FROM ${resource} ORDER BY ${order[resource]}`);
   return rows.map(resource === "products" ? publicProduct : resource === "posts" ? fmtPost : (x) => x);
