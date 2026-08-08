@@ -3,11 +3,12 @@
   --blog-accent-soft: color-mix(in oklch, var(--blog-accent) 10%, transparent);
   --blog-accent-border: color-mix(in oklch, var(--blog-accent) 42%, transparent);
   --blog-paper: color-mix(in oklch, var(--surface) 90%, var(--bg));
-  /* Light theme: soft midnight so the code block doesn't punch a pure-black
-     hole into the white page. Dark theme keeps the deeper terminal black. */
-  --blog-code-bg: oklch(24% 0.025 250);
-  --blog-code-header: oklch(30% 0.025 250);
-  --blog-code-inset: oklch(89% 0.03 245 / 0.08);
+  /* Light theme: warm cream / notebook paper. Dark theme keeps the
+     deeper terminal black. */
+  --blog-code-bg: oklch(94% 0.035 85);
+  --blog-code-header: oklch(89% 0.04 80);
+  --blog-code-fg: oklch(28% 0.04 60);
+  --blog-code-inset: oklch(100% 0 0 / 0.5);
 }
 
 :root[data-theme="dark"] .blog-page {
@@ -15,6 +16,7 @@
   --blog-paper: color-mix(in oklch, var(--surface) 88%, var(--bg));
   --blog-code-bg: oklch(12% 0.018 150);
   --blog-code-header: oklch(16% 0.018 150);
+  --blog-code-fg: oklch(91% 0.025 130);
   --blog-code-inset: oklch(89% 0.03 145 / 0.08);
 }
 
@@ -263,7 +265,7 @@
 .markdown-body pre code {
   display: block;
   padding: 0;
-  color: oklch(91% 0.025 130);
+  color: var(--blog-code-fg);
   background: transparent;
   font-family: var(--font-mono);
   font-size: .8em;
