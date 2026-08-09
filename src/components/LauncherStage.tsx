@@ -57,7 +57,7 @@ export default function LauncherStage({ items, locale, theme }: { items: NavItem
             <span className="brand__mark" aria-hidden="true">&gt;</span>
             <div>
               <strong className="mono" style={{ fontSize: 14, letterSpacing: "0.02em" }}>
-                zhen_shu
+                unclezhen
               </strong>
               <p>hacker / builder · prototype</p>
             </div>

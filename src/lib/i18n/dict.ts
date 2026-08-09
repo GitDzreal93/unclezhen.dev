@@ -39,7 +39,7 @@ export function navLabel(locale: Locale, key: string, fallback: string): string 
 const DICT: Record<Locale, Record<string, string>> = {
   zh: {
     // brand + nav
-    "brand.name": "zhen_shu",
+    "brand.name": "unclezhen",
     "nav.toggle": "打开菜单",
     "nav.theme.toggle": "切换主题",
     "nav.theme.light": "浅色",
@@ -314,7 +314,7 @@ const DICT: Record<Locale, Record<string, string>> = {
   },
 
   en: {
-    "brand.name": "zhen_shu",
+    "brand.name": "unclezhen",
     "nav.toggle": "Toggle menu",
     "nav.theme.toggle": "Toggle theme",
     "nav.theme.light": "Light",

@@ -1,6 +1,6 @@
 "use client";
 
-// Lightweight imperative toast, mirroring the prototype's ZhenShu.toast.
+// Lightweight imperative toast, mirroring the prototype's unclezhen.toast.
 let toastEl: HTMLDivElement | null = null;
 let hideTimer: ReturnType<typeof setTimeout> | null = null;
 

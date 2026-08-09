@@ -22,7 +22,7 @@ export default function SiteFooter({ locale }: { locale: Locale }) {
             <li><Link href="/">/game</Link></li>
           </ul>
         </div>
-        <p className="footer-copy">© zhen_shu · prototype · exit 0</p>
+        <p className="footer-copy">© unclezhen · prototype · exit 0</p>
       </div>
     </footer>
   );
