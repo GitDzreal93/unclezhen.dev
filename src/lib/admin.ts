@@ -425,3 +425,152 @@ export async function setBannerVisibility(fd: FormData) {
   revalidatePath("/blog");
   revalidatePath("/admin/banners");
 }
+
+// ---- Issues / Periodical (赛博周刊) ----
+
+import { defaultSectionBody, SECTION_KIND_LABEL, type SectionKind } from "./issues-types";
+
+// Upsert an issue. id is required (becomes the URL slug). issue_no must be
+// unique. visible=false means "draft"; the public list/detail only reads
+// visible=true rows.
+export async function saveIssue(fd: FormData) {
+  await assertAdmin();
+  const id = str(fd.get("id"));
+  const title = str(fd.get("title"));
+  const issueNo = int(fd.get("issueNo"));
+  const coverImage = str(fd.get("coverImage"));
+  const weather = str(fd.get("weather"));
+  const publishedAt = str(fd.get("publishedAt"));
+  const visible = str(fd.get("visible")) === "true";
+  if (!id || !title) throw new Error("id、标题必填");
+  if (!publishedAt) throw new Error("发布日期必填");
+  await query(
+    `INSERT INTO issues (id, issue_no, title, cover_image, weather, published_at, visible)
+       VALUES ($1,$2,$3,$4,$5,$6,$7)
+     ON CONFLICT (id) DO UPDATE SET
+       issue_no=EXCLUDED.issue_no, title=EXCLUDED.title,
+       cover_image=EXCLUDED.cover_image, weather=EXCLUDED.weather,
+       published_at=EXCLUDED.published_at, visible=EXCLUDED.visible`,
+    [id, issueNo, title, coverImage, weather, publishedAt, visible]
+  );
+  revalidatePath("/weekly");
+  revalidatePath(`/weekly/${id}`);
+  revalidatePath("/admin/issues");
+  revalidatePath(`/admin/issues/${id}`);
+}
+
+export async function deleteIssue(id: string) {
+  await assertAdmin();
+  // issue_sections ON DELETE CASCADE clears the children.
+  await query("DELETE FROM issues WHERE id=$1", [id]);
+  revalidatePath("/weekly");
+  revalidatePath("/admin/issues");
+}
+
+// Create a new section under an issue. id is derived as `${issueId}/${kind}`.
+// The body is initialized to a kind-appropriate empty shape so the form has
+// something to bind to on first render.
+export async function createIssueSection(fd: FormData) {
+  await assertAdmin();
+  const issueId = str(fd.get("issueId"));
+  const kind = str(fd.get("kind")) as SectionKind;
+  const label = str(fd.get("label")) || SECTION_KIND_LABEL[kind]?.zh || kind;
+  if (!issueId || !kind) throw new Error("缺少 issueId/kind");
+  const id = `${issueId}/${kind}`;
+  const body = defaultSectionBody(kind);
+  // position = max + 1 so new sections land at the end.
+  await query(
+    `INSERT INTO issue_sections (id, issue_id, kind, label, position, body)
+       VALUES (
+         $1, $2, $3, $4,
+         COALESCE((SELECT MAX(position) FROM issue_sections WHERE issue_id=$2), -1) + 1,
+         $5::jsonb
+       )
+     ON CONFLICT (id) DO NOTHING`,
+    [id, issueId, kind, label, JSON.stringify(body)]
+  );
+  revalidatePath(`/weekly/${issueId}`);
+  revalidatePath(`/admin/issues/${issueId}`);
+  revalidatePath(`/admin/issues/${issueId}/sections`);
+  return id;
+}
+
+// Update a section's body (and optionally label / visible flag). The kind
+// is immutable after creation (it's the primary UX discriminator).
+export async function saveIssueSection(fd: FormData) {
+  await assertAdmin();
+  const id = str(fd.get("id"));
+  const label = str(fd.get("label"));
+  const bodyJson = str(fd.get("body"));
+  const visible = str(fd.get("visible")) === "true";
+  if (!id) throw new Error("缺少 id");
+  // bodyJson is the full JSON-serialized SectionBody — pass through to jsonb.
+  // If the form posts nothing or invalid JSON, fall back to {} to keep the
+  // column NOT NULL.
+  let bodyObj: unknown = {};
+  try {
+    if (bodyJson) bodyObj = JSON.parse(bodyJson);
+  } catch {
+    throw new Error("body 不是合法 JSON");
+  }
+  // Resolve issueId for revalidation.
+  const rows = await query<any>(
+    "SELECT issue_id FROM issue_sections WHERE id=$1",
+    [id]
+  );
+  const issueId: string | undefined = rows[0]?.issue_id;
+  await query(
+    `UPDATE issue_sections
+        SET body=$2::jsonb, label=COALESCE(NULLIF($3,''), label), visible=$4
+      WHERE id=$1`,
+    [id, JSON.stringify(bodyObj), label, visible]
+  );
+  if (issueId) {
+    revalidatePath(`/weekly/${issueId}`);
+    revalidatePath(`/admin/issues/${issueId}/sections`);
+  }
+}
+
+export async function deleteIssueSection(id: string) {
+  await assertAdmin();
+  const rows = await query<any>(
+    "SELECT issue_id FROM issue_sections WHERE id=$1",
+    [id]
+  );
+  const issueId: string | undefined = rows[0]?.issue_id;
+  await query("DELETE FROM issue_sections WHERE id=$1", [id]);
+  if (issueId) {
+    revalidatePath(`/weekly/${issueId}`);
+    revalidatePath(`/admin/issues/${issueId}/sections`);
+  }
+}
+
+// Reorder sections for an issue. `order` is the desired section-id sequence.
+// Uses a single transaction with an idempotent CTE to avoid partial writes.
+export async function reorderIssueSections(issueId: string, order: string[]) {
+  await assertAdmin();
+  // Validate the IDs belong to this issue (defence in depth).
+  const valid = await query<any>(
+    "SELECT id FROM issue_sections WHERE issue_id=$1",
+    [issueId]
+  );
+  const validSet = new Set<string>(valid.map((r) => r.id));
+  for (const id of order) {
+    if (!validSet.has(id)) throw new Error(`未知板块 id: ${id}`);
+  }
+  // Two-phase: bump everyone to negative positions, then assign final.
+  for (let i = 0; i < order.length; i++) {
+    await query(
+      "UPDATE issue_sections SET position=$3 WHERE id=$1 AND issue_id=$2",
+      [order[i], issueId, -(i + 1)]
+    );
+  }
+  for (let i = 0; i < order.length; i++) {
+    await query(
+      "UPDATE issue_sections SET position=$3 WHERE id=$1 AND issue_id=$2",
+      [order[i], issueId, i]
+    );
+  }
+  revalidatePath(`/weekly/${issueId}`);
+  revalidatePath(`/admin/issues/${issueId}/sections`);
+}

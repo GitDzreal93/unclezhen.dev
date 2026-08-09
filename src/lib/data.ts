@@ -403,6 +403,141 @@ export async function getSeriesForPost(postId: string): Promise<SeriesWithCount[
   return rows.map((r) => ({ ...mapSeries(r), postCount: r.post_count }));
 }
 
+// ---- Issues / Periodical (赛博周刊) ----
+//
+// An Issue is one edition; its IssueSection rows are stored as structured
+// JSONB so each kind (masthead, lead, ads, ...) can have its own shape. The
+// public surface filters by visible=true; the admin surface returns all rows.
+
+import type { SectionKind } from "./issues-types";
+
+export type Issue = {
+  id: string;
+  issueNo: number;
+  title: string;
+  coverImage: string;
+  weather: string;
+  publishedAt: string; // YYYY-MM-DD
+  visible: boolean;
+  createdAt: string;   // ISO timestamp
+};
+
+export type IssueSection = {
+  id: string;
+  issueId: string;
+  kind: SectionKind;
+  label: string;
+  position: number;
+  body: unknown;       // kind-specific JSON — typed by SectionBodyMap
+  visible: boolean;
+};
+
+export type IssueWithSections = Issue & { sections: IssueSection[] };
+
+// Public: only visible issues, latest first. No sections in the list payload —
+// the detail page fetches those.
+export async function getVisibleIssues(): Promise<Issue[]> {
+  const rows = await query<any>(
+    "SELECT id,issue_no,title,cover_image,weather,published_at,visible,created_at \
+     FROM issues WHERE visible = true \
+     ORDER BY issue_no DESC, published_at DESC"
+  );
+  return rows.map(mapIssue);
+}
+
+// Public: one issue + its visible sections, sorted by position. 404 if missing.
+export async function getIssue(id: string): Promise<IssueWithSections | null> {
+  const rows = await query<any>(
+    "SELECT id,issue_no,title,cover_image,weather,published_at,visible,created_at \
+     FROM issues WHERE id=$1 AND visible=true",
+    [id]
+  );
+  if (rows.length === 0) return null;
+  const issue = mapIssue(rows[0]);
+  const sectionRows = await query<any>(
+    "SELECT id,issue_id,kind,label,position,body,visible \
+     FROM issue_sections WHERE issue_id=$1 AND visible=true \
+     ORDER BY position ASC",
+    [id]
+  );
+  return { ...issue, sections: sectionRows.map(mapSection) };
+}
+
+// Admin: all issues (drafts included), latest first.
+export async function getIssuesForAdmin(): Promise<Issue[]> {
+  const rows = await query<any>(
+    "SELECT id,issue_no,title,cover_image,weather,published_at,visible,created_at \
+     FROM issues ORDER BY issue_no DESC, published_at DESC"
+  );
+  return rows.map(mapIssue);
+}
+
+// Admin: one issue (regardless of visibility) + ALL its sections (incl. hidden).
+export async function getIssueForAdmin(id: string): Promise<IssueWithSections | null> {
+  const rows = await query<any>(
+    "SELECT id,issue_no,title,cover_image,weather,published_at,visible,created_at \
+     FROM issues WHERE id=$1",
+    [id]
+  );
+  if (rows.length === 0) return null;
+  const issue = mapIssue(rows[0]);
+  const sectionRows = await query<any>(
+    "SELECT id,issue_id,kind,label,position,body,visible \
+     FROM issue_sections WHERE issue_id=$1 \
+     ORDER BY position ASC",
+    [id]
+  );
+  return { ...issue, sections: sectionRows.map(mapSection) };
+}
+
+// Admin: one section by (issue_id, kind) — used by the section editor.
+export async function getIssueSection(
+  issueId: string,
+  kind: SectionKind
+): Promise<IssueSection | null> {
+  const rows = await query<any>(
+    "SELECT id,issue_id,kind,label,position,body,visible \
+     FROM issue_sections WHERE issue_id=$1 AND kind=$2",
+    [issueId, kind]
+  );
+  if (rows.length === 0) return null;
+  return mapSection(rows[0]);
+}
+
+function mapIssue(r: any): Issue {
+  return {
+    id: r.id,
+    issueNo: r.issue_no,
+    title: r.title,
+    coverImage: r.cover_image ?? "",
+    weather: r.weather ?? "",
+    publishedAt: fmtDate(r.published_at),
+    visible: Boolean(r.visible),
+    createdAt: r.created_at instanceof Date
+      ? r.created_at.toISOString()
+      : String(r.created_at ?? ""),
+  };
+}
+
+function mapSection(r: any): IssueSection {
+  // pg returns jsonb columns already parsed (object/array), but guard against
+  // stringified payloads from older drivers.
+  const body = typeof r.body === "string" ? safeParse(r.body) : r.body;
+  return {
+    id: r.id,
+    issueId: r.issue_id,
+    kind: r.kind as SectionKind,
+    label: r.label,
+    position: r.position,
+    body: body ?? {},
+    visible: Boolean(r.visible),
+  };
+}
+
+function safeParse(s: string): unknown {
+  try { return JSON.parse(s); } catch { return {}; }
+}
+
 // ---- Banners ----
 
 export type Banner = {

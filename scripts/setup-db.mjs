@@ -160,7 +160,7 @@ CREATE INDEX IF NOT EXISTS api_token_audit_token_time_idx
 -- order; show_number controls whether the public series page renders a
 -- "1. 2. 3." prefix on each post. Many-to-many via series_posts (a post may
 -- belong to several series). Intentionally NO seed loop here — admin-created
--- series must survive `npm run db:setup` re-runs, and the seed loops below
+-- series must survive \`npm run db:setup\` re-runs, and the seed loops below
 -- use ON CONFLICT DO UPDATE which would clobber admin edits.
 CREATE TABLE IF NOT EXISTS series (
   id          text PRIMARY KEY,
@@ -190,6 +190,33 @@ CREATE TABLE IF NOT EXISTS banners (
   visible    boolean NOT NULL DEFAULT true,
   created_at timestamptz NOT NULL DEFAULT now()
 );
+
+-- Periodical (赛博周刊). An issue is one edition; its sections are stored as
+-- structured JSONB so kind-specific renderers (masthead, lead, ads, ...) can
+-- pick the shape that fits. visible=false means draft — admin can save without
+-- publishing. No seed loop — admin issues survive db:setup.
+CREATE TABLE IF NOT EXISTS issues (
+  id           text PRIMARY KEY,
+  issue_no     integer NOT NULL UNIQUE,
+  title        text NOT NULL,
+  cover_image  text,
+  weather      text,
+  published_at date NOT NULL,
+  visible      boolean NOT NULL DEFAULT false,
+  created_at   timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS issue_sections (
+  id       text PRIMARY KEY,
+  issue_id text NOT NULL REFERENCES issues(id) ON DELETE CASCADE,
+  kind     text NOT NULL,                  -- masthead|dateline|lead|briefs|wire|ads|trending|supplement|colophon
+  label    text NOT NULL,
+  position integer NOT NULL,
+  body     jsonb NOT NULL DEFAULT '{}'::jsonb,
+  visible  boolean NOT NULL DEFAULT true,
+  UNIQUE (issue_id, kind)
+);
+CREATE INDEX IF NOT EXISTS issue_sections_issue_idx ON issue_sections (issue_id, position);
 `;
 
 

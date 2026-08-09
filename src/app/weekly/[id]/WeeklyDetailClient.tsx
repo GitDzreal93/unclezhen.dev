@@ -1,0 +1,32 @@
+"use client";
+
+import Link from "next/link";
+import Newspaper from "@/components/Newspaper";
+import type { IssueWithSections } from "@/lib/data";
+import { t, type Locale } from "@/lib/i18n/dict";
+
+// Public detail: renders the newspaper layout from the issue's visible
+// sections. v1 supports masthead, lead, colophon; other kinds show as
+// labelled placeholders inside the same wrapper.
+export default function WeeklyDetailClient({
+  issue,
+  locale,
+}: {
+  issue: IssueWithSections;
+  locale: Locale;
+}) {
+  return (
+    <div className="weekly-page">
+      <div className="wrap weekly-back">
+        <Link href="/weekly" className="back-btn btn btn--ghost btn--sm">
+          {t(locale, "weekly.back")}
+        </Link>
+      </div>
+      <div className="weekly-page__paper">
+        <div className="weekly-page__paper-inner">
+          <Newspaper sections={issue.sections} mode="public" />
+        </div>
+      </div>
+    </div>
+  );
+}
