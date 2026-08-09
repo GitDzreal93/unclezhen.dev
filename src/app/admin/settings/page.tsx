@@ -64,7 +64,7 @@ export default async function AdminSettings() {
         <h2>站点</h2>
         <div className="settings-row">
           <span className="k">品牌</span>
-          <span className="v">unclezhen.dev · 臻叔</span>
+          <span className="v">unclezhen.cn · 臻叔</span>
         </div>
         <div className="settings-row">
           <span className="k">SITE_URL</span>

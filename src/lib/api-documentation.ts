@@ -100,35 +100,35 @@ POST /api/v1/images 以 multipart/form-data 上传一张图片到图床（GitHub
 export ZHEN_TOKEN='zhen_replace_with_secret'
 
 curl -H "Authorization: Bearer $ZHEN_TOKEN" \\
-  http://localhost:3003/api/v1/posts
+  https://unclezhen.cn/api/v1/posts
 
 curl -X POST -H "Authorization: Bearer $ZHEN_TOKEN" \\
   -H "Content-Type: application/json" \\
   --data '{"id":"api-example","title":"由 API 创建","date":"2026-08-06","tags":["API"],"excerpt":"自动化内容示例","body":"这篇文章用于验证内容 API。"}' \\
-  http://localhost:3003/api/v1/posts
+  https://unclezhen.cn/api/v1/posts
 
 # 上传图片到图床，返回 CDN 链接与可直接用于正文的 Markdown
 curl -X POST -H "Authorization: Bearer $ZHEN_TOKEN" \\
   -F "file=@/path/to/pic.png" -F "alt=示例图" \\
-  http://localhost:3003/api/v1/images
+  https://unclezhen.cn/api/v1/images
 
 # 创建合集、加入文章并排序
 curl -X POST -H "Authorization: Bearer $ZHEN_TOKEN" -H "Content-Type: application/json" \\
   --data '{"id":"agent-notes","title":"Agent 学习笔记","showNumber":true}' \\
-  http://localhost:3003/api/v1/series
+  https://unclezhen.cn/api/v1/series
 
 curl -X POST -H "Authorization: Bearer $ZHEN_TOKEN" -H "Content-Type: application/json" \\
   --data '{"postIds":["agent-protocols","agent-eval"]}' \\
-  http://localhost:3003/api/v1/series/agent-notes/posts
+  https://unclezhen.cn/api/v1/series/agent-notes/posts
 
 curl -X PATCH -H "Authorization: Bearer $ZHEN_TOKEN" -H "Content-Type: application/json" \\
   --data '{"postIds":["agent-eval","agent-protocols"]}' \\
-  http://localhost:3003/api/v1/series/agent-notes/posts
+  https://unclezhen.cn/api/v1/series/agent-notes/posts
 
 # 创建侧栏 Banner（image_url 来自 /api/v1/images 上传或图床）
 curl -X POST -H "Authorization: Bearer $ZHEN_TOKEN" -H "Content-Type: application/json" \\
   --data '{"id":"agent-promo","title":"Agent 学习笔记","image_url":"https://cdn.jsdelivr.net/gh/.../promo.png","link_url":"/blog/series/agent-notes"}' \\
-  http://localhost:3003/api/v1/banners
+  https://unclezhen.cn/api/v1/banners
 ~~~
 
 ## 错误格式

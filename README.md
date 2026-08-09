@@ -1,4 +1,4 @@
-# unclezhen.dev — 臻叔个人站
+# unclezhen.cn — 臻叔个人站
 
 极客终端工坊风格的个人站，高保真还原自 `docs/screen` 原型稿。技术栈 **Next.js 15 (App Router) + React 19 + PostgreSQL**，首页含 Three.js 滚动驱动 3D IP 舞台。
 
