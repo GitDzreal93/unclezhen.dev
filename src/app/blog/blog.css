@@ -34,10 +34,6 @@
   box-shadow: none;
 }
 
-.blog-page .page-hero h1 {
-  max-width: 12ch;
-}
-
 .blog-page .search:focus-visible {
   border-color: var(--blog-accent-border);
   box-shadow: 0 0 0 3px var(--blog-accent-soft);
