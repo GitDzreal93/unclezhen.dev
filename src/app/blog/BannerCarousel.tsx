@@ -15,12 +15,16 @@ export default function BannerCarousel({
   variant?: "wide" | "sidebar";
 }) {
   const [i, setI] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const goTo = (index: number) => setI((index + banners.length) % banners.length);
+  const previous = () => goTo(i - 1);
+  const next = () => goTo(i + 1);
 
   useEffect(() => {
-    if (banners.length <= 1) return;
-    const t = setInterval(() => setI((p) => (p + 1) % banners.length), 5000);
-    return () => clearInterval(t);
-  }, [banners.length]);
+    if (banners.length <= 1 || isPaused) return;
+    const t = setTimeout(() => setI((p) => (p + 1) % banners.length), 5000);
+    return () => clearTimeout(t);
+  }, [banners.length, i, isPaused]);
 
   if (banners.length === 0) return null;
   const cur = banners[i];
@@ -44,7 +48,7 @@ export default function BannerCarousel({
               type="button"
               aria-label={`第 ${idx + 1} 个 banner`}
               className={`banner-carousel__dot${idx === i ? " is-active" : ""}`}
-              onClick={() => setI(idx)}
+              onClick={() => goTo(idx)}
             />
           ))}
         </div>
