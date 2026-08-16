@@ -403,47 +403,108 @@
 .post-series-nav .tag { font-size: 12px; }
 
 /* ---- Banner carousel ---- */
-/* Sidebar variant (legacy). */
-.banner-carousel { margin-bottom: 16px; }
-.banner-carousel--sidebar .banner-carousel__slide img {
-  display: block;
-  width: 100%;
-  height: 160px;
-  object-fit: cover;
+/* Sidebar variant remains compact; the wide strip retains its responsive height. */
+.banner-carousel {
+  position: relative;
+  margin-bottom: 16px;
 }
 
-/* Full-width 横幅 variant above the post list. */
 .blog-banner-strip { margin-bottom: 28px; }
-.banner-carousel--wide .banner-carousel__slide {
-  border-radius: var(--radius);
+
+.banner-carousel__stage {
+  position: relative;
+  isolation: isolate;
+  height: 160px;
   overflow: hidden;
   border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--blog-paper);
   transition: border-color .2s var(--ease);
 }
-.banner-carousel--wide .banner-carousel__slide:hover {
-  border-color: var(--blog-accent-border);
-}
-.banner-carousel--wide .banner-carousel__slide img {
-  display: block;
-  width: 100%;
+
+.banner-carousel:hover .banner-carousel__stage { border-color: var(--blog-accent-border); }
+
+.banner-carousel--wide .banner-carousel__stage {
   height: clamp(180px, 28vw, 360px);
-  object-fit: cover;
 }
 
 .banner-carousel__slide {
+  position: absolute;
+  inset: 0;
   display: block;
-  border-radius: var(--radius);
   overflow: hidden;
-  border: 1px solid var(--line);
-  transition: border-color .2s var(--ease);
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(1.015);
+  transition: opacity .38s var(--ease), transform .7s var(--ease);
 }
-.banner-carousel__slide:hover { border-color: var(--blog-accent-border); }
+
+.banner-carousel__slide.is-active {
+  z-index: 1;
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1);
+}
+
 .banner-carousel__slide img {
   display: block;
   width: 100%;
-  height: 160px;
+  height: 100%;
   object-fit: cover;
 }
+
+.banner-carousel__arrow {
+  position: absolute;
+  z-index: 2;
+  top: 80px;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  place-items: center;
+  color: var(--fg);
+  border: 1px solid color-mix(in oklch, var(--line) 80%, transparent);
+  border-radius: 50%;
+  background: color-mix(in oklch, var(--bg) 72%, transparent);
+  box-shadow: 0 2px 12px color-mix(in oklch, var(--shadow) 52%, transparent);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%);
+  transition: opacity .2s var(--ease), background .2s var(--ease), border-color .2s var(--ease);
+}
+
+.banner-carousel--wide .banner-carousel__arrow {
+  top: calc(clamp(180px, 28vw, 360px) / 2);
+}
+
+.banner-carousel__arrow::before {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.banner-carousel__arrow--prev { left: 10px; }
+.banner-carousel__arrow--next { right: 10px; }
+.banner-carousel__arrow--prev::before { content: "‹"; }
+.banner-carousel__arrow--next::before { content: "›"; }
+
+.banner-carousel:hover .banner-carousel__arrow,
+.banner-carousel:focus-within .banner-carousel__arrow {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.banner-carousel__arrow:hover {
+  border-color: var(--blog-accent-border);
+  background: color-mix(in oklch, var(--blog-paper) 78%, var(--blog-accent));
+}
+
+.banner-carousel__arrow:focus-visible,
+.banner-carousel__dot:focus-visible {
+  outline: 2px solid var(--blog-accent);
+  outline-offset: 3px;
+}
+
 .banner-carousel__dots {
   display: flex;
   justify-content: center;
@@ -451,6 +512,7 @@
   margin-top: 8px;
 }
 .banner-carousel__dot {
+  position: relative;
   width: 6px;
   height: 6px;
   border: none;
@@ -458,6 +520,55 @@
   border-radius: 50%;
   background: var(--line-strong);
   cursor: pointer;
-  transition: background .2s var(--ease);
+  overflow: hidden;
+  transition: width .2s var(--ease), border-radius .2s var(--ease), background .2s var(--ease);
 }
-.banner-carousel__dot.is-active { background: var(--blog-accent); }
+.banner-carousel__dot.is-active {
+  width: 22px;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--blog-accent) 24%, var(--line-strong));
+}
+
+.banner-carousel__dot.is-active::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--blog-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: banner-carousel-progress 5s linear both;
+}
+
+@keyframes banner-carousel-progress {
+  to { transform: scaleX(1); }
+}
+
+@media (hover: none), (max-width: 640px) {
+  .banner-carousel__arrow {
+    width: 32px;
+    height: 32px;
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .banner-carousel__slide {
+    transform: none;
+    transition: opacity .01ms linear;
+  }
+
+  .banner-carousel__slide.is-active { transform: none; }
+
+  .banner-carousel__dot,
+  .banner-carousel__arrow,
+  .banner-carousel__stage {
+    transition-duration: .01ms;
+  }
+
+  .banner-carousel__dot.is-active::after {
+    transform: scaleX(1);
+    animation: none;
+  }
+}
