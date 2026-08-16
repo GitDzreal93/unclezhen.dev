@@ -16,7 +16,11 @@ export default function BannerCarousel({
 }) {
   const [i, setI] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const goTo = (index: number) => setI((index + banners.length) % banners.length);
+  const [timerReset, setTimerReset] = useState(0);
+  const goTo = (index: number) => {
+    setI((index + banners.length) % banners.length);
+    setTimerReset((reset) => reset + 1);
+  };
   const previous = () => goTo(i - 1);
   const next = () => goTo(i + 1);
 
@@ -24,7 +28,7 @@ export default function BannerCarousel({
     if (banners.length <= 1 || isPaused) return;
     const t = setTimeout(() => setI((p) => (p + 1) % banners.length), 5000);
     return () => clearTimeout(t);
-  }, [banners.length, i, isPaused]);
+  }, [banners.length, i, isPaused, timerReset]);
 
   if (banners.length === 0) return null;
   const cur = banners[i];
