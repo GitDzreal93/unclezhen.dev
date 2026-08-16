@@ -17,6 +17,7 @@ export default function BannerCarousel({
   const [i, setI] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [timerReset, setTimerReset] = useState(0);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const goTo = (index: number) => {
     setI((index + banners.length) % banners.length);
     setTimerReset((reset) => reset + 1);
@@ -25,16 +26,25 @@ export default function BannerCarousel({
   const next = () => goTo(i + 1);
 
   useEffect(() => {
-    if (banners.length <= 1 || isPaused) return;
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const updatePreference = () => setPrefersReducedMotion(mediaQuery.matches);
+
+    updatePreference();
+    mediaQuery.addEventListener("change", updatePreference);
+    return () => mediaQuery.removeEventListener("change", updatePreference);
+  }, []);
+
+  useEffect(() => {
+    if (banners.length <= 1 || isPaused || prefersReducedMotion) return;
     const t = setTimeout(() => setI((p) => (p + 1) % banners.length), 5000);
     return () => clearTimeout(t);
-  }, [banners.length, i, isPaused, timerReset]);
+  }, [banners.length, i, isPaused, prefersReducedMotion, timerReset]);
 
   if (banners.length === 0) return null;
 
   return (
     <div
-      className={`banner-carousel banner-carousel--${variant}`}
+      className={`banner-carousel banner-carousel--${variant}${isPaused ? " is-paused" : ""}`}
       role="region"
       aria-roledescription="carousel"
       aria-label="博客横幅轮播"
@@ -94,16 +104,20 @@ export default function BannerCarousel({
             onClick={next}
           />
           <div className="banner-carousel__dots">
-            {banners.map((b, idx) => (
-              <button
-                key={b.id}
-                type="button"
-                aria-label={`显示第 ${idx + 1} 个横幅`}
-                aria-current={idx === i ? "true" : undefined}
-                className={`banner-carousel__dot${idx === i ? " is-active" : ""}`}
-                onClick={() => goTo(idx)}
-              />
-            ))}
+            {banners.map((b, idx) => {
+              const isActive = idx === i;
+
+              return (
+                <button
+                  key={`${b.id}-${isActive ? timerReset : "inactive"}`}
+                  type="button"
+                  aria-label={`显示第 ${idx + 1} 个横幅`}
+                  aria-current={isActive ? "true" : undefined}
+                  className={`banner-carousel__dot${isActive ? " is-active" : ""}`}
+                  onClick={() => goTo(idx)}
+                />
+              );
+            })}
           </div>
         </>
       )}

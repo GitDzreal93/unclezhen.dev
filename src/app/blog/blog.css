@@ -513,31 +513,46 @@
 }
 .banner-carousel__dot {
   position: relative;
-  width: 6px;
-  height: 6px;
+  display: grid;
+  width: 24px;
+  height: 24px;
   border: none;
   padding: 0;
-  border-radius: 50%;
-  background: var(--line-strong);
+  place-items: center;
+  background: transparent;
   cursor: pointer;
-  overflow: hidden;
-  transition: width .2s var(--ease), border-radius .2s var(--ease), background .2s var(--ease);
 }
-.banner-carousel__dot.is-active {
-  width: 22px;
+
+.banner-carousel__dot::before {
+  content: "";
+  width: 6px;
+  height: 6px;
   border-radius: 999px;
+  background: var(--line-strong);
+  transition: width .2s var(--ease), background .2s var(--ease);
+}
+
+.banner-carousel__dot.is-active::before {
+  width: 22px;
   background: color-mix(in oklch, var(--blog-accent) 24%, var(--line-strong));
 }
 
 .banner-carousel__dot.is-active::after {
   content: "";
   position: absolute;
-  inset: 0;
-  border-radius: inherit;
+  top: 9px;
+  left: 1px;
+  width: 22px;
+  height: 6px;
+  border-radius: 999px;
   background: var(--blog-accent);
   transform: scaleX(0);
   transform-origin: left;
   animation: banner-carousel-progress 5s linear both;
+}
+
+.banner-carousel.is-paused .banner-carousel__dot.is-active::after {
+  animation-play-state: paused;
 }
 
 @keyframes banner-carousel-progress {
@@ -561,7 +576,7 @@
 
   .banner-carousel__slide.is-active { transform: none; }
 
-  .banner-carousel__dot,
+  .banner-carousel__dot::before,
   .banner-carousel__arrow,
   .banner-carousel__stage {
     transition-duration: .01ms;
