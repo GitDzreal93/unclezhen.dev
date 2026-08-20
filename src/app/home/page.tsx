@@ -3,8 +3,10 @@ import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import HomeScene from "@/components/HomeScene";
+import HomeMotion from "@/components/HomeMotion";
+import Reveal from "@/components/Reveal";
 import ContactCta from "@/components/ContactCta";
-import { getVisibleNavItems } from "@/lib/data";
+import { getVisibleNavItems, getPosts, getProducts } from "@/lib/data";
 import { getLocale } from "@/lib/i18n/cookie";
 import { getTheme } from "@/lib/theme/cookie";
 import { navLabel, t, type Locale } from "@/lib/i18n/dict";
@@ -27,12 +29,19 @@ function moduleBlurb(locale: Locale, key: string): string {
 }
 
 export default async function HomePage() {
-  const [items, locale, theme] = await Promise.all([
+  const [items, locale, theme, posts, products] = await Promise.all([
     getVisibleNavItems(),
     getLocale(),
     getTheme(),
+    getPosts(),
+    getProducts(),
   ]);
   const modules = items.filter((i) => i.key !== "home");
+  // Live counts replace the old "—" placeholders in the hero stats.
+  const liveStats = {
+    posts: String(posts.length),
+    shop: String(products.length),
+  };
 
   return (
     <div className="home-page">
@@ -46,6 +55,7 @@ export default async function HomePage() {
 
       <SiteNav items={items} active="home" locale={locale} theme={theme} />
 
+      <HomeMotion>
       <main id="main">
         <div className="scroll-track" id="scroll-track">
           <div className="scroll-sticky">
@@ -69,14 +79,18 @@ export default async function HomePage() {
                         <div className="stat__n">{t(locale, "home.stat.yrs")}</div>
                         <div className="stat__l">{t(locale, "home.stat.yrs.label")}</div>
                       </div>
-                      <div className="stat">
-                        <div className="stat__n">{t(locale, "home.stat.posts")}</div>
+                      <Link className="stat stat--link" href="/blog">
+                        <div className="stat__n" data-count-to={liveStats.posts} data-count-digits={liveStats.posts.length}>
+                          {liveStats.posts}
+                        </div>
                         <div className="stat__l">{t(locale, "home.stat.posts.label")}</div>
-                      </div>
-                      <div className="stat">
-                        <div className="stat__n">{t(locale, "home.stat.shop")}</div>
+                      </Link>
+                      <Link className="stat stat--link" href="/shop">
+                        <div className="stat__n" data-count-to={liveStats.shop} data-count-digits={liveStats.shop.length}>
+                          {liveStats.shop}
+                        </div>
                         <div className="stat__l">{t(locale, "home.stat.shop.label")}</div>
-                      </div>
+                      </Link>
                     </div>
                     <div className="scroll-hint">
                       <span>{t(locale, "home.scroll.hint")}</span>
@@ -126,7 +140,7 @@ export default async function HomePage() {
 
         <div className="rest">
           <section className="section about" id="about">
-            <div className="wrap about__grid">
+            <Reveal as="div" className="wrap about__grid" mode="children" y={20} stagger={0.1}>
               <div>
                 <div className="eyebrow">{t(locale, "home.about.kicker")}</div>
                 <h2>{t(locale, "home.about.heading")}</h2>
@@ -164,7 +178,7 @@ export default async function HomePage() {
                   </li>
                 </ul>
               </div>
-            </div>
+            </Reveal>
           </section>
 
           <section className="section modules" id="modules">
@@ -178,7 +192,14 @@ export default async function HomePage() {
                   {t(locale, "home.modules.count", { n: modules.length })}
                 </p>
               </div>
-              <div className="grid-2" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))" }}>
+              <Reveal
+                as="div"
+                className="grid-2"
+                style={{ gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))" }}
+                mode="children"
+                y={28}
+                stagger={0.07}
+              >
                 {modules.map((m, i) => (
                   <Link key={m.key} className="card" href={m.href}>
                     <div className="module-card">
@@ -189,20 +210,21 @@ export default async function HomePage() {
                     </div>
                   </Link>
                 ))}
-              </div>
+              </Reveal>
             </div>
           </section>
 
-          <div className="cta-band">
+          <Reveal as="div" className="cta-band">
             <div>
               <div className="eyebrow">{t(locale, "home.contact.kicker")}</div>
               <h2>{t(locale, "home.contact.heading")}</h2>
               <p>{t(locale, "home.contact.lead")}</p>
             </div>
             <ContactCta locale={locale} />
-          </div>
+          </Reveal>
         </div>
       </main>
+      </HomeMotion>
 
       <SiteFooter locale={locale} />
     </div>

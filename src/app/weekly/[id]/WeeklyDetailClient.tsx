@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Newspaper from "@/components/Newspaper";
+import Reveal from "@/components/Reveal";
 import type { IssueWithSections } from "@/lib/data";
 import { t, type Locale } from "@/lib/i18n/dict";
 
@@ -23,9 +24,10 @@ export default function WeeklyDetailClient({
         </Link>
       </div>
       <div className="weekly-page__paper">
-        <div className="weekly-page__paper-inner">
+        {/* 报纸"落定"：下落 + 微转正 + 淡入，一次性 */}
+        <Reveal as="div" className="weekly-page__paper-inner" y={36} rotate={-1.5} delay={0.1} start="top 92%" blur>
           <Newspaper sections={issue.sections} mode="public" />
-        </div>
+        </Reveal>
       </div>
     </div>
   );

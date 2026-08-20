@@ -299,8 +299,11 @@ textarea {
   height: 20px;
 }
 
+/* Drawer stays mounted below the 860px breakpoint; GSAP autoAlpha drives
+ * the slide-in. The desktop display:none !important further down wins
+ * regardless of inline visibility/opacity. */
 .nav-drawer {
-  display: none;
+  display: block;
   position: fixed;
   inset: var(--nav-h) 0 0 0;
   z-index: 45;
@@ -308,10 +311,9 @@ textarea {
   backdrop-filter: blur(20px);
   padding: 24px;
   overflow-y: auto;
-}
-
-.nav-drawer.is-open {
-  display: block;
+  visibility: hidden;
+  pointer-events: none;
+  opacity: 0;
 }
 
 .nav-drawer ul {
@@ -786,21 +788,25 @@ h3,
   color: var(--muted);
 }
 
-/* —— Modal —— */
+/* —— Modal ——
+ * Backdrop stays mounted as flex; GSAP autoAlpha (opacity + visibility)
+ * drives the open/close transition. The CSS hidden defaults prevent any
+ * first-paint flash and keep the modal shut when JS/reduced-motion skips
+ * animation.
+ */
 .modal-backdrop {
   position: fixed;
   inset: 0;
   z-index: 80;
   background: var(--backdrop);
   backdrop-filter: blur(6px);
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
-}
-
-.modal-backdrop.is-open {
-  display: flex;
+  visibility: hidden;
+  pointer-events: none;
+  opacity: 0;
 }
 
 .modal {

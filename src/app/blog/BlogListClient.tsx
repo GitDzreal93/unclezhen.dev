@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useDeferredValue, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import type { Post, SeriesWithCount, Banner } from "@/lib/data";
 import { t, type Locale } from "@/lib/i18n/dict";
+import { gsap, useGSAP, EASE } from "@/lib/gsap";
 import BannerCarousel from "./BannerCarousel";
 
 // Blog index: tag filter + search over all posts. Layout:
@@ -24,22 +25,53 @@ export default function BlogListClient({
   const allTag = t(locale, "blog.allTag");
   const [activeTag, setActiveTag] = useState(allTag);
   const [q, setQ] = useState("");
+  const listRef = useRef<HTMLDivElement>(null);
 
+  // Deferred query keeps typing responsive; the tween's short duration +
+  // overwrite:auto smooths the per-keystroke list swaps without stacking.
+  const dq = useDeferredValue(q);
+
+  // Hot tags cap: keep the sidebar tidy — first 50 in insertion order.
   const tags = useMemo(() => {
     const s = new Set<string>();
     posts.forEach((p) => p.tags.forEach((tag) => s.add(tag)));
-    return [allTag, ...Array.from(s)];
+    return [allTag, ...Array.from(s).slice(0, 50)];
   }, [posts, allTag]);
 
   const filtered = useMemo(() => {
     return posts.filter((p) => {
       const tagOk = activeTag === allTag || p.tags.includes(activeTag);
-      const qq = q.trim().toLowerCase();
+      const qq = dq.trim().toLowerCase();
       const text = (p.title + " " + p.excerpt + " " + p.tags.join(" ")).toLowerCase();
       const qOk = !qq || text.includes(qq);
       return tagOk && qOk;
     });
-  }, [posts, activeTag, q, allTag]);
+  }, [posts, activeTag, dq, allTag]);
+
+  useGSAP(
+    () => {
+      const items = listRef.current?.querySelectorAll(".post");
+      if (!items?.length) return;
+      const mm = gsap.matchMedia();
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        gsap.fromTo(
+          items,
+          { autoAlpha: 0, y: 10 },
+          {
+            autoAlpha: 1,
+            y: 0,
+            duration: 0.25,
+            ease: EASE,
+            stagger: 0.03,
+            overwrite: "auto",
+            clearProps: "transform",
+          }
+        );
+      });
+      return () => mm.revert();
+    },
+    { dependencies: [filtered], scope: listRef }
+  );
 
   return (
     <div className="blog-page">
@@ -68,7 +100,7 @@ export default function BlogListClient({
       <div className="wrap blog-layout">
         <div className="blog-layout__primary">
           <div className="list-view">
-            <div className="post-list">
+            <div className="post-list" ref={listRef}>
               {filtered.map((p) => (
                 <Link key={p.id} className="post" href={`/blog/${p.id}`}>
                   <div className="card__meta">

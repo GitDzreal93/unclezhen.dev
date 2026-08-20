@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { NavItem } from "@/lib/data";
 import type { Locale } from "@/lib/i18n/dict";
 import type { Theme } from "@/lib/theme/cookie";
 import { navLabel, t } from "@/lib/i18n/dict";
+import { gsap, useGSAP, EASE, DUR } from "@/lib/gsap";
 import LocaleSwitcher from "@/components/LocaleSwitcher";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 
@@ -23,6 +24,37 @@ export default function SiteNav({
   theme: Theme;
 }) {
   const [open, setOpen] = useState(false);
+  const drawerRef = useRef<HTMLDivElement>(null);
+
+  // Mobile-only slide-in (<860px, matching the CSS breakpoint). On desktop
+  // the drawer is display:none !important, so these tweens never run there.
+  useGSAP(
+    () => {
+      const d = drawerRef.current;
+      if (!d) return;
+      const links = d.querySelectorAll("ul > li");
+      const mm = gsap.matchMedia();
+      mm.add("(max-width: 859px) and (prefers-reduced-motion: no-preference)", () => {
+        if (open) {
+          gsap.fromTo(
+            d,
+            { autoAlpha: 0, y: -12 },
+            { autoAlpha: 1, y: 0, duration: DUR.fast + 0.1, ease: EASE }
+          );
+          gsap.fromTo(
+            links,
+            { autoAlpha: 0, x: -14 },
+            { autoAlpha: 1, x: 0, duration: 0.3, stagger: 0.04, ease: EASE, delay: 0.05 }
+          );
+        } else {
+          gsap.to(d, { autoAlpha: 0, y: -8, duration: DUR.fast, ease: "power2.in" });
+          gsap.set(links, { clearProps: "all" });
+        }
+      });
+      return () => mm.revert();
+    },
+    { dependencies: [open] }
+  );
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -81,7 +113,7 @@ export default function SiteNav({
           </button>
         </div>
       </nav>
-      <div className={`nav-drawer${open ? " is-open" : ""}`}>
+      <div ref={drawerRef} className={`nav-drawer${open ? " is-open" : ""}`}>
         <ul>
           {items.map((item) => (
             <li key={item.key}>

@@ -1,13 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { Project } from "@/lib/data";
 import { t, type Locale } from "@/lib/i18n/dict";
+import { gsap, useGSAP, EASE, DUR } from "@/lib/gsap";
 
 export default function ProjectsClient({ projects, locale }: { projects: Project[]; locale: Locale }) {
   const allFilter = t(locale, "projects.allFilter");
   const [active, setActive] = useState(allFilter);
   const [openId, setOpenId] = useState<string | null>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const detailRef = useRef<HTMLDivElement>(null);
 
   const types = useMemo(() => {
     const s = new Set<string>([allFilter]);
@@ -21,6 +24,51 @@ export default function ProjectsClient({ projects, locale }: { projects: Project
   );
 
   const detail = openId ? projects.find((p) => p.id === openId) : null;
+
+  // Re-stagger the cards whenever the filtered list changes. clearProps hands
+  // transforms back to CSS so hover effects stay clean.
+  useGSAP(
+    () => {
+      const cards = gridRef.current?.querySelectorAll(".proj-card");
+      if (!cards?.length) return;
+      const mm = gsap.matchMedia();
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        gsap.fromTo(
+          cards,
+          { autoAlpha: 0, y: 16, scale: 0.985 },
+          {
+            autoAlpha: 1,
+            y: 0,
+            scale: 1,
+            duration: 0.35,
+            ease: EASE,
+            stagger: 0.04,
+            overwrite: "auto",
+            clearProps: "transform",
+          }
+        );
+      });
+      return () => mm.revert();
+    },
+    { dependencies: [list], scope: gridRef }
+  );
+
+  // Detail panel: entrance only — closing unmounts it outright.
+  useGSAP(
+    () => {
+      if (!detailRef.current) return;
+      const mm = gsap.matchMedia();
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        gsap.fromTo(
+          detailRef.current,
+          { autoAlpha: 0, y: 24 },
+          { autoAlpha: 1, y: 0, duration: DUR.base, ease: EASE, overwrite: "auto" }
+        );
+      });
+      return () => mm.revert();
+    },
+    { dependencies: [openId] }
+  );
 
   return (
     <>
@@ -45,7 +93,7 @@ export default function ProjectsClient({ projects, locale }: { projects: Project
       </header>
 
       <div className="wrap" style={{ paddingBottom: 72 }}>
-        <div className="grid-3">
+        <div className="grid-3" ref={gridRef}>
           {list.map((p) => (
             <article key={p.id} className="card proj-card">
               <div className="thumb" data-label={p.type}>
@@ -78,7 +126,7 @@ export default function ProjectsClient({ projects, locale }: { projects: Project
         </div>
 
         {detail && (
-          <div className="detail-panel is-open" aria-live="polite">
+          <div ref={detailRef} className="detail-panel is-open" aria-live="polite">
             <button
               className="btn btn--ghost btn--sm"
               type="button"
