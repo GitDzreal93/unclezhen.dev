@@ -29,8 +29,11 @@ services:
         condition: service_healthy
     env_file:
       - .env
+    # 80/443 are owned by the host nginx (TLS + Cloudflare for unclezhen.cn
+    # and cyx.unclezhen.cn). The app publishes on nginx's upstream port 8080
+    # — see /etc/nginx/conf.d/unclezhen.cn.conf on the ECS.
     ports:
-      - "80:3000"
+      - "8080:3000"
 
 volumes:
   pgdata:
