@@ -1,23 +1,28 @@
 /* ============================================================
-   赛博日报 v2.0 · 现代科技简报风（docs/技术周刊_new 原型移植）
-   纸 #f5f1e6 / 墨 #1f2328 / 蓝 #1f4d5c / 朱红 #c0392b / 金 #a06a12
-   所有 class 带 dp- 前缀，作用域隔离在 .dp-page 内。
+   赛博日报 v2.0 · 终端风重制
+   版式骨架沿用报纸原型（报头/板块编号/分栏/榜单网格），
+   视觉层全部挂站点 token（--surface/--fg/--accent…），明暗主题自动跟随。
+   dp-* 专属色仅保留信息编码用途：accent=主强调绿，info=链接蓝，
+   warn=观察金，danger=朱红点缀。所有 class 带 dp- 前缀作用域隔离。
    ============================================================ */
 
 .dp-page {
-  --paper: #f5f1e6;
-  --paper-2: #efe8d4;
-  --ink: #1f2328;
-  --ink-soft: #57606a;
-  --ink-ghost: #8b949e;
-  --line: #d6ccb0;
-  --blue: #1f4d5c;
-  --blue-soft: #e3edf0;
-  --red: #c0392b;
-  --red-soft: #f6e3e0;
-  --gold: #a06a12;
-  --gold-soft: #f4ead2;
-  --purple: #7c3aed;
+  /* 主题无关的信息色（跟随 --accent 的明度体系，明暗下都可读） */
+  --dp-info: color-mix(in oklch, var(--accent) 45%, oklch(60% 0.12 240));
+  --dp-warn: color-mix(in oklch, var(--accent) 40%, oklch(70% 0.12 85));
+  --dp-danger: color-mix(in oklch, var(--accent) 35%, oklch(60% 0.16 25));
+  --dp-info-soft: color-mix(in oklch, var(--dp-info) 10%, var(--surface));
+  --dp-warn-soft: color-mix(in oklch, var(--dp-warn) 10%, var(--surface));
+  --dp-danger-soft: color-mix(in oklch, var(--dp-danger) 8%, var(--surface));
+  /* 兼容别名：旧样式里 --blue/--red/--gold 的引用全部映射到信息色 */
+  --blue: var(--dp-info);
+  --blue-soft: var(--dp-info-soft);
+  --red: var(--dp-danger);
+  --red-soft: var(--dp-danger-soft);
+  --gold: var(--dp-warn);
+  --gold-soft: var(--dp-warn-soft);
+  --purple: var(--accent);
+  /* 印章/引文保留衬线——报纸味的两处点睛，其余全部用站字体 */
   --serif: "Songti SC", "STSong", "SimSun", "Noto Serif CJK SC", serif;
 }
 
@@ -25,29 +30,23 @@
   display: flex;
   justify-content: center;
   padding: 26px 14px 60px;
-  background:
-    radial-gradient(circle at 15% 8%, rgba(255, 255, 255, 0.35), transparent 42%),
-    radial-gradient(circle at 85% 95%, rgba(160, 106, 18, 0.1), transparent 45%),
-    #d8d0b8;
 }
 
 .dp-page {
   width: 880px;
   max-width: 100%;
+  /* 网格纸背景：与站点 body::before 同款 grid-overlay，密度更细 */
   background:
-    repeating-linear-gradient(0deg, rgba(120, 90, 40, 0.018) 0 2px, transparent 2px 5px),
-    radial-gradient(circle at 25% 15%, rgba(255, 252, 240, 0.55), transparent 55%),
-    var(--paper);
-  box-shadow: 0 12px 44px rgba(50, 40, 20, 0.3), inset 0 0 90px rgba(150, 120, 60, 0.1);
-  border: 1px solid #c4b794;
+    linear-gradient(var(--grid-overlay) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-overlay) 1px, transparent 1px),
+    var(--surface);
+  background-size: 28px 28px, 28px 28px, auto;
+  box-shadow: 0 0 0 1px var(--line), 0 24px 60px var(--shadow);
+  border-radius: var(--radius);
   padding: 26px 34px 34px;
   position: relative;
-  color: var(--ink);
-}
-
-:root[data-theme="dark"] .dp-page {
-  /* 深色模式下纸面略降亮度，但保持报纸质感（不跟随站点暗色 token） */
-  filter: brightness(0.94);
+  color: var(--fg);
+  font-family: var(--font-body);
 }
 
 /* —— 顶部信息条 —— */
@@ -57,7 +56,7 @@
   align-items: center;
   font-family: var(--font-mono);
   font-size: 11.5px;
-  color: var(--ink-soft);
+  color: var(--muted);
   border-bottom: 1px solid var(--line);
   padding-bottom: 7px;
   margin-bottom: 14px;
@@ -76,7 +75,7 @@
 .dp-mh-side {
   font-size: 12.5px;
   line-height: 1.9;
-  color: var(--ink-soft);
+  color: var(--muted);
 }
 .dp-mh-side--left { text-align: left; }
 .dp-mh-side--right { text-align: right; }
@@ -84,27 +83,29 @@
 .dp-mh-side .dp-big {
   font-family: var(--font-mono);
   font-size: 15px;
-  color: var(--ink);
+  color: var(--fg);
   font-weight: 700;
 }
 .dp-mh-center { text-align: center; }
 .dp-mh-title {
-  font-weight: 900;
-  font-size: 56px;
-  letter-spacing: 0.06em;
-  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 48px;
+  letter-spacing: 0.08em;
+  color: var(--fg);
   line-height: 1;
   display: inline-block;
-  padding: 6px 26px 10px;
-  border-top: 4px solid var(--ink);
-  border-bottom: 1px solid var(--ink);
+  padding: 8px 26px 12px;
+  border-top: 2px solid var(--accent);
+  border-bottom: 1px solid var(--fg);
   margin: 0;
+  text-shadow: 0 0 24px color-mix(in oklch, var(--accent) 30%, transparent);
 }
 .dp-mh-title .dp-dot { color: var(--red); }
 .dp-mh-strap {
   font-family: var(--font-mono);
   font-size: 11.5px;
-  color: var(--ink-ghost);
+  color: color-mix(in oklch, var(--muted) 72%, transparent);
   letter-spacing: 0.42em;
   margin-top: 8px;
 }
@@ -127,7 +128,7 @@
   display: flex;
   align-items: baseline;
   gap: 12px;
-  border-bottom: 2px solid var(--ink);
+  border-bottom: 2px solid var(--fg);
   padding-bottom: 6px;
   margin-bottom: 14px;
 }
@@ -135,8 +136,8 @@
   font-family: var(--font-mono);
   font-weight: 700;
   font-size: 12px;
-  color: #fff;
-  background: var(--blue);
+  color: var(--on-accent);
+  background: var(--accent);
   padding: 2px 7px;
   border-radius: 3px;
   letter-spacing: 0.05em;
@@ -150,12 +151,12 @@
 .dp-sec-tag {
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--ink-ghost);
+  color: color-mix(in oklch, var(--muted) 72%, transparent);
   margin-left: auto;
 }
 .dp-sec-sub {
   font-size: 12.5px;
-  color: var(--ink-soft);
+  color: var(--muted);
   margin: -6px 0 12px;
 }
 
@@ -165,13 +166,13 @@
   width: 100%;
   display: block;
   border: 1px solid var(--line);
-  filter: sepia(0.28) contrast(1.03);
+  filter: contrast(1.03);
 }
 .dp-lead-fig .dp-cap,
 .dp-bio-grid .dp-cap {
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--ink-ghost);
+  color: color-mix(in oklch, var(--muted) 72%, transparent);
   margin: 6px 0 14px;
   text-align: center;
 }
@@ -179,8 +180,9 @@
   display: inline-block;
   font-family: var(--font-mono);
   font-size: 11px;
-  color: #fff;
-  background: var(--red);
+  color: var(--dp-danger);
+  background: var(--dp-danger-soft);
+  border: 1px solid color-mix(in oklch, var(--dp-danger) 40%, transparent);
   padding: 2px 10px;
   border-radius: 3px;
   letter-spacing: 0.14em;
@@ -194,7 +196,7 @@
 }
 .dp-lead-sub {
   font-size: 14px;
-  color: var(--ink-soft);
+  color: var(--muted);
   line-height: 1.6;
   margin: 0 0 10px;
 }
@@ -209,7 +211,7 @@
 .dp-body-text p,
 .dp-oss-text p,
 .dp-know-text p,
-.dp-bio-body p { margin: 0 0 9px; text-indent: 2em; }
+.dp-bio-body p { margin: 0 0 9px; }
 .dp-know-text p:last-child,
 .dp-bio-body p:last-child { margin-bottom: 0; }
 
@@ -245,7 +247,7 @@
 }
 .dp-news-ticker li b {
   font-family: var(--font-mono);
-  color: var(--ink);
+  color: var(--fg);
   background: var(--gold-soft);
   padding: 0 4px;
   border-radius: 2px;
@@ -259,8 +261,8 @@
 }
 .dp-rank-card {
   border: 1px solid var(--line);
-  border-top: 3px solid var(--ink);
-  background: rgba(255, 252, 240, 0.5);
+  border-top: 2px solid var(--accent);
+  background: color-mix(in oklch, var(--surface-2) 60%, transparent);
 }
 .dp-rank-card .dp-rc-head {
   display: flex;
@@ -274,7 +276,7 @@
 .dp-rc-head .dp-rc-src {
   font-family: var(--font-mono);
   font-size: 10.5px;
-  color: var(--ink-ghost);
+  color: color-mix(in oklch, var(--muted) 72%, transparent);
   margin-left: auto;
 }
 .dp-rank-card ol { list-style: none; margin: 0; padding: 8px 12px 10px; }
@@ -291,15 +293,15 @@
 .dp-rank-no {
   font-family: var(--font-mono);
   font-weight: 700;
-  color: var(--ink-ghost);
+  color: color-mix(in oklch, var(--muted) 72%, transparent);
   font-size: 12px;
 }
-.dp-rank-card li b { font-weight: 700; color: var(--ink); }
+.dp-rank-card li b { font-weight: 700; color: var(--fg); }
 .dp-rank-card li a b { text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
 .dp-rank-card li .dp-r-desc {
   grid-column: 2 / 4;
   font-size: 11.5px;
-  color: var(--ink-soft);
+  color: var(--muted);
   margin-top: -2px;
 }
 .dp-rank-card li .dp-r-val {
@@ -314,7 +316,7 @@
   padding: 7px 10px;
   background: var(--gold-soft);
   font-size: 11.5px;
-  color: var(--ink-soft);
+  color: var(--muted);
   border-radius: 3px;
   line-height: 1.6;
 }
@@ -327,14 +329,14 @@
   gap: 18px;
   border: 1px solid var(--line);
   border-left: 5px solid var(--blue);
-  background: rgba(255, 252, 240, 0.6);
+  background: color-mix(in oklch, var(--surface-2) 70%, transparent);
   padding: 16px 18px;
 }
 .dp-oss-rank {
   font-family: var(--font-mono);
   font-weight: 900;
   font-size: 40px;
-  color: var(--blue);
+  color: var(--accent);
   line-height: 1;
   padding-top: 4px;
   letter-spacing: -0.03em;
@@ -350,7 +352,7 @@
 .dp-oss-body .dp-oss-meta {
   font-family: var(--font-mono);
   font-size: 11.5px;
-  color: var(--ink-ghost);
+  color: color-mix(in oklch, var(--muted) 72%, transparent);
   margin-bottom: 8px;
 }
 .dp-oss-body p { font-size: 13.5px; line-height: 1.8; margin: 0 0 8px; text-align: justify; }
@@ -361,10 +363,10 @@
   border: 1px solid var(--line);
   padding: 2px 8px;
   border-radius: 3px;
-  color: var(--ink-soft);
-  background: #fff;
+  color: var(--muted);
+  background: var(--surface-2);
 }
-.dp-oss-stats span b { color: var(--ink); }
+.dp-oss-stats span b { color: var(--fg); }
 
 /* —— 04 副业线报 —— */
 .dp-side-list {
@@ -384,7 +386,7 @@
   font-size: 13px;
   line-height: 1.6;
 }
-.dp-side-item:nth-child(odd) { background: rgba(255, 252, 240, 0.5); }
+.dp-side-item:nth-child(odd) { background: color-mix(in oklch, var(--surface-2) 60%, transparent); }
 .dp-side-item:last-child { border-bottom: none; }
 .dp-side-no {
   font-family: var(--font-mono);
@@ -396,7 +398,7 @@
 .dp-side-item .dp-s-tag {
   font-family: var(--font-mono);
   font-size: 10.5px;
-  color: var(--ink-ghost);
+  color: color-mix(in oklch, var(--muted) 72%, transparent);
   border: 1px solid var(--line);
   border-radius: 3px;
   padding: 1px 6px;
@@ -407,14 +409,14 @@
 .dp-know-card {
   border: 1px solid var(--line);
   border-top: 3px solid var(--gold);
-  background: rgba(255, 252, 240, 0.5);
+  background: color-mix(in oklch, var(--surface-2) 60%, transparent);
   padding: 16px 18px;
 }
 .dp-know-card h3 { font-weight: 900; font-size: 18px; margin: 0 0 4px; }
 .dp-know-card .dp-know-sub {
   font-family: var(--font-mono);
   font-size: 11.5px;
-  color: var(--ink-ghost);
+  color: color-mix(in oklch, var(--muted) 72%, transparent);
   margin-bottom: 10px;
 }
 .dp-know-card p { font-size: 13.5px; line-height: 1.8; margin: 0 0 10px; text-align: justify; }
@@ -422,8 +424,9 @@
   font-family: var(--font-mono);
   font-size: 12px;
   line-height: 1.7;
-  background: #20242c;
-  color: #d8e0ea;
+  background: color-mix(in oklch, var(--bg) 92%, black);
+  color: var(--fg);
+  border: 1px solid var(--line);
   border-radius: 5px;
   padding: 12px 14px;
   overflow-x: auto;
@@ -438,7 +441,7 @@
   width: 100%;
   display: block;
   border: 1px solid var(--line);
-  filter: sepia(0.3) contrast(1.02);
+  filter: contrast(1.02);
 }
 .dp-bio-chap {
   font-family: var(--font-mono);
@@ -451,7 +454,7 @@
 .dp-bio-grid .dp-bio-en {
   font-family: var(--font-mono);
   font-size: 11.5px;
-  color: var(--ink-ghost);
+  color: color-mix(in oklch, var(--muted) 72%, transparent);
   margin-bottom: 10px;
 }
 .dp-bio-body { font-size: 13.5px; line-height: 1.85; text-align: justify; }
@@ -468,7 +471,7 @@
 .dp-signature {
   font-family: var(--font-mono);
   font-size: 12px;
-  color: var(--ink-ghost);
+  color: color-mix(in oklch, var(--muted) 72%, transparent);
   text-align: right;
   margin-top: 8px;
 }
@@ -479,7 +482,7 @@
   margin: 0;
   padding: 0;
   border: 1px solid var(--line);
-  border-top: 3px double var(--ink);
+  border-top: 3px double var(--fg);
 }
 .dp-ad-item {
   display: grid;
@@ -501,23 +504,23 @@
 .dp-ad-type {
   font-family: var(--font-mono);
   font-size: 10.5px;
-  color: #fff;
+  color: var(--on-accent);
   text-align: center;
   padding: 2px 0;
   border-radius: 3px;
   letter-spacing: 0.03em;
   white-space: nowrap;
 }
-.dp-ad-type--agent { background: #c0392b; }
-.dp-ad-type--gh { background: #1f4d5c; }
-.dp-ad-type--post { background: #a06a12; }
-.dp-ad-type--default { background: #8b949e; }
+.dp-ad-type--agent { background: var(--dp-danger-soft); color: var(--dp-danger); border: 1px solid color-mix(in oklch, var(--dp-danger) 40%, transparent); }
+.dp-ad-type--gh { background: var(--dp-info-soft); color: var(--dp-info); border: 1px solid color-mix(in oklch, var(--dp-info) 40%, transparent); }
+.dp-ad-type--post { background: var(--dp-warn-soft); color: var(--dp-warn); border: 1px solid color-mix(in oklch, var(--dp-warn) 40%, transparent); }
+.dp-ad-type--default { background: var(--surface-2); color: var(--muted); border: 1px solid var(--line-strong); }
 .dp-ad-main .dp-ad-title { font-weight: 700; }
-.dp-ad-main .dp-ad-desc { color: var(--ink-soft); font-size: 12px; }
+.dp-ad-main .dp-ad-desc { color: var(--muted); font-size: 12px; }
 .dp-ad-contact {
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--ink-ghost);
+  color: color-mix(in oklch, var(--muted) 72%, transparent);
 }
 
 /* —— 页脚 —— */
@@ -528,7 +531,7 @@
   text-align: center;
   font-family: var(--font-mono);
   font-size: 11.5px;
-  color: var(--ink-ghost);
+  color: color-mix(in oklch, var(--muted) 72%, transparent);
   line-height: 2;
 }
 .dp-colophon .dp-seal { font-size: 13px; }
