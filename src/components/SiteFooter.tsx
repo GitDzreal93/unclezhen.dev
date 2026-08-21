@@ -17,12 +17,22 @@ export default function SiteFooter({ locale }: { locale: Locale }) {
           </div>
           <ul className="footer-links">
             <li><Link href="/blog">/blog</Link></li>
+            <li><Link href="/daily">/daily</Link></li>
             <li><Link href="/projects">/projects</Link></li>
             <li><Link href="/shop">/shop</Link></li>
             <li><Link href="/">/game</Link></li>
           </ul>
         </div>
         <p className="footer-copy">© unclezhen · prototype · exit 0</p>
+        <p className="footer-icp">
+          <a
+            href="https://beian.miit.gov.cn/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            粤ICP备2026117320号
+          </a>
+        </p>
       </div>
     </footer>
   );

@@ -47,6 +47,7 @@ const DICT: Record<Locale, Record<string, string>> = {
     "nav.locale.toggle": "切换语言",
     "nav.home": "首页",
     "nav.blog": "博客",
+    "nav.daily": "期刊",
     "nav.projects": "项目",
     "nav.shop": "商店",
     "nav.about": "关于",
@@ -138,6 +139,7 @@ const DICT: Record<Locale, Record<string, string>> = {
 
     // module blurb
     "module.blog": "工程实践、动效拆解、架构笔记。可检索、可按标签过滤。",
+    "module.daily": "赛博日报：AI 主编、臻叔把关的每日技术情报。七板块，一眼读完。",
     "module.projects": "真实交付与实验场。问题 · 方案 · 技术栈 · 结果。",
     "module.shop": "工具、模板与源码包。购物车与演示结算已接好。",
     "module.about": "关于臻叔 / 本站设计思路与设计 token。",
@@ -345,6 +347,7 @@ const DICT: Record<Locale, Record<string, string>> = {
     "nav.locale.toggle": "Toggle language",
     "nav.home": "Home",
     "nav.blog": "Blog",
+    "nav.daily": "Daily",
     "nav.projects": "Projects",
     "nav.shop": "Shop",
     "nav.about": "About",
@@ -433,6 +436,7 @@ const DICT: Record<Locale, Record<string, string>> = {
     "home.footer.tagline": "hacker / builder · blog · projects · shop · game",
 
     "module.blog": "Engineering practice, motion breakdowns, architecture notes. Searchable, tag-filterable.",
+    "module.daily": "Cyber Daily: AI-edited tech intelligence, human-checked. Seven sections, one glance.",
     "module.projects": "Real delivery and experiments. Problem · solution · stack · result.",
     "module.shop": "Tools, templates, and source packs. Cart and demo checkout wired in.",
     "module.about": "About Zhen / design rationale + design tokens.",

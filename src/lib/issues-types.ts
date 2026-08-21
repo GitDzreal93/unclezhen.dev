@@ -11,7 +11,15 @@ export type SectionKind =
   | "ads"
   | "trending"
   | "supplement"
-  | "colophon";
+  | "colophon"
+  // 赛博日报 v2.0 (docs/技术周刊_new) — modern daily briefing sections
+  | "daily_news"
+  | "daily_ranks"
+  | "daily_oss"
+  | "daily_side"
+  | "daily_know"
+  | "daily_bio"
+  | "daily_ads";
 
 export const SECTION_KINDS: SectionKind[] = [
   "masthead",
@@ -23,6 +31,24 @@ export const SECTION_KINDS: SectionKind[] = [
   "trending",
   "supplement",
   "colophon",
+  "daily_news",
+  "daily_ranks",
+  "daily_oss",
+  "daily_side",
+  "daily_know",
+  "daily_bio",
+  "daily_ads",
+];
+
+// v2.0 daily sections in render order (01–07 of the prototype).
+export const DAILY_KINDS: SectionKind[] = [
+  "daily_news",
+  "daily_ranks",
+  "daily_oss",
+  "daily_side",
+  "daily_know",
+  "daily_bio",
+  "daily_ads",
 ];
 
 // ---- masthead ----
@@ -132,6 +158,73 @@ export type ColophonBody = {
   footer: string;
 };
 
+// ---- 赛博日报 v2.0 sections ----
+
+// 01 头版要闻
+export type DailyNewsBody = {
+  image: string;
+  imageCaption: string;
+  kicker: string;
+  title: string;
+  subtitle: string;
+  paragraphs: string[];
+  wire: { tag: string; text: string }[];
+};
+
+// 02 今日四榜 — boards render in a 2×2 grid
+export type DailyRanksBody = {
+  intro: string;
+  boards: {
+    name: string;
+    color: string; // css color for the board dot
+    source: string;
+    items: { name: string; value: string; desc: string; url: string }[];
+    note: string;
+  }[];
+};
+
+// 03 今日开源项目
+export type DailyOssBody = {
+  rank: string;
+  tagline: string;
+  title: string;
+  meta: string;
+  paragraphs: string[];
+  stats: { label: string; value: string }[];
+};
+
+// 04 副业线报
+export type DailySideBody = {
+  intro: string;
+  items: { title: string; desc: string; tag: string }[];
+};
+
+// 05 软件常识
+export type DailyKnowBody = {
+  title: string;
+  subtitle: string;
+  paragraphs: string[];
+  code: string;
+  summary: string;
+};
+
+// 06 IT 人物志
+export type DailyBioBody = {
+  image: string;
+  imageCaption: string;
+  chapter: string;
+  title: string;
+  enMeta: string;
+  paragraphs: string[];
+  quote: string;
+  signature: string;
+};
+
+// 07 广告位 — fewer than 10 items get padded with defaults at render time
+export type DailyAdsBody = {
+  items: { type: "agent" | "gh" | "post" | "default"; title: string; desc: string; contact: string }[];
+};
+
 // ---- kind → body map (used by the form dispatcher and the renderer) ----
 
 export type SectionBodyMap = {
@@ -144,6 +237,13 @@ export type SectionBodyMap = {
   trending: TrendingBody;
   supplement: SupplementBody;
   colophon: ColophonBody;
+  daily_news: DailyNewsBody;
+  daily_ranks: DailyRanksBody;
+  daily_oss: DailyOssBody;
+  daily_side: DailySideBody;
+  daily_know: DailyKnowBody;
+  daily_bio: DailyBioBody;
+  daily_ads: DailyAdsBody;
 };
 
 // Default body for a freshly-created section — kind-appropriate empty shape.
@@ -214,6 +314,55 @@ export function defaultSectionBody(kind: SectionKind): unknown {
         contact: "",
         footer: "赛博晚报社 印行",
       } satisfies ColophonBody;
+    case "daily_news":
+      return {
+        image: "",
+        imageCaption: "",
+        kicker: "头 条",
+        title: "",
+        subtitle: "",
+        paragraphs: [""],
+        wire: [],
+      } satisfies DailyNewsBody;
+    case "daily_ranks":
+      return {
+        intro: "",
+        boards: [
+          { name: "", color: "#7c3aed", source: "", items: [], note: "" },
+        ],
+      } satisfies DailyRanksBody;
+    case "daily_oss":
+      return {
+        rank: "#1",
+        tagline: "TODAY'S PICK",
+        title: "",
+        meta: "",
+        paragraphs: [""],
+        stats: [],
+      } satisfies DailyOssBody;
+    case "daily_side":
+      return { intro: "", items: [] } satisfies DailySideBody;
+    case "daily_know":
+      return {
+        title: "",
+        subtitle: "",
+        paragraphs: [""],
+        code: "",
+        summary: "",
+      } satisfies DailyKnowBody;
+    case "daily_bio":
+      return {
+        image: "",
+        imageCaption: "",
+        chapter: "",
+        title: "",
+        enMeta: "",
+        paragraphs: [""],
+        quote: "",
+        signature: "—— 臻叔 识",
+      } satisfies DailyBioBody;
+    case "daily_ads":
+      return { items: [] } satisfies DailyAdsBody;
   }
 }
 
@@ -229,4 +378,11 @@ export const SECTION_KIND_LABEL: Record<SectionKind, { zh: string; en: string }>
   trending: { zh: "GitHub 榜单", en: "GitHub trending" },
   supplement: { zh: "副刊 · 人物志", en: "Supplement" },
   colophon: { zh: "刊记", en: "Colophon" },
+  daily_news: { zh: "头版要闻", en: "Front page" },
+  daily_ranks: { zh: "今日热榜", en: "Rankings" },
+  daily_oss: { zh: "今日开源项目", en: "Open source pick" },
+  daily_side: { zh: "副业线报", en: "Side-hustle leads" },
+  daily_know: { zh: "软件常识", en: "Software concepts" },
+  daily_bio: { zh: "IT 人物志", en: "IT biography" },
+  daily_ads: { zh: "广告招租", en: "Ad slots" },
 };

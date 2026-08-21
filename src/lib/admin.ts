@@ -545,6 +545,77 @@ export async function deleteIssueSection(id: string) {
   }
 }
 
+// ---- 赛博日报 v2.0：整期编辑 ----
+//
+// One form, one save. `sectionsJson` is the FULL array of daily_* sections for
+// the issue: [{kind, body}, ...]. The save is destructive — existing daily_*
+// rows for this issue are replaced wholesale, sections omitted from the array
+// (i.e. left empty in the editor) are deleted. Non-daily sections (民国风
+// weekly kinds), if any, are left untouched.
+export async function saveDailyIssue(fd: FormData) {
+  await assertAdmin();
+  const id = str(fd.get("id"));
+  const title = str(fd.get("title"));
+  const issueNo = int(fd.get("issueNo"));
+  const weather = str(fd.get("weather"));
+  const publishedAt = str(fd.get("publishedAt"));
+  const visible = str(fd.get("visible")) === "true";
+  const sectionsJson = str(fd.get("sections"));
+  if (!id || !title) throw new Error("id、标题必填");
+  if (!publishedAt) throw new Error("发布日期必填");
+
+  // Parse + validate the sections payload before touching the DB.
+  let sections: { kind: string; body: unknown }[] = [];
+  if (sectionsJson) {
+    try {
+      const parsed = JSON.parse(sectionsJson);
+      if (!Array.isArray(parsed)) throw new Error("sections 必须是数组");
+      sections = parsed;
+    } catch {
+      throw new Error("sections 不是合法 JSON");
+    }
+  }
+  const DAILY = new Set(["daily_news","daily_ranks","daily_oss","daily_side","daily_know","daily_bio","daily_ads"]);
+  const seen = new Set<string>();
+  for (const s of sections) {
+    if (!s || typeof s.kind !== "string" || !DAILY.has(s.kind)) {
+      throw new Error(`未知板块 kind: ${String((s as any)?.kind)}`);
+    }
+    if (seen.has(s.kind)) throw new Error(`板块重复: ${s.kind}`);
+    seen.add(s.kind);
+    if (s.body == null || typeof s.body !== "object") {
+      throw new Error(`板块 ${s.kind} 的 body 必须是对象`);
+    }
+  }
+
+  // Upsert the issue row, then swap the daily_* sections atomically.
+  await query(
+    `INSERT INTO issues (id, issue_no, title, cover_image, weather, published_at, visible)
+       VALUES ($1,$2,$3,'',$4,$5,$6)
+     ON CONFLICT (id) DO UPDATE SET
+       issue_no=EXCLUDED.issue_no, title=EXCLUDED.title,
+       weather=EXCLUDED.weather, published_at=EXCLUDED.published_at, visible=EXCLUDED.visible`,
+    [id, issueNo, title, weather, publishedAt, visible]
+  );
+  await query("DELETE FROM issue_sections WHERE issue_id=$1 AND kind LIKE 'daily_%'", [id]);
+  for (let i = 0; i < sections.length; i++) {
+    const s = sections[i];
+    const label = SECTION_KIND_LABEL[s.kind as SectionKind]?.zh || s.kind;
+    await query(
+      `INSERT INTO issue_sections (id, issue_id, kind, label, position, body, visible)
+         VALUES ($1,$2,$3,$4,$5,$6::jsonb,true)
+       ON CONFLICT (issue_id, kind) DO UPDATE SET
+         label=EXCLUDED.label, position=EXCLUDED.position, body=EXCLUDED.body, visible=true`,
+      [`${id}/${s.kind}`, id, s.kind, label, i, JSON.stringify(s.body)]
+    );
+  }
+
+  revalidatePath("/daily");
+  revalidatePath(`/daily/${id}`);
+  revalidatePath("/admin/issues");
+  revalidatePath(`/admin/issues/${id}`);
+}
+
 // Reorder sections for an issue. `order` is the desired section-id sequence.
 // Uses a single transaction with an idempotent CTE to avoid partial writes.
 export async function reorderIssueSections(issueId: string, order: string[]) {

@@ -1531,3 +1531,58 @@ select.select:focus-visible,
   resize: vertical;
   min-height: 60px;
 }
+
+/* ---- 赛博日报 v2.0 整期编辑器 ---- */
+.daily-ed-section {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  margin-bottom: 10px;
+  overflow: hidden;
+  background: var(--surface);
+}
+.daily-ed-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  color: var(--fg);
+  text-align: left;
+}
+.daily-ed-head:hover { background: var(--surface-2); }
+.daily-ed-no {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--on-accent);
+  background: var(--accent);
+  padding: 1px 7px;
+  border-radius: 3px;
+}
+.daily-ed-state {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+.daily-ed-caret { color: var(--muted); font-size: 12px; }
+.daily-ed-body {
+  padding: 14px;
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 12px;
+}
+.daily-ed-lines { display: grid; gap: 10px; }
+.daily-ed-line {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+}
