@@ -10,6 +10,14 @@
   display: grid;
   place-items: center;
   padding: 48px 20px;
+  padding-left: max(20px, env(safe-area-inset-left, 0px));
+  padding-right: max(20px, env(safe-area-inset-right, 0px));
+}
+
+@media (max-width: 560px) {
+  .err-stage { padding: 24px 14px; }
+  .err-btn { padding: 11px 18px; font-size: 13px; }
+  .err-btn-ghost { padding: 11px 18px; font-size: 13px; }
 }
 
 .err-window {
@@ -126,7 +134,7 @@
   border: 1px solid var(--accent);
   background: var(--accent);
   color: var(--bg);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-sm, var(--radius, 6px));
   font-family: inherit;
   font-size: 12px;
   font-weight: 600;

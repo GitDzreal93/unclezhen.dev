@@ -71,5 +71,10 @@
   padding-bottom: 10px;
   border-bottom: 1px solid var(--line);
 }
+/* 窄屏：标签列 88px 占 1/4 内容区太挤，堆成两行 */
+@media (max-width: 640px) {
+  .kv div { grid-template-columns: 1fr; gap: 3px; }
+  .kv dt { font-size: 11px; }
+}
 .kv dt { color: var(--muted); font-family: var(--font-mono); font-size: 12px; letter-spacing: .04em; }
 .kv dd { color: var(--fg); }
