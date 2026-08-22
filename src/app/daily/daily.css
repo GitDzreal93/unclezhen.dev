@@ -1,27 +1,33 @@
 /* ============================================================
-   赛博日报 v2.0 · 水墨宣纸风
+   赛博日报 v2.0 · Claude Code 配色报纸
    版式骨架沿用报纸原型（报头/板块编号/分栏/榜单网格）。
-   纸张不再跟随站点 --surface，自带两套水墨纸色：
-     暗 = 墨玉纸：暖灰绿 oklch(17% 0.008 130)，不纯黑，久读不刺眼
-     明 = 宣纸：米白 oklch(96% 0.008 100)，微暖不惨白
-   结构色（线条/文字）仍挂站点 token，主题切换自动跟随。
+   报纸区域一套固定配色（明暗主题下不变）——Claude Code 暖米纸：
+     纸 #f5f0e6 / 深纸 #ece5d8 / 墨 #3d3929 / 赭橙 #c96442 (terracotta)
+   主题切换只影响报纸外的页面背景（--bg 侧）。水墨衬线排版保留。
    ============================================================ */
 
 .dp-page {
-  /* —— 水墨纸（本页面专属，不依赖站点 token）—— */
-  --dp-paper: oklch(96.5% 0.008 100);
-  --dp-paper-deep: oklch(94% 0.01 100);
-  --dp-ink-wash: oklch(96% 0.008 100 / 0.55);
-  --dp-edge: oklch(88% 0.015 100 / 0.5);
+  /* —— Claude Code 暖米纸（固定，不随主题）—— */
+  --dp-paper: #f5f0e6;
+  --dp-paper-deep: #ece5d8;
+  --dp-ink-wash: rgba(245, 238, 222, 0.55);
+  --dp-edge: rgba(120, 100, 60, 0.35);
 
-  /* —— 信息色（低饱和水墨调，从站点 accent 派生保证品牌关联）—— */
-  --dp-accent: color-mix(in oklch, var(--accent) 62%, oklch(60% 0 0));
-  --dp-info: color-mix(in oklch, var(--accent) 40%, oklch(58% 0.07 230));
-  --dp-warn: color-mix(in oklch, var(--accent) 35%, oklch(66% 0.09 80));
-  --dp-danger: color-mix(in oklch, var(--accent) 28%, oklch(56% 0.13 25));
-  --dp-info-soft: color-mix(in oklch, var(--dp-info) 8%, var(--dp-paper));
-  --dp-warn-soft: color-mix(in oklch, var(--dp-warn) 9%, var(--dp-paper));
-  --dp-danger-soft: color-mix(in oklch, var(--dp-danger) 7%, var(--dp-paper));
+  /* —— 报纸内文字/结构色：一套深墨系，两主题统一 —— */
+  --dp-ink: #3d3929;
+  --dp-ink-soft: #6b6350;
+  --dp-ink-ghost: #8f8672;
+  --dp-rule: rgba(120, 100, 60, 0.28);
+  --dp-rule-soft: rgba(120, 100, 60, 0.16);
+
+  /* —— 信息色：Claude 赭橙主色 + 蓝金辅 —— */
+  --dp-accent: #c96442;
+  --dp-info: #4a6fa5;
+  --dp-warn: #a07414;
+  --dp-danger: #b8502e;
+  --dp-info-soft: rgba(74, 111, 165, 0.08);
+  --dp-warn-soft: rgba(160, 116, 20, 0.09);
+  --dp-danger-soft: rgba(184, 80, 46, 0.07);
 
   /* 兼容别名 */
   --blue: var(--dp-info);
@@ -35,14 +41,6 @@
   --kai: "Kaiti SC", "STKaiti", "KaiTi", var(--serif);
 }
 
-/* —— 暗主题：墨玉纸 —— */
-:root[data-theme="dark"] .dp-page {
-  --dp-paper: oklch(17% 0.008 130);
-  --dp-paper-deep: oklch(15% 0.008 130);
-  --dp-ink-wash: oklch(20% 0.01 130 / 0.6);
-  --dp-edge: oklch(30% 0.012 130 / 0.55);
-}
-
 .dp-wrap {
   display: flex;
   justify-content: center;
@@ -52,21 +50,21 @@
 .dp-page {
   width: 880px;
   max-width: 100%;
-  /* 宣纸质感：纤维噪点 + 边缘晕染（暗色下幅度减弱） */
+  /* 暖米纸质感：纤维噪点 + 边缘晕染 */
   background:
     radial-gradient(ellipse 120% 8% at 50% 0%, var(--dp-ink-wash), transparent 70%),
     radial-gradient(ellipse 140% 10% at 50% 100%, var(--dp-ink-wash), transparent 70%),
-    repeating-linear-gradient(0deg, oklch(50% 0.01 100 / 0.012) 0 2px, transparent 2px 5px),
+    repeating-linear-gradient(0deg, rgba(120, 90, 40, 0.015) 0 2px, transparent 2px 5px),
     var(--dp-paper);
   box-shadow:
     0 0 0 1px var(--dp-edge),
-    0 0 0 8px color-mix(in oklch, var(--dp-paper) 55%, transparent),
+    0 0 0 8px rgba(245, 240, 230, 0.5),
     0 0 0 9px var(--dp-edge),
-    0 30px 70px var(--shadow);
+    0 30px 70px rgba(40, 30, 10, 0.35);
   border-radius: 2px;
   padding: 30px 38px 38px;
   position: relative;
-  color: var(--fg);
+  color: var(--dp-ink);
   font-family: var(--font-body);
   font-size: 14.5px;
 }
@@ -78,8 +76,8 @@
   align-items: center;
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--muted);
-  border-bottom: 1px solid color-mix(in oklch, var(--muted) 25%, transparent);
+  color: var(--dp-ink-soft);
+  border-bottom: 1px solid var(--dp-rule-soft);
   padding-bottom: 8px;
   margin-bottom: 18px;
   letter-spacing: 0.04em;
@@ -98,7 +96,7 @@
   font-family: var(--serif);
   font-size: 12.5px;
   line-height: 2;
-  color: var(--muted);
+  color: var(--dp-ink-soft);
 }
 .dp-mh-side--left { text-align: left; }
 .dp-mh-side--right { text-align: right; }
@@ -106,7 +104,7 @@
 .dp-mh-side .dp-big {
   font-family: var(--font-mono);
   font-size: 14px;
-  color: var(--fg);
+  color: var(--dp-ink);
   font-weight: 600;
 }
 .dp-mh-center { text-align: center; }
@@ -115,19 +113,19 @@
   font-weight: 700;
   font-size: 44px;
   letter-spacing: 0.18em;
-  color: var(--fg);
+  color: var(--dp-ink);
   line-height: 1;
   display: inline-block;
   padding: 4px 10px 12px 0.18em; /* 右侧补回 letter-spacing 尾空 */
-  border-top: 1px solid color-mix(in oklch, var(--muted) 45%, transparent);
-  border-bottom: 1px solid color-mix(in oklch, var(--muted) 45%, transparent);
+  border-top: 1px solid var(--dp-rule);
+  border-bottom: 1px solid var(--dp-rule);
   margin: 0;
 }
 .dp-mh-title .dp-dot { color: var(--dp-danger); }
 .dp-mh-strap {
   font-family: var(--font-mono);
   font-size: 10.5px;
-  color: color-mix(in oklch, var(--muted) 68%, transparent);
+  color: var(--dp-ink-ghost);
   letter-spacing: 0.5em;
   margin-top: 9px;
   padding-left: 0.5em;
@@ -151,7 +149,7 @@
   display: flex;
   align-items: baseline;
   gap: 12px;
-  border-bottom: 1px solid color-mix(in oklch, var(--muted) 35%, transparent);
+  border-bottom: 1px solid var(--dp-rule);
   padding-bottom: 7px;
   margin-bottom: 15px;
 }
@@ -159,7 +157,7 @@
   font-family: var(--serif);
   font-weight: 600;
   font-size: 13px;
-  color: var(--muted);
+  color: var(--dp-ink-soft);
   letter-spacing: 0.1em;
 }
 .dp-sec-no::after { content: " ·"; }
@@ -173,14 +171,14 @@
 .dp-sec-tag {
   font-family: var(--font-mono);
   font-size: 10.5px;
-  color: color-mix(in oklch, var(--muted) 62%, transparent);
+  color: var(--dp-ink-ghost);
   margin-left: auto;
   letter-spacing: 0.05em;
 }
 .dp-sec-sub {
   font-family: var(--serif);
   font-size: 12.5px;
-  color: var(--muted);
+  color: var(--dp-ink-soft);
   margin: -7px 0 13px;
 }
 
@@ -196,7 +194,7 @@
 .dp-bio-grid .dp-cap {
   font-family: var(--kai);
   font-size: 11.5px;
-  color: var(--muted);
+  color: var(--dp-ink-soft);
   margin: 7px 0 15px;
   text-align: center;
 }
@@ -222,7 +220,7 @@
 .dp-lead-sub {
   font-family: var(--serif);
   font-size: 13.5px;
-  color: var(--muted);
+  color: var(--dp-ink-soft);
   line-height: 1.7;
   margin: 0 0 12px;
 }
@@ -286,7 +284,7 @@
 }
 .dp-rank-card {
   border: 1px solid var(--dp-edge);
-  background: color-mix(in oklch, var(--dp-paper-deep) 82%, transparent);
+  background: var(--dp-paper-deep);
 }
 .dp-rank-card .dp-rc-head {
   display: flex;
@@ -306,7 +304,7 @@
 .dp-rc-head .dp-rc-src {
   font-family: var(--font-mono);
   font-size: 10px;
-  color: color-mix(in oklch, var(--muted) 62%, transparent);
+  color: var(--dp-ink-ghost);
   margin-left: auto;
 }
 .dp-rank-card ol { list-style: none; margin: 0; padding: 9px 13px 11px; }
@@ -318,19 +316,19 @@
   padding: 5.5px 0;
   font-size: 13px;
 }
-.dp-rank-card li + li { border-top: 1px dashed color-mix(in oklch, var(--muted) 18%, transparent); }
+.dp-rank-card li + li { border-top: 1px dashed var(--dp-rule-soft); }
 .dp-rank-no {
   font-family: var(--serif);
   font-weight: 600;
-  color: color-mix(in oklch, var(--muted) 60%, transparent);
+  color: var(--dp-ink-ghost);
   font-size: 12px;
 }
-.dp-rank-card li b { font-weight: 600; color: var(--fg); }
-.dp-rank-card li a b { text-decoration: underline; text-decoration-color: color-mix(in oklch, var(--muted) 35%, transparent); text-underline-offset: 3px; }
+.dp-rank-card li b { font-weight: 600; color: var(--dp-ink); }
+.dp-rank-card li a b { text-decoration: underline; text-decoration-color: var(--dp-rule); text-underline-offset: 3px; }
 .dp-rank-card li .dp-r-desc {
   grid-column: 2 / 4;
   font-size: 11.5px;
-  color: var(--muted);
+  color: var(--dp-ink-soft);
   margin-top: -1px;
 }
 .dp-rank-card li .dp-r-val {
@@ -347,7 +345,7 @@
   background: color-mix(in oklch, var(--dp-warn) 5%, var(--dp-paper));
   font-family: var(--serif);
   font-size: 12px;
-  color: var(--muted);
+  color: var(--dp-ink-soft);
   line-height: 1.7;
 }
 .dp-rank-card .dp-rc-note b { color: var(--dp-warn); font-weight: 600; }
@@ -359,14 +357,14 @@
   gap: 18px;
   border: 1px solid var(--dp-edge);
   border-left: 3px solid color-mix(in oklch, var(--dp-info) 55%, transparent);
-  background: color-mix(in oklch, var(--dp-paper-deep) 82%, transparent);
+  background: var(--dp-paper-deep);
   padding: 17px 19px;
 }
 .dp-oss-rank {
   font-family: var(--serif);
   font-weight: 700;
   font-size: 34px;
-  color: color-mix(in oklch, var(--dp-info) 80%, var(--muted));
+  color: color-mix(in oklch, var(--dp-info) 80%, var(--dp-ink-soft));
   line-height: 1;
   padding-top: 3px;
   letter-spacing: 0.02em;
@@ -382,7 +380,7 @@
 .dp-oss-body .dp-oss-meta {
   font-family: var(--font-mono);
   font-size: 11px;
-  color: color-mix(in oklch, var(--muted) 62%, transparent);
+  color: var(--dp-ink-ghost);
   margin-bottom: 9px;
 }
 .dp-oss-stats { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 9px; }
@@ -391,7 +389,7 @@
   font-size: 10.5px;
   border: 1px solid var(--dp-edge);
   padding: 2px 9px;
-  color: var(--muted);
+  color: var(--dp-ink-soft);
 }
 
 /* —— 04 副业线报 —— */
@@ -412,8 +410,8 @@
   font-size: 13.5px;
   line-height: 1.75;
 }
-.dp-side-item + .dp-side-item { border-top: 1px dashed color-mix(in oklch, var(--muted) 18%, transparent); }
-.dp-side-item:nth-child(odd) { background: color-mix(in oklch, var(--dp-paper-deep) 60%, transparent); }
+.dp-side-item + .dp-side-item { border-top: 1px dashed var(--dp-rule-soft); }
+.dp-side-item:nth-child(odd) { background: color-mix(in srgb, var(--dp-paper-deep) 60%, transparent); }
 .dp-side-no {
   font-family: var(--serif);
   font-weight: 600;
@@ -425,7 +423,7 @@
 .dp-side-item .dp-s-tag {
   font-family: var(--font-mono);
   font-size: 10px;
-  color: color-mix(in oklch, var(--muted) 62%, transparent);
+  color: var(--dp-ink-ghost);
   border: 1px solid var(--dp-edge);
   padding: 1px 7px;
   white-space: nowrap;
@@ -435,22 +433,22 @@
 .dp-know-card {
   border: 1px solid var(--dp-edge);
   border-top: 2px solid color-mix(in oklch, var(--dp-warn) 50%, transparent);
-  background: color-mix(in oklch, var(--dp-paper-deep) 82%, transparent);
+  background: var(--dp-paper-deep);
   padding: 17px 19px;
 }
 .dp-know-card h3 { font-family: var(--serif); font-weight: 700; font-size: 17.5px; margin: 0 0 5px; letter-spacing: 0.03em; }
 .dp-know-card .dp-know-sub {
   font-family: var(--serif);
   font-size: 12px;
-  color: var(--muted);
+  color: var(--dp-ink-soft);
   margin-bottom: 11px;
 }
 .dp-code-block {
   font-family: var(--font-mono);
   font-size: 12px;
   line-height: 1.75;
-  background: color-mix(in oklch, var(--dp-paper-deep) 90%, black 4%);
-  color: var(--fg);
+  background: #efe9db;
+  color: #3d3929;
   border: 1px solid var(--dp-edge);
   border-radius: 2px;
   padding: 13px 15px;
@@ -479,7 +477,7 @@
 .dp-bio-grid .dp-bio-en {
   font-family: var(--font-mono);
   font-size: 10.5px;
-  color: color-mix(in oklch, var(--muted) 62%, transparent);
+  color: var(--dp-ink-ghost);
   letter-spacing: 0.03em;
   margin-bottom: 11px;
 }
@@ -507,7 +505,7 @@
 .dp-signature {
   font-family: var(--kai);
   font-size: 12.5px;
-  color: var(--muted);
+  color: var(--dp-ink-soft);
   text-align: right;
   margin-top: 10px;
 }
@@ -530,11 +528,11 @@
   font-size: 13px;
   line-height: 1.6;
 }
-.dp-ad-item + .dp-ad-item { border-top: 1px dashed color-mix(in oklch, var(--muted) 18%, transparent); }
+.dp-ad-item + .dp-ad-item { border-top: 1px dashed var(--dp-rule-soft); }
 .dp-ad-no {
   font-family: var(--serif);
   font-weight: 600;
-  color: color-mix(in oklch, var(--muted) 60%, transparent);
+  color: var(--dp-ink-ghost);
   text-align: center;
   font-size: 12px;
 }
@@ -550,24 +548,24 @@
 .dp-ad-type--agent { color: var(--dp-danger); border-color: color-mix(in oklch, var(--dp-danger) 35%, transparent); }
 .dp-ad-type--gh { color: var(--dp-info); border-color: color-mix(in oklch, var(--dp-info) 35%, transparent); }
 .dp-ad-type--post { color: var(--dp-warn); border-color: color-mix(in oklch, var(--dp-warn) 35%, transparent); }
-.dp-ad-type--default { color: var(--muted); border-color: var(--dp-edge); }
+.dp-ad-type--default { color: var(--dp-ink-soft); border-color: var(--dp-edge); }
 .dp-ad-main .dp-ad-title { font-weight: 700; }
-.dp-ad-main .dp-ad-desc { color: var(--muted); font-size: 12px; }
+.dp-ad-main .dp-ad-desc { color: var(--dp-ink-soft); font-size: 12px; }
 .dp-ad-contact {
   font-family: var(--font-mono);
   font-size: 10.5px;
-  color: color-mix(in oklch, var(--muted) 62%, transparent);
+  color: var(--dp-ink-ghost);
 }
 
 /* —— 页脚 —— */
 .dp-colophon {
   margin-top: 10px;
   padding-top: 15px;
-  border-top: 1px solid color-mix(in oklch, var(--muted) 25%, transparent);
+  border-top: 1px solid var(--dp-rule-soft);
   text-align: center;
   font-family: var(--serif);
   font-size: 12px;
-  color: color-mix(in oklch, var(--muted) 68%, transparent);
+  color: var(--dp-ink-ghost);
   line-height: 2.1;
 }
 .dp-colophon .dp-seal { font-size: 12.5px; }
