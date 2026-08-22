@@ -16,6 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: t(locale, "weekly.meta.title"),
     description: t(locale, "weekly.meta.desc"),
+    alternates: { canonical: "/weekly" },
   };
 }
 

@@ -22,7 +22,14 @@ export async function generateMetadata({
   if (!issue) return { title: t(locale, "weekly.meta.title") };
   return {
     title: `${issue.title} · ${t(locale, "weekly.meta.title")}`,
-    description: issue.weather || undefined,
+    description: `第 ${issue.issueNo} 期（${issue.publishedAt}）· 民国报纸风科技周刊：要闻、科技动态、榜单与副刊。`,
+    alternates: { canonical: `/weekly/${issue.id}` },
+    openGraph: {
+      type: "article",
+      title: issue.title,
+      url: `/weekly/${issue.id}`,
+      publishedTime: issue.publishedAt,
+    },
   };
 }
 

@@ -16,6 +16,7 @@ export async function generateMetadata() {
   return {
     title: t(locale, "shop.meta.title"),
     description: t(locale, "shop.meta.desc"),
+    alternates: { canonical: "/shop" },
   };
 }
 
