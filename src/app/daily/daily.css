@@ -224,6 +224,10 @@
   line-height: 1.7;
   margin: 0 0 12px;
 }
+/* v3.0: markdown body slot used by every section that has a body string.
+   marked output runs through DOMPurify; we only need to style the safe tags
+   it can produce. */
+.dp-md,
 .dp-body-text,
 .dp-oss-text,
 .dp-know-text,
@@ -233,12 +237,95 @@
   line-height: 1.95;
   text-align: justify;
 }
+.dp-md p,
 .dp-body-text p,
 .dp-oss-text p,
 .dp-know-text p,
 .dp-bio-body p { margin: 0 0 11px; text-indent: 2em; }
+.dp-md p:last-child,
 .dp-know-text p:last-child,
 .dp-bio-body p:last-child { margin-bottom: 0; }
+
+/* Headings — keep on the same line family but visually subordinate to
+   the section h2.  Editors may use `## title` inside the body. */
+.dp-md h1, .dp-md h2, .dp-md h3, .dp-md h4 {
+  font-family: var(--serif);
+  font-weight: 700;
+  line-height: 1.35;
+  margin: 14px 0 8px;
+  text-indent: 0;
+}
+.dp-md h1 { font-size: 19px; }
+.dp-md h2 { font-size: 17px; }
+.dp-md h3 { font-size: 15.5px; }
+.dp-md h4 { font-size: 14.5px; color: var(--dp-ink-soft); }
+
+/* Lists — markdown `- item` or `1. item`.  */
+.dp-md ul, .dp-md ol {
+  margin: 6px 0 12px;
+  padding-left: 1.5em;
+  text-indent: 0;
+}
+.dp-md li { margin: 4px 0; }
+.dp-md li::marker { color: var(--dp-ink-soft); }
+
+/* Blockquote — used for editorial notes / 摘要 */
+.dp-md blockquote {
+  margin: 10px 0;
+  padding: 6px 14px;
+  border-left: 3px solid var(--dp-rule);
+  color: var(--dp-ink-soft);
+  background: color-mix(in oklch, var(--dp-ink) 3%, transparent);
+  text-indent: 0;
+}
+.dp-md blockquote p { text-indent: 0; margin: 4px 0; }
+
+/* Inline code and code blocks.  Pre blocks inside the body are uncommon but
+   supported; the dedicated `code` field for daily_know uses .dp-code-block
+   which already has its own style. */
+.dp-md code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  background: color-mix(in oklch, var(--dp-ink) 7%, transparent);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+.dp-md pre {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+  background: color-mix(in oklch, var(--dp-ink) 6%, var(--dp-paper));
+  border: 1px solid var(--dp-rule);
+  padding: 12px 14px;
+  overflow-x: auto;
+  margin: 10px 0;
+  text-indent: 0;
+}
+.dp-md pre code { background: transparent; padding: 0; font-size: inherit; }
+
+/* Inline images — markdown ![alt](url).  Centered, max-width, with a soft
+   caption if alt is present. */
+.dp-md img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 10px auto;
+  border: 1px solid var(--dp-rule);
+}
+.dp-md a {
+  color: var(--dp-info);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  word-break: break-all;
+}
+.dp-md a:hover { color: var(--dp-ink); }
+.dp-md strong { font-weight: 700; color: var(--dp-ink); }
+.dp-md em { font-style: italic; color: var(--dp-ink-soft); }
+.dp-md hr {
+  border: none;
+  border-top: 1px solid var(--dp-rule);
+  margin: 14px 0;
+}
 
 .dp-news-ticker {
   margin-top: 18px;

@@ -410,6 +410,7 @@ export async function getSeriesForPost(postId: string): Promise<SeriesWithCount[
 // public surface filters by visible=true; the admin surface returns all rows.
 
 import type { SectionKind } from "./issues-types";
+import { normalizeBody } from "./daily-render";
 
 export type Issue = {
   id: string;
@@ -522,11 +523,16 @@ function mapIssue(r: any): Issue {
 function mapSection(r: any): IssueSection {
   // pg returns jsonb columns already parsed (object/array), but guard against
   // stringified payloads from older drivers.
-  const body = typeof r.body === "string" ? safeParse(r.body) : r.body;
+  const raw = typeof r.body === "string" ? safeParse(r.body) : r.body;
+  // daily_* section bodies are auto-upgraded from the v2 shape to v3 on read,
+  // so the renderer and the admin form both see one canonical shape. Run the
+  // migration script to actually rewrite stored rows.
+  const kind = r.kind as SectionKind;
+  const body = normalizeBody(kind, raw ?? {});
   return {
     id: r.id,
     issueId: r.issue_id,
-    kind: r.kind as SectionKind,
+    kind,
     label: r.label,
     position: r.position,
     body: body ?? {},
