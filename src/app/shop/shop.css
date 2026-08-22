@@ -62,13 +62,17 @@
   gap: 4px;
 }
 .cart-item .qty button {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: 8px;
   border: 1px solid var(--line-strong);
   background: transparent;
   color: var(--fg);
   cursor: pointer;
+}
+/* 触屏：数量增减是高频交易操作，目标要够 44px */
+@media (hover: none) {
+  .cart-item .qty button { width: 44px; height: 44px; }
 }
 .cart-total {
   display: flex;

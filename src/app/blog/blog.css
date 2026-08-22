@@ -378,8 +378,8 @@
   .blog-page .page-hero { padding-bottom: 24px; }
   .post { padding: 18px; }
   .article-view h1 { font-size: 28px; }
-  .markdown-body { font-size: 15px; line-height: 1.8; }
-  .markdown-body pre { margin-inline: -2px; padding: 48px 16px 16px; }
+  .markdown-body { font-size: 16px; line-height: 1.85; }
+  .markdown-body pre { margin-inline: -2px; padding: 48px 16px 16px; font-size: 12.5px; }
   .markdown-body :is(th, td) { padding: .62em .7em; }
 }
 
@@ -561,8 +561,9 @@
 
 @media (hover: none), (max-width: 640px) {
   .banner-carousel__arrow {
-    width: 32px;
-    height: 32px;
+    /* 触屏环境目标要更大而不是更小（44px 触控标准） */
+    width: 44px;
+    height: 44px;
     opacity: 1;
     pointer-events: auto;
   }
