@@ -478,6 +478,19 @@
   padding: 2px 9px;
   color: var(--dp-ink-soft);
 }
+.dp-oss-link {
+  display: inline-block;
+  margin-top: 11px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  border: 1px solid color-mix(in oklch, var(--dp-info) 45%, transparent);
+  background: color-mix(in oklch, var(--dp-info) 10%, transparent);
+  color: color-mix(in oklch, var(--dp-info) 70%, var(--dp-ink-soft));
+  padding: 5px 14px;
+  text-decoration: none;
+  letter-spacing: 0.04em;
+}
+.dp-oss-link:hover { background: color-mix(in oklch, var(--dp-info) 20%, transparent); }
 
 /* —— 04 副业线报 —— */
 .dp-side-list {
