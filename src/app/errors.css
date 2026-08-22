@@ -14,12 +14,6 @@
   padding-right: max(20px, env(safe-area-inset-right, 0px));
 }
 
-/* 本文件没有 --radius-sm（那是在 admin.css 里定义的），在非 admin
-   作用域渲染时圆角会退化为 0 —— 直接落到 --radius 兜底。 */
-.err-btn {
-  border-radius: var(--radius, 6px);
-}
-
 @media (max-width: 560px) {
   .err-stage { padding: 24px 14px; }
   .err-btn { padding: 11px 18px; font-size: 13px; }
@@ -140,7 +134,7 @@
   border: 1px solid var(--accent);
   background: var(--accent);
   color: var(--bg);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-sm, var(--radius, 6px));
   font-family: inherit;
   font-size: 12px;
   font-weight: 600;
