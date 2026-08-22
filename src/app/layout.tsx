@@ -1,8 +1,15 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { getLocale } from "@/lib/i18n/cookie";
 import { getTheme } from "@/lib/theme/cookie";
 import { t } from "@/lib/i18n/dict";
 import "./globals.css";
+
+// viewportFit=cover 让 env(safe-area-inset-*) 生效（刘海屏/手势条）。
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();

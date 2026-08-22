@@ -307,6 +307,25 @@
 }
 .dp-md pre code { background: transparent; padding: 0; font-size: inherit; }
 
+/* Markdown 表格 —— body 走 renderMarkdown 注入，没有这段会按浏览器
+   默认样式渲染，窄屏必横向溢出（参照 blog.css 的处理）。 */
+.dp-md table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin: 10px 0;
+  text-indent: 0;
+}
+.dp-md :is(th, td) {
+  border: 1px solid var(--dp-rule);
+  padding: 6px 9px;
+  overflow-wrap: anywhere;
+  text-align: left;
+  vertical-align: top;
+}
+.dp-md th { background: color-mix(in oklch, var(--dp-ink) 6%, transparent); font-weight: 600; }
+
 /* Inline images — markdown ![alt](url).  Centered, max-width, with a soft
    caption if alt is present. */
 .dp-md img {
