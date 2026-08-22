@@ -86,6 +86,13 @@ export async function POST(req: NextRequest) {
     // the token but it lacked the scope); surface it so the audit row links back.
     if (error instanceof ApiAuthError && error.tokenId) tokenId = error.tokenId;
     const { status, failureCode } = classify(error);
+    // Server-side log so the actual failure is recoverable from
+    // `docker logs unclezhen-app`. The response stays generic to avoid
+    // leaking internal details to the caller, but the requestId ties the
+    // two together.
+    if (status >= 500) {
+      console.error(`[api/v1/images] ${requestId} upload failed:`, error);
+    }
     await writeApiAuditLog({
       tokenId,
       method: "POST",
