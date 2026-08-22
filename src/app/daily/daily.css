@@ -676,16 +676,46 @@
 
 /* —— 响应式 —— */
 @media (max-width: 760px) {
-  .dp-page { padding: 20px 16px 26px; }
+  .dp-page { padding: 20px 16px 26px; font-size: 15.5px; }
+  .dp-md p { font-size: 15.5px; }
   .dp-masthead { grid-template-columns: 1fr; gap: 8px; }
-  .dp-mh-side--left, .dp-mh-side--right { text-align: center; }
+  .dp-mh-side--left, .dp-mh-side--right { text-align: center; font-size: 12px; }
   .dp-mh-title { font-size: 34px; letter-spacing: 0.14em; }
+  .dp-mh-strap { font-size: 10px; }
   .dp-rank-grid { grid-template-columns: 1fr; }
+  /* 榜单条目：手机上正文级内容，13→14.5px；链接补触控高度（原 17px < 44px 标准） */
+  .dp-rank-card li { font-size: 14.5px; padding: 8px 0; }
+  .dp-rank-card li b { overflow-wrap: anywhere; }
+  .dp-rank-card li a { display: inline-block; padding: 4px 0; }
+  .dp-rank-card li .dp-r-desc { font-size: 12.5px; }
+  .dp-rank-card li .dp-r-val { font-size: 12px; }
+  .dp-news-ticker li { font-size: 14.5px; }
+  .dp-side-item { font-size: 14.5px; }
+  .dp-ad-item { grid-template-columns: 26px 1fr; row-gap: 3px; font-size: 14px; }
+  .dp-ad-desc { font-size: 13px; }
   .dp-oss-card { grid-template-columns: 1fr; gap: 8px; }
   .dp-oss-rank { font-size: 26px; }
-  .dp-ad-item { grid-template-columns: 26px 1fr; row-gap: 3px; }
+  .dp-oss-body .dp-md p { font-size: 15px; }
+  .dp-oss-link { padding: 9px 18px; font-size: 13px; }
   .dp-ad-contact { grid-column: 2; justify-self: start; }
-  .dp-topbar { flex-direction: column; gap: 4px; }
+  .dp-topbar { flex-direction: column; gap: 4px; font-size: 11.5px; }
+  .dp-rc-note { font-size: 13px; }
+  .dp-bio-quote { font-size: 14px; }
+  .dp-colophon { font-size: 12.5px; }
+}
+
+/* —— 小屏手机（≤480px）：进一步收紧画布、放大正文 —— */
+@media (max-width: 480px) {
+  .dp-wrap { padding: 12px 0 40px; }
+  .dp-page { padding: 16px 12px 22px; box-shadow: 0 0 0 1px var(--dp-edge); font-size: 16px; }
+  .dp-md p { font-size: 16px; }
+  .dp-mh-title { font-size: 30px; }
+  .dp-sec-head h2 { font-size: 18px; }
+  .dp-sec-tag { font-size: 10px; }
+  .dp-kicker { font-size: 11px; }
+  .dp-lead-fig img { border-width: 2px; }
+  .dp-oss-stats span { font-size: 11px; }
+  .dp-code-block { font-size: 11.5px; padding: 12px 10px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
