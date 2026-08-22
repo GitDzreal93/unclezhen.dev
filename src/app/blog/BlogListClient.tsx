@@ -139,7 +139,10 @@ export default function BlogListClient({
 
           {series.length > 0 && (
             <section className="side-card">
-              <h3>{t(locale, "blog.seriesTitle")}</h3>
+              <h3>
+                {t(locale, "blog.seriesTitle")}
+                <Link className="side-card__more" href="/blog/series">ls ./all →</Link>
+              </h3>
               <div className="tag-cloud series-cloud">
                 {series.map((s) => (
                   <Link key={s.id} className="tag tag--accent" href={`/blog/series/${s.id}`}>

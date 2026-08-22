@@ -6,7 +6,7 @@ import HomeScene from "@/components/HomeScene";
 import HomeMotion from "@/components/HomeMotion";
 import Reveal from "@/components/Reveal";
 import ContactCta from "@/components/ContactCta";
-import { getVisibleNavItems, getPosts, getProducts } from "@/lib/data";
+import { getVisibleNavItems, getPosts, getProducts, getFeaturedSeries, type FeaturedSeries } from "@/lib/data";
 import { getLocale } from "@/lib/i18n/cookie";
 import { getTheme } from "@/lib/theme/cookie";
 import { navLabel, t, type Locale } from "@/lib/i18n/dict";
@@ -28,13 +28,88 @@ function moduleBlurb(locale: Locale, key: string): string {
   return t(locale, `module.${key}`);
 }
 
+// One hero panel's series card. Keeps the terminal-window chrome of the
+// original hardcoded panels but swaps the copy for a live featured series.
+function SeriesPanel({
+  series,
+  locale,
+  sceneNo,
+}: {
+  series: FeaturedSeries | undefined;
+  locale: Locale;
+  sceneNo: string;
+}) {
+  // Fallback to the original static copy when the slot has no series.
+  const fallbackTitle = t(locale, `home.scene${sceneNo}.title`);
+  const fallbackLead = t(locale, `home.scene${sceneNo}.lead`);
+  return (
+    <div className="hero-panel is-dim" id={`panel-${sceneNo === "01" ? 1 : 2}`}>
+      <div className="term-window">
+        <div className="term-chrome">
+          <span className="term-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span>runtime · scene_{sceneNo}</span>
+        </div>
+        <div className="term-body">
+          <div className="path-line">
+            <span className="g">~/lab</span> <span className="g">❯</span>{" "}
+            {series ? (
+              <>open series/{series.id}/</>
+            ) : sceneNo === "01" ? (
+              <>./render --ip --webgl --scroll</>
+            ) : (
+              <>open modules/</>
+            )}
+          </div>
+          {series ? (
+            <>
+              <div className="eyebrow">{t(locale, "home.series.kicker")}</div>
+              <h1>{series.title}</h1>
+              <p className="lead">{series.description || t(locale, "home.series.heading")}</p>
+              {series.previewTitles.length > 0 && (
+                <p className="lead series-latest">
+                  <span className="g">{t(locale, "home.series.latest")}: </span>
+                  {series.previewTitles[0]}
+                </p>
+              )}
+              <div className="hero-actions">
+                <Link className="btn btn--primary" href={`/blog/series/${series.id}`}>
+                  {t(locale, "home.series.cta")}
+                </Link>
+                <span className="series-count">
+                  {series.postCount} {t(locale, "home.series.posts")}
+                </span>
+              </div>
+            </>
+          ) : (
+            <>
+              <h1>{fallbackTitle}</h1>
+              <p className="lead">{fallbackLead}</p>
+              <div className="hero-actions">
+                {sceneNo === "01" ? (
+                  <Link className="btn btn--ghost" href="/blog">{t(locale, "home.scene01.cta")}</Link>
+                ) : (
+                  <>
+                    <a className="btn btn--primary" href="#modules">{t(locale, "home.scene02.cta1")}</a>
+                    <Link className="btn btn--ghost" href="/shop">{t(locale, "home.scene02.cta2")}</Link>
+                  </>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default async function HomePage() {
-  const [items, locale, theme, posts, products] = await Promise.all([
+  const [items, locale, theme, posts, products, featured] = await Promise.all([
     getVisibleNavItems(),
     getLocale(),
     getTheme(),
     getPosts(),
     getProducts(),
+    getFeaturedSeries(2),
   ]);
   const modules = items.filter((i) => i.key !== "home");
   // Live counts replace the old "—" placeholders in the hero stats.
@@ -100,40 +175,9 @@ export default async function HomePage() {
                 </div>
               </div>
 
-              <div className="hero-panel is-dim" id="panel-1">
-                <div className="term-window">
-                  <div className="term-chrome">
-                    <span className="term-dots" aria-hidden="true"><i></i><i></i><i></i></span>
-                    <span>runtime · scene_01</span>
-                  </div>
-                  <div className="term-body">
-                    <div className="path-line"><span className="g">~/lab</span> <span className="g">❯</span> ./render --ip --webgl --scroll</div>
-                    <h1>{t(locale, "home.scene01.title")}</h1>
-                    <p className="lead">{t(locale, "home.scene01.lead")}</p>
-                    <div className="hero-actions">
-                      <Link className="btn btn--ghost" href="/blog">{t(locale, "home.scene01.cta")}</Link>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <SeriesPanel series={featured[0]} locale={locale} sceneNo="01" />
 
-              <div className="hero-panel is-dim" id="panel-2">
-                <div className="term-window">
-                  <div className="term-chrome">
-                    <span className="term-dots" aria-hidden="true"><i></i><i></i><i></i></span>
-                    <span>runtime · scene_02</span>
-                  </div>
-                  <div className="term-body">
-                    <div className="path-line"><span className="g">~/lab</span> <span className="g">❯</span> open modules/</div>
-                    <h1>{t(locale, "home.scene02.title")}</h1>
-                    <p className="lead">{t(locale, "home.scene02.lead")}</p>
-                    <div className="hero-actions">
-                      <a className="btn btn--primary" href="#modules">{t(locale, "home.scene02.cta1")}</a>
-                      <Link className="btn btn--ghost" href="/shop">{t(locale, "home.scene02.cta2")}</Link>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <SeriesPanel series={featured[1]} locale={locale} sceneNo="02" />
             </div>
           </div>
         </div>

@@ -74,6 +74,41 @@ export type SeriesPost = {
 export type SeriesWithPosts = Series & { posts: SeriesPost[] };
 export type SeriesWithCount = Series & { postCount: number };
 
+// Featured series card — the top-N series (by sort) with a couple of recent
+// post titles as a preview. Powers the home hero panels and the series index.
+export type FeaturedSeries = SeriesWithCount & { previewTitles: string[] };
+
+export async function getFeaturedSeries(limit: number): Promise<FeaturedSeries[]> {
+  const rows = await query<any>(
+    `SELECT s.id,s.title,s.description,s.show_number,s.sort,
+            COUNT(sp.post_id)::int AS post_count
+       FROM series s
+       LEFT JOIN series_posts sp ON sp.series_id = s.id
+      GROUP BY s.id
+      ORDER BY s.sort ASC, s.created_at ASC
+      LIMIT $1`,
+    [limit]
+  );
+  if (rows.length === 0) return [];
+  const ids = rows.map((r) => r.id);
+  // Latest post title per series (for the card preview line).
+  const prows = await query<any>(
+    `SELECT DISTINCT ON (sp.series_id)
+            sp.series_id, p.title
+       FROM series_posts sp
+       JOIN posts p ON p.id = sp.post_id
+      WHERE sp.series_id = ANY($1::text[])
+      ORDER BY sp.series_id, p.date DESC, sp.position ASC`,
+    [ids]
+  );
+  const latest = new Map(prows.map((r) => [r.series_id, r.title]));
+  return rows.map((r) => ({
+    ...mapSeries(r),
+    postCount: r.post_count,
+    previewTitles: latest.has(r.id) ? [latest.get(r.id)] : [],
+  }));
+}
+
 export type OrderStatus = "pending" | "paid";
 
 export type Order = {
