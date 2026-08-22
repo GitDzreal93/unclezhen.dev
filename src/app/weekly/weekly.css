@@ -85,6 +85,9 @@
     radial-gradient(circle at 20% 10%, rgba(255, 255, 255, .25), transparent 40%),
     radial-gradient(circle at 80% 90%, rgba(120, 90, 40, .18), transparent 45%);
 }
+/* Reveal 动画 wrapper 是本容器的 flex item，min-width:auto 会被
+   paper-inner 的 820px 定宽内容撑破窄屏 —— 同 daily 页的 dp-wrap 修复。 */
+.weekly-page__paper > * { min-width: 0; }
 :root[data-theme="dark"] .weekly-page__paper {
   background:
     radial-gradient(circle at 20% 10%, rgba(255, 255, 255, .04), transparent 40%),

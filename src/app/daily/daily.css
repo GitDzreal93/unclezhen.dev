@@ -46,6 +46,10 @@
   justify-content: center;
   padding: 26px 14px 60px;
 }
+/* DailyMotion 的动画 wrapper 是本容器的 flex item，默认 min-width:auto
+   会被 .dp-page 的 880px 定宽撑破窄屏（375px 视口实测溢出到 628px）。
+   max-width:100% 管不住 flex item 的 min-content 下限，必须显式归零。 */
+.dp-wrap > * { min-width: 0; }
 
 .dp-page {
   width: 880px;
