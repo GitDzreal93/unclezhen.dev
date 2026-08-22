@@ -1,0 +1,6 @@
+# Placeholder — AdSense 在后台生成时会下发一段 pub-xxxxxxxxxxxxxxxx 内容。
+# 这里写明 Google 校验的占位。开通后：把 .env 里的 NEXT_PUBLIC_ADSENSE_CLIENT
+# 配成 ca-pub-xxxxxxxxxxxxxxxx 后，在 /adsense.txt 里把下一行替换为：
+# pub-xxxxxxxxxxxxxxxx
+# (Google AdSense 会在确认信里给出这串 ID)
+google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0

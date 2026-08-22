@@ -23,6 +23,13 @@ export async function generateMetadata({
   return {
     title: `${s.title} · ${t(locale, "blog.meta.title")}`,
     description: s.description,
+    alternates: { canonical: `/blog/series/${s.id}` },
+    openGraph: {
+      type: "article",
+      title: s.title,
+      description: s.description,
+      url: `/blog/series/${s.id}`,
+    },
   };
 }
 

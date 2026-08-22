@@ -17,6 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: `${t(locale, "blog.seriesIndex.heading")} · ${t(locale, "blog.meta.title")}`,
     description: t(locale, "blog.seriesIndex.lead"),
+    alternates: { canonical: "/blog/series" },
   };
 }
 

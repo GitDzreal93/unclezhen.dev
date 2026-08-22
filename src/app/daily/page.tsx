@@ -14,6 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: "赛博日报 · unclezhen",
     description: "AI 主编、臻叔把关的每日技术情报日报：要闻 / 热榜 / 开源 / 副业 / 常识 / 人物志 / 广告位。",
+    alternates: { canonical: "/daily" },
   };
 }
 
