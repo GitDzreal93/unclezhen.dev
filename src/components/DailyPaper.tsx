@@ -188,7 +188,7 @@ function RanksSection({ body }: { body: DailyRanksBody }) {
 // ---- 03 今日开源项目 ----
 
 function OssSection({ body }: { body: DailyOssBody }) {
-  if (!body?.body?.trim()) return null;
+  if (!body?.body?.trim() && !body?.title?.trim()) return null;
   const { rank, tagline } = DAILY_DEFAULTS.oss;
   return (
     <section className="dp-sec">
@@ -197,6 +197,8 @@ function OssSection({ body }: { body: DailyOssBody }) {
         <div className="dp-oss-rank">{rank}</div>
         <div className="dp-oss-body">
           <div className="dp-oss-tagline">{tagline}</div>
+          {body.title && <h3>{body.title}</h3>}
+          {body.meta && <div className="dp-oss-meta">{body.meta}</div>}
           <Md source={body.body} />
           {(body.stats?.length ?? 0) > 0 && (
             <div className="dp-oss-stats">
@@ -206,6 +208,11 @@ function OssSection({ body }: { body: DailyOssBody }) {
                 </span>
               ))}
             </div>
+          )}
+          {body.url && (
+            <a className="dp-oss-link" href={body.url} target="_blank" rel="noopener noreferrer">
+              {body.urlLabel || "查看项目 →"}
+            </a>
           )}
         </div>
       </div>
