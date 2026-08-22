@@ -21,6 +21,9 @@ export default function SiteFooter({ locale }: { locale: Locale }) {
             <li><Link href="/projects">/projects</Link></li>
             <li><Link href="/shop">/shop</Link></li>
             <li><Link href="/">/game</Link></li>
+            <li><Link href="/about">/about</Link></li>
+            <li><Link href="/contact">/contact</Link></li>
+            <li><Link href="/privacy">/privacy</Link></li>
           </ul>
         </div>
         <p className="footer-copy">© unclezhen · prototype · exit 0</p>
