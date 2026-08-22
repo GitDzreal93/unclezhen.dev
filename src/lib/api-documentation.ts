@@ -23,6 +23,7 @@ Authorization: Bearer zhen_your_secret_token
 | projects:read / projects:write | 读取 / 新增、更新、删除项目 |
 | series:read / series:write | 读取 / 创建、编辑、删除合集，管理合集内文章与排序 |
 | banners:read / banners:write | 读取 / 新增、更新、删除侧栏 Banner |
+| issues:read / issues:write | 读取 / 整期上传、发布、删除期刊（赛博日报） |
 | images:write | 上传图片素材到图床，返回 CDN 链接与 Markdown 标签 |
 
 读取和写入是独立授权。缺少、无效、过期或已撤销的 Token 返回 401；Token 有效但权限不足返回 403。
@@ -43,6 +44,8 @@ Authorization: Bearer zhen_your_secret_token
 | DELETE | /series/:id/posts/:postId | series:write |
 | GET / POST | /banners | banners:read / banners:write |
 | GET / PATCH / DELETE | /banners/:id | banners:read / banners:write |
+| GET / POST | /issues | issues:read / issues:write |
+| GET / PATCH / DELETE | /issues/:id | issues:read / issues:write |
 | POST | /images | images:write |
 
 集合读取返回 { "data": [...], "meta": { "count": 1 } }，单条返回 { "data": {...} }。新增返回 201，删除返回空响应 204。
@@ -66,6 +69,26 @@ POST 必须包含 id，重复 ID 返回 409。PATCH 只提交需要改动的字�
 
 // banners（字段为下划线命名，与数据库列一致）
 { "id": "agent-promo", "title": "alt 文案", "image_url": "https://cdn.jsdelivr.net/gh/...", "link_url": "/blog/series/agent-notes", "sort": 0, "visible": true }
+
+// issues（赛博日报整期，v3 字段）
+{
+  "id": "daily-2026-08-21",
+  "issueNo": 9,
+  "title": "赛博日报 · 第 9 期",
+  "weather": "晴 24–32℃",
+  "publishedAt": "2026-08-21",
+  "visible": false,
+  "sections": [
+    {
+      "kind": "daily_news",
+      "body": {
+        "image": "https://cdn.jsdelivr.net/gh/.../front.png",
+        "body": "## 头条副标\n\n首段正文……\n\n![配图说明](https://cdn.jsdelivr.net/gh/.../inline.png)\n\n> 一段引用",
+        "wire": [{ "tag": "具身智能", "text": "简讯内容" }]
+      }
+    }
+  ]
+}
 ~~~
 
 商品读取刻意不返回发货内容、发货方式、卡密和订单信息。该 API 也不能管理支付、订单、卡密或导航；图片素材通过 images:write 上传（见下文）。
@@ -81,6 +104,20 @@ POST /api/v1/images 以 multipart/form-data 上传一张图片到图床（GitHub
 ~~~
 
 把返回的 markdown 直接拼进 POST /api/v1/posts 的 body 即可完成「带图发文」。该端点仅支持上传，没有列举/删除；管理已有素材请用后台「媒体」页。
+
+## 期刊（赛博日报）
+
+POST /api/v1/issues 一把传完整一期（期号元信息 + 全部板块），是给「AI 生成日报 → 调 API 发布」用的两步流。完整文档在 docs/issues-api.md（与本站 docs/ 一同发布）。
+
+简版概览：
+
+- 整期一调一存，不支持单板块增量更新；板块可留空（不传 = 不渲染）
+- id 建议 daily-YYYY-MM-DD，issueNo 全局唯一
+- visible 默认 false（草稿），发布走 PATCH { "visible": true }
+- v3 字段（自 2026-08 起）：每个 daily_* 板块的正文是 markdown 字符串，原 imageCaption / kicker / paragraphs / rank / color 等样式性字段已移除
+- 配图两步流：POST /api/v1/images 拿链接 → 把返回的 markdown 拼进 body
+
+合法的 kind：daily_news / daily_ranks / daily_oss / daily_side / daily_know / daily_bio / daily_ads，每种每期最多一个。
 
 ## 合集与 Banner
 
@@ -111,6 +148,35 @@ curl -X POST -H "Authorization: Bearer $ZHEN_TOKEN" \\
 curl -X POST -H "Authorization: Bearer $ZHEN_TOKEN" \\
   -F "file=@/path/to/pic.png" -F "alt=示例图" \\
   https://unclezhen.cn/api/v1/images
+
+# 整期上传赛博日报（v3 字段：daily_news.body 是 markdown 字符串）
+# 第一步：上传头版主视觉图，拿到 markdown 标签
+curl -X POST -H "Authorization: Bearer $ZHEN_TOKEN" \\
+  -F "file=@/path/to/front.png" -F "alt=头版主视觉" \\
+  https://unclezhen.cn/api/v1/images
+# => { "data": { "markdown": "![头版主视觉](https://...)" } }
+
+# 第二步：把上一步的 markdown 拼进 daily_news.body，提交整期
+curl -X POST -H "Authorization: Bearer $ZHEN_TOKEN" \\
+  -H "Content-Type: application/json" \\
+  --data '{
+    "id":"daily-2026-08-21",
+    "issueNo":9,
+    "title":"赛博日报 · 第 9 期",
+    "publishedAt":"2026-08-21",
+    "visible":false,
+    "sections":[
+      { "kind":"daily_news",
+        "body":{ "image":"https://.../front.png",
+                 "body":"## 头条副标\n\n首段正文……\n\n![配图](https://.../inline.png)" } }
+    ]
+  }' \\
+  https://unclezhen.cn/api/v1/issues
+
+# 审核通过后发布
+curl -X PATCH -H "Authorization: Bearer $ZHEN_TOKEN" -H "Content-Type: application/json" \\
+  --data '{"visible":true}' \\
+  https://unclezhen.cn/api/v1/issues/daily-2026-08-21
 
 # 创建合集、加入文章并排序
 curl -X POST -H "Authorization: Bearer $ZHEN_TOKEN" -H "Content-Type: application/json" \\
