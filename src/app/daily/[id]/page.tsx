@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import DailyPaper from "@/components/DailyPaper";
-import Reveal from "@/components/Reveal";
+import DailyMotion from "@/components/DailyMotion";
 import { getIssue, getVisibleNavItems } from "@/lib/data";
 import { getLocale } from "@/lib/i18n/cookie";
 import { getTheme } from "@/lib/theme/cookie";
@@ -39,10 +39,10 @@ export default async function DailyIssuePage({ params }: Params) {
       <SiteNav items={items} active="daily" locale={locale} theme={theme} />
       <main id="main">
         <div className="dp-wrap">
-          {/* 报纸落定动画：与 weekly 一致 */}
-          <Reveal as="div" y={36} rotate={-1.2} delay={0.08} start="top 94%">
+          {/* 水墨开卷：纸张展开 + 印章落款 + 板块洇开 */}
+          <DailyMotion>
             <DailyPaper issue={issue} />
-          </Reveal>
+          </DailyMotion>
         </div>
         <div className="wrap" style={{ paddingBottom: 48, textAlign: "center" }}>
           <Link href="/daily" className="btn btn--ghost btn--sm">← 返回期刊列表</Link>
