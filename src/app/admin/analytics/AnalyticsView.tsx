@@ -400,7 +400,56 @@ function TopPathsChart({
         }}
       >
         <span>{t(locale, "admin.analyticsPath")}</span>
-        <span>PV · UV</span>
+        <span
+          style={{
+            display: "inline-flex",
+            gap: 12,
+            alignItems: "center",
+            fontSize: 11,
+            color: "var(--muted)",
+            textTransform: "none",
+            letterSpacing: 0,
+          }}
+        >
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              color: "var(--fg)",
+            }}
+          >
+            <span
+              style={{
+                width: 12,
+                height: 12,
+                background: "var(--accent)",
+                borderRadius: 2,
+                display: "inline-block",
+              }}
+            />
+            {t(locale, "admin.analyticsUV")}
+          </span>
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              color: "var(--fg)",
+            }}
+          >
+            <span
+              style={{
+                width: 12,
+                height: 12,
+                background: "color-mix(in oklch, var(--accent) 35%, var(--border))",
+                borderRadius: 2,
+                display: "inline-block",
+              }}
+            />
+            {t(locale, "admin.analyticsReturn")}
+          </span>
+        </span>
         <span style={{ textAlign: "right" }}>PV</span>
         <span style={{ textAlign: "right" }}>UV</span>
       </div>
