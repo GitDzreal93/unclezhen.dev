@@ -67,7 +67,10 @@ jobs:
           # buildcache prune after the build: this 40G disk filled to 100%
           # on 2026-08-22 from ~24G of accumulated docker build cache, which
           # PANIC'd postgres (WAL write failed) and took the site down.
-          DEPLOY_SCRIPT='set -e; cd /opt/unclezhen && git remote set-url origin https://gh-proxy.com/https://github.com/GitDzreal93/unclezhen.dev.git && git fetch --prune origin main && git reset --hard origin/main && docker compose up -d --build && docker builder prune -af --filter until=24h >/dev/null 2>&1 || true && df -h / | tail -1 && docker compose ps'
+          # After build, run migrate.mjs so any new tables/columns from this
+          # push actually exist in the prod DB. The seed script (setup-db.mjs)
+          # is intentionally NOT called here — it would overwrite admin edits.
+          DEPLOY_SCRIPT='set -e; cd /opt/unclezhen && git remote set-url origin https://gh-proxy.com/https://github.com/GitDzreal93/unclezhen.dev.git && git fetch --prune origin main && git reset --hard origin/main && docker compose up -d --build && docker compose exec -T app node scripts/migrate.mjs && docker builder prune -af --filter until=24h >/dev/null 2>&1 || true && df -h / | tail -1 && docker compose ps'
 
           INVOKE_ID=$(aliyun ecs RunCommand \
             --RegionId cn-shenzhen \
