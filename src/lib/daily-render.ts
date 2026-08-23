@@ -114,6 +114,7 @@ export function normalizeDailyBody<T extends SectionKind>(kind: T, raw: unknown)
         return {
           title: pickStr(b.title),
           meta: pickStr(b.meta),
+          image: pickStr(b.image),
           body: joinParagraphs(b.paragraphs),
           stats: Array.isArray(b.stats) ? (b.stats as any[]).filter((s) => s && typeof s.label === "string" && typeof s.value === "string") : [],
           url: pickStr(b.url),

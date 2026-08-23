@@ -487,6 +487,23 @@
   margin-bottom: 5px;
 }
 .dp-oss-body h3 { font-family: var(--serif); font-weight: 700; font-size: 19px; margin: 0 0 5px; letter-spacing: 0.02em; }
+.dp-oss-figure { margin: 10px 0 14px; }
+.dp-oss-figure img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 6px;
+  border: 1px solid color-mix(in oklch, var(--dp-ink) 15%, transparent);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+.dp-oss-figure figcaption {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--dp-ink-ghost);
+  text-align: center;
+  margin-top: 5px;
+  letter-spacing: 0.08em;
+}
 .dp-oss-body .dp-oss-meta {
   font-family: var(--font-mono);
   font-size: 11px;

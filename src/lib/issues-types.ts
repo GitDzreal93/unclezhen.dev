@@ -171,10 +171,11 @@ export type DailyRanksBody = {
   }[];
 };
 
-// 03 今日开源项目 — markdown body + 结构化 stats + 跳转链接
+// 03 今日开源项目 — markdown body + 结构化 stats + 跳转链接 + 信息图
 export type DailyOssBody = {
   title?: string; // 项目名（如 owner/repo — 一句话定位）
   meta?: string; // 一行元信息（语言 · star 数 · 榜单成绩）
+  image?: string; // 应用场景信息图（可选，渲染在标题上方）
   body: string; // markdown
   stats?: { label: string; value: string }[];
   url?: string; // 项目主页（GitHub repo 等），渲染成跳转按钮

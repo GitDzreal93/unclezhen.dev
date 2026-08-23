@@ -197,6 +197,13 @@ function OssSection({ body }: { body: DailyOssBody }) {
         <div className="dp-oss-rank">{rank}</div>
         <div className="dp-oss-body">
           <div className="dp-oss-tagline">{tagline}</div>
+          {body.image && (
+            <figure className="dp-oss-figure">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={body.image} alt="" />
+              <figcaption>应用场景信息图 · 臻叔 绘</figcaption>
+            </figure>
+          )}
           {body.title && <h3>{body.title}</h3>}
           {body.meta && <div className="dp-oss-meta">{body.meta}</div>}
           <Md source={body.body} />
