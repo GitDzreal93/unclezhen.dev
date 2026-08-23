@@ -31,13 +31,6 @@ function shiftDays(iso: string, delta: number): string {
 
 // Inline styles for the trend bar — small, one component, no need to
 // touch the global admin.css.
-const trendTrackStyle: React.CSSProperties = {
-  background: "var(--border)",
-  height: 8,
-  borderRadius: 4,
-  overflow: "hidden",
-  minWidth: 60,
-};
 
 export default function AnalyticsView({ data, from, to, path, locale }: Props) {
   const router = useRouter();
@@ -62,7 +55,6 @@ export default function AnalyticsView({ data, from, to, path, locale }: Props) {
   }
 
   const total = data.total;
-  const maxDailyPv = Math.max(1, ...data.daily.map((d) => d.pv));
 
   return (
     <div
@@ -198,7 +190,7 @@ export default function AnalyticsView({ data, from, to, path, locale }: Props) {
         )}
       </div>
 
-      {/* Daily trend */}
+      {/* Daily trend — dual-line chart (PV + UV) */}
       <div className="settings-card" style={{ maxWidth: "none" }}>
         <h2>{t(locale, "admin.analyticsDaily")}</h2>
         {data.daily.length === 0 ? (
@@ -206,40 +198,191 @@ export default function AnalyticsView({ data, from, to, path, locale }: Props) {
             <div className="admin-empty__title">—</div>
           </div>
         ) : (
-          <div className="table-wrap">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>{t(locale, "admin.analyticsDate")}</th>
-                  <th style={{ textAlign: "right" }}>PV</th>
-                  <th style={{ textAlign: "right" }}>UV</th>
-                  <th style={{ width: "40%" }}>{t(locale, "admin.analyticsTrend")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.daily.map((d) => (
-                  <tr key={d.date}>
-                    <td><code>{d.date}</code></td>
-                    <td style={{ textAlign: "right" }}>{d.pv.toLocaleString()}</td>
-                    <td style={{ textAlign: "right" }}>{d.uv.toLocaleString()}</td>
-                    <td>
-                      <div style={trendTrackStyle}>
-                        <div
-                          style={{
-                            width: `${Math.round((d.pv / maxDailyPv) * 100)}%`,
-                            height: "100%",
-                            background: "var(--accent)",
-                            transition: "width .2s",
-                          }}
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <TrendChart data={data.daily} locale={locale} />
         )}
+      </div>
+    </div>
+  );
+}
+
+// Dual-line SVG chart for daily PV + UV. No chart library — hand-rolled so
+// the bundle stays small and colors track the design tokens. The Y axis
+// covers max(PV, UV); X axis labels skip to keep ~6 labels max regardless
+// of date range.
+function TrendChart({
+  data,
+  locale,
+}: {
+  data: Array<{ date: string; pv: number; uv: number }>;
+  locale: Locale;
+}) {
+  const W = 720;
+  const H = 220;
+  const PAD_L = 40;
+  const PAD_R = 16;
+  const PAD_T = 12;
+  const PAD_B = 28;
+  const innerW = W - PAD_L - PAD_R;
+  const innerH = H - PAD_T - PAD_B;
+
+  const maxV = Math.max(1, ...data.flatMap((d) => [d.pv, d.uv]));
+  const stepX = data.length > 1 ? innerW / (data.length - 1) : 0;
+  const yOf = (v: number) => PAD_T + innerH - (v / maxV) * innerH;
+  const xOf = (i: number) => PAD_L + i * stepX;
+  const pathFor = (key: "pv" | "uv") =>
+    data
+      .map((d, i) => `${i === 0 ? "M" : "L"} ${xOf(i).toFixed(1)} ${yOf(d[key]).toFixed(1)}`)
+      .join(" ");
+
+  // ~6 evenly-spaced X labels (skip the rest to avoid overlap)
+  const labelCount = Math.min(6, data.length);
+  const labelStep = Math.max(1, Math.floor((data.length - 1) / Math.max(1, labelCount - 1)));
+  const labelIdxs = Array.from(
+    { length: Math.min(labelCount, data.length) },
+    (_, k) => Math.min(k * labelStep, data.length - 1),
+  );
+  // Always show first and last
+  const xLabelIdxs = Array.from(new Set([0, ...labelIdxs, data.length - 1])).sort((a, b) => a - b);
+
+  // Y gridlines at 0, 25%, 50%, 75%, 100% of maxV
+  const yTicks = [0, 0.25, 0.5, 0.75, 1].map((p) => Math.round(maxV * p));
+  const lastDay = data[data.length - 1];
+  const dateLocale = locale === "zh" ? "zh-CN" : "en";
+
+  return (
+    <div style={{ display: "grid", gap: 8 }}>
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        width="100%"
+        style={{ display: "block", maxWidth: "100%", height: "auto" }}
+        role="img"
+        aria-label={t(locale, "admin.analyticsDaily")}
+      >
+        {/* Y gridlines + labels */}
+        {yTicks.map((v, i) => {
+          const y = yOf(v);
+          return (
+            <g key={`y-${i}`}>
+              <line
+                x1={PAD_L}
+                x2={W - PAD_R}
+                y1={y}
+                y2={y}
+                stroke="var(--border)"
+                strokeDasharray={i === 0 ? "0" : "2 3"}
+                strokeWidth={1}
+              />
+              <text
+                x={PAD_L - 6}
+                y={y}
+                textAnchor="end"
+                dominantBaseline="middle"
+                fontSize={10}
+                fill="var(--muted)"
+                style={{ fontFamily: "var(--font-mono, monospace)" }}
+              >
+                {v}
+              </text>
+            </g>
+          );
+        })}
+
+        {/* X axis labels */}
+        {xLabelIdxs.map((i) => {
+          const x = xOf(i);
+          // Show MM-DD only (year is in the title), so labels stay short
+          const [, m, d] = data[i].date.split("-");
+          return (
+            <text
+              key={`x-${i}`}
+              x={x}
+              y={H - 8}
+              textAnchor="middle"
+              fontSize={10}
+              fill="var(--muted)"
+              style={{ fontFamily: "var(--font-mono, monospace)" }}
+            >
+              {m}-{d}
+            </text>
+          );
+        })}
+
+        {/* UV line (dashed, muted) — drawn first so PV sits on top */}
+        <path
+          d={pathFor("uv")}
+          fill="none"
+          stroke="var(--muted)"
+          strokeWidth={1.5}
+          strokeDasharray="4 3"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+        />
+
+        {/* PV line (solid, accent) */}
+        <path
+          d={pathFor("pv")}
+          fill="none"
+          stroke="var(--accent)"
+          strokeWidth={2}
+          strokeLinejoin="round"
+          strokeLinecap="round"
+        />
+
+        {/* End-of-range dot for each line */}
+        {data.length > 0 && (
+          <>
+            <circle
+              cx={xOf(data.length - 1)}
+              cy={yOf(lastDay.uv)}
+              r={2.5}
+              fill="var(--muted)"
+            />
+            <circle
+              cx={xOf(data.length - 1)}
+              cy={yOf(lastDay.pv)}
+              r={2.5}
+              fill="var(--accent)"
+            />
+          </>
+        )}
+      </svg>
+
+      {/* Legend + last-day summary */}
+      <div
+        style={{
+          display: "flex",
+          gap: 16,
+          alignItems: "center",
+          flexWrap: "wrap",
+          fontSize: 12,
+          color: "var(--muted)",
+        }}
+      >
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <span
+            style={{
+              width: 18,
+              height: 2,
+              background: "var(--accent)",
+              display: "inline-block",
+            }}
+          />
+          PV · {lastDay.pv.toLocaleString()}
+        </span>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <span
+            style={{
+              width: 18,
+              height: 0,
+              borderTop: "2px dashed var(--muted)",
+              display: "inline-block",
+            }}
+          />
+          UV · {lastDay.uv.toLocaleString()}
+        </span>
+        <span style={{ marginLeft: "auto", fontFamily: "var(--font-mono, monospace)" }}>
+          {data[0].date} → {lastDay.date} · {data.length} {t(locale, "admin.analyticsDate")}
+        </span>
       </div>
     </div>
   );
