@@ -163,30 +163,7 @@ export default function AnalyticsView({ data, from, to, path, locale }: Props) {
             <p className="admin-empty__desc">{t(locale, "admin.analyticsEmptyDesc")}</p>
           </div>
         ) : (
-          <div className="table-wrap">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>{t(locale, "admin.analyticsPath")}</th>
-                  <th style={{ textAlign: "right" }}>PV</th>
-                  <th style={{ textAlign: "right" }}>UV</th>
-                  <th style={{ textAlign: "right" }}>{t(locale, "admin.analyticsLastSeen")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.byPath.map((r) => (
-                  <tr key={r.path}>
-                    <td><code>{r.path}</code></td>
-                    <td style={{ textAlign: "right" }}>{r.pv.toLocaleString()}</td>
-                    <td style={{ textAlign: "right" }}>{r.uv.toLocaleString()}</td>
-                    <td style={{ textAlign: "right", color: "var(--muted)", fontSize: 12 }}>
-                      {new Date(r.lastSeen).toLocaleString(locale === "zh" ? "zh-CN" : "en")}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <TopPathsChart data={data.byPath.slice(0, 10)} locale={locale} />
         )}
       </div>
 
@@ -384,6 +361,131 @@ function TrendChart({
           {data[0].date} → {lastDay.date} · {data.length} {t(locale, "admin.analyticsDate")}
         </span>
       </div>
+    </div>
+  );
+}
+
+// Top-N horizontal stacked bar chart for per-path PV/UV. Each row:
+// [path label] [UV segment ███ + repeat segment ▓▓▓] [PV] [UV]
+// Input is the API's PV-desc list; we reverse so the highest PV sits at
+// the bottom (visually grows downward, common Pareto style). Stack
+// composition: UV at the front, "PV - UV" (returns) behind it, so the
+// accent color highlights unique reach and the dim extension shows loyalty.
+function TopPathsChart({
+  data,
+  locale,
+}: {
+  data: AnalyticsResult["byPath"];
+  locale: Locale;
+}) {
+  // reverse: highest PV ends up at the bottom of the chart
+  const rows = [...data].reverse();
+  const maxPv = Math.max(1, ...rows.map((r) => r.pv));
+  const dateLocale = locale === "zh" ? "zh-CN" : "en";
+
+  return (
+    <div style={{ display: "grid", gap: 6 }}>
+      {/* Header row (matches column alignment) */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "minmax(120px, 220px) 1fr 56px 56px",
+          gap: 12,
+          fontSize: 11,
+          color: "var(--muted)",
+          textTransform: "uppercase",
+          letterSpacing: ".06em",
+          padding: "0 2px 4px",
+          borderBottom: "1px solid var(--border)",
+        }}
+      >
+        <span>{t(locale, "admin.analyticsPath")}</span>
+        <span>PV · UV</span>
+        <span style={{ textAlign: "right" }}>PV</span>
+        <span style={{ textAlign: "right" }}>UV</span>
+      </div>
+
+      {rows.map((r) => {
+        const repeat = Math.max(0, r.pv - r.uv);
+        const uvPct = (r.uv / maxPv) * 100;
+        const repeatPct = (repeat / maxPv) * 100;
+        const lastSeen = new Date(r.lastSeen);
+        const lastSeenStr = lastSeen.toLocaleString(dateLocale, {
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+        return (
+          <div
+            key={r.path}
+            style={{
+              display: "grid",
+              gridTemplateColumns: "minmax(120px, 220px) 1fr 56px 56px",
+              gap: 12,
+              alignItems: "center",
+              fontSize: 12,
+              padding: "4px 2px",
+            }}
+            title={`${r.path}\nPV ${r.pv} · UV ${r.uv}\n最近访问 ${lastSeenStr}`}
+          >
+            <code
+              style={{
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                color: "var(--fg)",
+              }}
+            >
+              {r.path}
+            </code>
+            <div
+              style={{
+                display: "flex",
+                height: 18,
+                background: "var(--border)",
+                borderRadius: 3,
+                overflow: "hidden",
+              }}
+            >
+              {/* UV segment (solid accent — unique reach) */}
+              <div
+                style={{
+                  width: `${uvPct}%`,
+                  background: "var(--accent)",
+                  transition: "width .2s",
+                }}
+              />
+              {/* Repeat segment (dimmer accent — PV beyond UV) */}
+              <div
+                style={{
+                  width: `${repeatPct}%`,
+                  background: "color-mix(in oklch, var(--accent) 35%, var(--border))",
+                  transition: "width .2s",
+                }}
+              />
+            </div>
+            <span
+              style={{
+                textAlign: "right",
+                fontFamily: "var(--font-mono, monospace)",
+                fontWeight: 600,
+              }}
+            >
+              {r.pv.toLocaleString()}
+            </span>
+            <span
+              style={{
+                textAlign: "right",
+                fontFamily: "var(--font-mono, monospace)",
+                color: "var(--muted)",
+              }}
+            >
+              {r.uv.toLocaleString()}
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 }
