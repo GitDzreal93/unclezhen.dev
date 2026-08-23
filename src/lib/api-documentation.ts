@@ -25,6 +25,7 @@ Authorization: Bearer zhen_your_secret_token
 | banners:read / banners:write | 读取 / 新增、更新、删除侧栏 Banner |
 | issues:read / issues:write | 读取 / 整期上传、发布、删除期刊（赛博日报） |
 | images:write | 上传图片素材到图床，返回 CDN 链接与 Markdown 标签 |
+| analytics:read | 读取访问统计（PV/UV/每日趋势、按路径聚合） |
 
 读取和写入是独立授权。缺少、无效、过期或已撤销的 Token 返回 401；Token 有效但权限不足返回 403。
 
@@ -47,6 +48,7 @@ Authorization: Bearer zhen_your_secret_token
 | GET / POST | /issues | issues:read / issues:write |
 | GET / PATCH / DELETE | /issues/:id | issues:read / issues:write |
 | POST | /images | images:write |
+| GET | /admin/analytics | analytics:read |
 
 集合读取返回 { "data": [...], "meta": { "count": 1 } }，单条返回 { "data": {...} }。新增返回 201，删除返回空响应 204。
 
@@ -211,6 +213,31 @@ curl -X POST -H "Authorization: Bearer $ZHEN_TOKEN" -H "Content-Type: applicatio
 ~~~
 
 状态码：401 unauthorized、403 forbidden、404 not_found、409 conflict、422 validation_error、500 internal_error。
+
+## 访问统计（analytics:read）
+
+- **端点**：\`GET /api/admin/analytics\`
+- **权限**：\`analytics:read\`（或后台会话 cookie）
+- **查询参数**：
+  - \`from\` — ISO 日期（默认 = 30 天前）
+  - \`to\` — ISO 日期（默认 = 今天）
+  - \`path\` — 可选，精确匹配路径，如 \`/blog\`
+- **响应**：
+
+~~~json
+{
+  "data": {
+    "total":   { "pv": 1234, "uv": 567, "visitors": 678 },
+    "byPath":  [{ "path": "/blog", "pv": 100, "uv": 40, "lastSeen": "2026-08-23T10:00:00.000Z" }],
+    "daily":   [{ "date": "2026-08-23", "pv": 50, "uv": 30 }]
+  }
+}
+~~~
+
+- \`pv\` — 区间内 \`page_views\` 命中数（每次上报 = 1）
+- \`uv\` — 区间内按 \`(visitor_id, path, 日)\` 去重后的命中数
+- \`visitors\` — 区间内独立访客数（跨路径）
+- \`daily\` 数组按日补齐，无数据的日期 PV/UV 均为 0
 
 ## 给 AI Agent 的约束
 

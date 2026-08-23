@@ -256,6 +256,37 @@ CREATE UNIQUE INDEX IF NOT EXISTS orders_out_trade_no_idx ON orders (out_trade_n
 
 DROP TABLE IF EXISTS enrollments;
 DROP TABLE IF EXISTS courses;
+
+-- Page-view tracking. A page_visitor row is upserted on every tracked hit
+-- (last_seen + visit_count++); each hit inserts a page_views row; UV is
+-- deduped at (visitor_id, path, visit_date) granularity via the composite
+-- primary key on page_visitor_paths.
+CREATE TABLE IF NOT EXISTS page_visitors (
+  visitor_id  text PRIMARY KEY,
+  first_seen  timestamptz NOT NULL DEFAULT now(),
+  last_seen   timestamptz NOT NULL DEFAULT now(),
+  visit_count int  NOT NULL DEFAULT 1
+);
+
+CREATE TABLE IF NOT EXISTS page_views (
+  id         bigserial PRIMARY KEY,
+  visitor_id text NOT NULL,
+  path       text NOT NULL,
+  referer    text,
+  user_agent text,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS page_views_path_time_idx    ON page_views (path, created_at DESC);
+CREATE INDEX IF NOT EXISTS page_views_visitor_time_idx ON page_views (visitor_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS page_views_created_idx      ON page_views (created_at DESC);
+
+CREATE TABLE IF NOT EXISTS page_visitor_paths (
+  visitor_id text NOT NULL,
+  path       text NOT NULL,
+  visit_date date NOT NULL,
+  PRIMARY KEY (visitor_id, path, visit_date)
+);
+CREATE INDEX IF NOT EXISTS page_visitor_paths_date_idx ON page_visitor_paths (visit_date, path);
 `;
 
 // Post bodies are authored/stored as HTML in the prototype; the platform now

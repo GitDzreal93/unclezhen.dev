@@ -3,6 +3,7 @@ import Script from "next/script";
 import { getLocale } from "@/lib/i18n/cookie";
 import { getTheme } from "@/lib/theme/cookie";
 import { t } from "@/lib/i18n/dict";
+import PageViewTracker from "@/components/PageViewTracker";
 import "./globals.css";
 
 // viewportFit=cover 让 env(safe-area-inset-*) 生效（刘海屏/手势条）。
@@ -62,6 +63,7 @@ export default async function RootLayout({
   return (
     <html lang={locale === "zh" ? "zh-CN" : "en"} data-theme={theme}>
       <body>
+        <PageViewTracker />
         {children}
         {adsenseClient && (
           <Script
