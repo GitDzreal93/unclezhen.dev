@@ -147,7 +147,7 @@ export default async function HomePage() {
                     <p className="lead">{t(locale, "home.hero.lead")}</p>
                     <div className="hero-actions">
                       <Link className="btn btn--primary" href="/projects">{t(locale, "home.hero.cta.projects")}</Link>
-                      <a className="btn btn--ghost" href="#about">{t(locale, "home.hero.cta.about")}</a>
+                      <Link className="btn btn--ghost" href="/about">{t(locale, "home.hero.cta.about")}</Link>
                     </div>
                     <div className="stat-row">
                       <div className="stat">
@@ -183,48 +183,6 @@ export default async function HomePage() {
         </div>
 
         <div className="rest">
-          <section className="section about" id="about">
-            <Reveal as="div" className="wrap about__grid" mode="children" y={20} stagger={0.1}>
-              <div>
-                <div className="eyebrow">{t(locale, "home.about.kicker")}</div>
-                <h2>{t(locale, "home.about.heading")}</h2>
-              </div>
-              <div className="about__text">
-                <p>{t(locale, "home.about.p1")}</p>
-                <p>{t(locale, "home.about.p2")}</p>
-                <div className="code-block">
-                  <div><span className="k">const</span> zhen = &#123;</div>
-                  <div>  role: <span className="s">&quot;creative engineer&quot;</span>,</div>
-                  <div>  stack: [<span className="s">&quot;TS&quot;</span>, <span className="s">&quot;React&quot;</span>, <span className="s">&quot;WebGL&quot;</span>],</div>
-                  <div>  ships: [<span className="s">&quot;product&quot;</span>, <span className="s">&quot;course&quot;</span>, <span className="s">&quot;tool&quot;</span>],</div>
-                  <div>&#125;;</div>
-                </div>
-                <ul className="skill-list" style={{ marginTop: 20 }}>
-                  <li>
-                    <span>frontend</span>
-                    <span className="bar-track"><i style={{ width: "92%" }}></i></span>
-                    <span className="lvl">{t(locale, "home.about.skills.frontend")}</span>
-                  </li>
-                  <li>
-                    <span>motion/gl</span>
-                    <span className="bar-track"><i style={{ width: "78%" }}></i></span>
-                    <span className="lvl">{t(locale, "home.about.skills.motion")}</span>
-                  </li>
-                  <li>
-                    <span>ship 0→1</span>
-                    <span className="bar-track"><i style={{ width: "78%" }}></i></span>
-                    <span className="lvl">{t(locale, "home.about.skills.ship")}</span>
-                  </li>
-                  <li>
-                    <span>teach</span>
-                    <span className="bar-track"><i style={{ width: "80%" }}></i></span>
-                    <span className="lvl">{t(locale, "home.about.skills.teach")}</span>
-                  </li>
-                </ul>
-              </div>
-            </Reveal>
-          </section>
-
           <section className="section modules" id="modules">
             <div className="wrap">
               <div className="section-head">

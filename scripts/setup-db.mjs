@@ -325,14 +325,13 @@ const PRODUCTS = [
 // no presentation entry for that key (see EXTRAS in LauncherStage, LAYOUT in
 // GameClient). Keep the sort field authoritative for cross-consumer order.
 //
-// /about points to /home#about — it scrolls to the existing #about section
-// on the home page rather than spawning a separate route.
+// /about now has its own standalone route (3D IP + LogoPit + OKR + fishbone).
 const NAV_ITEMS = [
   { key: "home",     label: "/home",     href: "/home",          sort: 0 },
   { key: "blog",     label: "/blog",     href: "/blog",          sort: 1 },
   { key: "projects", label: "/projects", href: "/projects",      sort: 2 },
   { key: "shop",     label: "/shop",     href: "/shop",          sort: 3 },
-  { key: "about",    label: "/about",    href: "/home#about",    sort: 4 },
+  { key: "about",    label: "/about",    href: "/about",         sort: 4 },
 ];
 
 async function main() {
